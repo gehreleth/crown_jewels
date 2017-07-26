@@ -68,18 +68,16 @@ public class Servlet extends HttpServlet {
 
     private void returnList(HttpServletResponse response, Connection conn) throws SQLException, IOException {
         Statement stmt = null;
-        PrintWriter writer = null;
         try {
             stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("select guid from blob_storage");
             response.setStatus(200);
             response.setContentType("text/plain");
-            writer = response.getWriter();
+            PrintWriter writer = response.getWriter();
             while (rs.next()) {
                 writer.println(rs.getString("guid"));
             }
         } finally {
-            if (writer != null) { try { writer.close(); } catch (Exception e)  {} }
             if (stmt != null) { try { stmt.close(); } catch (Exception e)  {} }
         }
     }
