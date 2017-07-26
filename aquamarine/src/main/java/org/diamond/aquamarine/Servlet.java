@@ -141,7 +141,6 @@ public class Servlet extends HttpServlet {
             throws ServletException
     {
         PreparedStatement stmt = null;
-        InputStream is = null;
         try {
             stmt = conn.prepareStatement("insert into blob_storage(guid, mime_type, content) values(?,?,?)");
             String guid = UUID.randomUUID().toString();
@@ -161,7 +160,6 @@ public class Servlet extends HttpServlet {
             throw new ServletException(e);
         } finally {
             if (stmt != null) { try { stmt.close(); } catch (Exception e)  {} }
-            if (is != null) { try { is.close(); } catch (Exception e)  {} }
         }
     }
 
