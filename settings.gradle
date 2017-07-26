@@ -1,0 +1,4 @@
+rootProject.name = 'crown_jewels'
+include 'aquamarine'
+include 'aquamarine-client'
+
