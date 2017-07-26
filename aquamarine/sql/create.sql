@@ -22,9 +22,9 @@ END;
 $$;
 
 CREATE TABLE blob_storage (
-    guid character(36) NOT NULL,
-    mime_type character varying(127) NOT NULL DEFAULT 'binary/octet-stream',
-    content bytea
+   guid   character(36)   NOT NULL   PRIMARY KEY,
+   mime_type   character varying(127),
+   content   oid
 );
 
 ALTER TABLE ONLY blob_storage ADD CONSTRAINT blob_storage_pkey PRIMARY KEY (guid);
