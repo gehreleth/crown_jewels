@@ -8,6 +8,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.Args;
+import org.diamond.aquamarineclient.impl.AquamarineImpl;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class Startup {
     public static final Set<String> KNOWN_COMMANDS;
@@ -54,145 +56,72 @@ public class Startup {
     }
 
     private static int performListRequest(String[] args) throws IOException {
-        String endpoint = args[1];
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
+        Aquamarine aquamarine = new AquamarineImpl(args[1]);
         int retVal = 0;
-        try {
-            HttpGet httpget = new HttpGet(endpoint);
-            response = httpclient.execute(httpget);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == 200) {
-                HttpEntity entity = response.getEntity();
-                printEntityContent(entity);
-            } else {
-                System.err.print("Server returned error status: " + String.valueOf(statusCode)
-                        + " " + response.getStatusLine().getReasonPhrase());
-                retVal = 2;
-            }
-        } finally {
-            if (response != null) { try {response.close();} catch (Exception e) { }}
+        Iterable<UUID> uuids = aquamarine.listContents();
+        for (UUID uuid: uuids) {
+            System.out.println(uuid.toString());
         }
         return retVal;
     }
 
-    private static void printEntityContent(HttpEntity entity) throws IOException {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(entity.getContent()));
-            String line;
-            while (true) {
-                line = reader.readLine();
-                if (line == null)
-                    break;
-                System.out.println(line);
-            }
-        } finally {
-            if (reader != null) { try {reader.close();} catch (Exception e) { } }
-        }
-    }
-
-    private static int performGetRequest(String[] args) {
+    private static int performGetRequest(String[] args) throws IOException {
+        Aquamarine aquamarine = new AquamarineImpl(args[1]);
         int retVal = 0;
+        try (Blob blob = aquamarine.retrieveBlob(UUID.fromString(args[2]))) {
+            InputStream is = blob.getContentStream();
+            try (OutputStream os = new FileOutputStream(args[3])) {
+                byte buf[] = new byte[2048];
+                int s;
+                while ((s = is.read(buf, 0, 2048)) > 0) {
+                    os.write(buf, 0, s);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return retVal;
     }
 
     private static int performPutRequest(String[] args) throws IOException {
-        String endpoint = args[1] + "/";
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
-        InputStream is = null;
-        int retVal = 0;
-        try {
-            outer:
-            do {
-                File file = new File(args[2]);
-                if (!file.exists()) {
-                    System.err.print("Can't find input file: " + args[2]);
-                    retVal = 1;
-                    break outer;
-                }
-                ContentType contentType = ContentType.create(Files.probeContentType(file.toPath()));
-                long length = file.length();
-                is = new FileInputStream(file);
-                InputStreamEntity inputEntity = new InputStreamEntity(is, length, contentType);
-                HttpPut httpPut = new HttpPut(endpoint);
-                httpPut.setEntity(inputEntity);
-                response = httpclient.execute(httpPut);
-                int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode == 200) {
-                    HttpEntity entity = response.getEntity();
-                    printEntityContent(entity);
-                } else {
-                    System.err.print("Server returned error status: " + String.valueOf(statusCode)
-                            + " " + response.getStatusLine().getReasonPhrase());
-                }
-            } while (false);
-        } finally {
-            if (is != null) { try { is.close();} catch (Exception e) { } }
-            if (response != null) { try {response.close();} catch (Exception e) { }}
+        Aquamarine aquamarine = new AquamarineImpl(args[1]);
+        File file = new File(args[2]);
+        if (!file.exists()) {
+            System.err.println("File " + file + "not found");
+            return 1;
         }
-        return retVal;
+        String mimeType = Files.probeContentType(file.toPath());
+        long length = file.length();
+        try (InputStream inputStream = new FileInputStream(file)) {
+            UUID blob = aquamarine.createBlob(mimeType, inputStream, length);
+            System.out.println("New blob " + blob.toString() + " created");
+        }
+        return 0;
     }
 
+    // --alter endpoint id file
     private static int performAlterRequest(String[] args) throws IOException {
-        String endpoint = args[1];
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
-        InputStream is = null;
-        int retVal = 0;
-        try {
-            outer:
-            do {
-                File file = new File(args[2]);
-                if (!file.exists()) {
-                    System.err.print("Can't find input file: " + args[2]);
-                    retVal = 1;
-                    break outer;
-                }
-                ContentType contentType = ContentType.create(Files.probeContentType(file.toPath()));
-                long length = file.length();
-                is = new FileInputStream(file);
-                InputStreamEntity inputEntity = new InputStreamEntity(is, length, contentType);
-                HttpPost httpPost = new HttpPost(endpoint);
-                httpPost.setEntity(inputEntity);
-                response = httpclient.execute(httpPost);
-                int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode == 200) {
-                    HttpEntity entity = response.getEntity();
-                    printEntityContent(entity);
-                } else {
-                    System.err.print("Server returned error status: " + String.valueOf(statusCode)
-                            + " " + response.getStatusLine().getReasonPhrase());
-                }
-            } while (false);
-        } finally {
-            if (is != null) { try { is.close();} catch (Exception e) { } }
-            if (response != null) { try {response.close();} catch (Exception e) { }}
+        Aquamarine aquamarine = new AquamarineImpl(args[1]);
+        UUID id = UUID.fromString(args[2]);
+        File file = new File(args[3]);
+        if (!file.exists()) {
+            System.err.println("File " + file + " not found");
+            return 1;
         }
-        return retVal;
+        String mimeType = Files.probeContentType(file.toPath());
+        long length = file.length();
+        try (InputStream inputStream = new FileInputStream(file)) {
+            aquamarine.updateBlob(id, mimeType, inputStream, length);
+            System.out.println("The blob " + id.toString() + " has been altered");
+        }
+        return 0;
     }
 
+    // --delete endpoint id
     private static int performDeleteRequest(String[] args) throws IOException {
-        String endpoint = args[1];
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
-        int retVal = 0;
-        try {
-            HttpDelete httpDelete = new HttpDelete(endpoint);
-            response = httpclient.execute(httpDelete);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == 200) {
-                HttpEntity entity = response.getEntity();
-                printEntityContent(entity);
-            } else {
-                System.err.print("Server returned error status: " + String.valueOf(statusCode)
-                        + " " + response.getStatusLine().getReasonPhrase());
-                retVal = 2;
-            }
-        } finally {
-            if (response != null) { try {response.close();} catch (Exception e) { }}
-        }
-        return retVal;
+        Aquamarine aquamarine = new AquamarineImpl(args[1]);
+        UUID id = UUID.fromString(args[2]);
+        aquamarine.removeBlob(id);
+        return 0;
     }
 }

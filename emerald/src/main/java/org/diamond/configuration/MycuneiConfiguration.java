@@ -23,7 +23,6 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = "org.diamond")
-@PropertySource("classpath:persistence.properties")
 public class MycuneiConfiguration  extends WebMvcConfigurerAdapter implements ApplicationContextAware {
 	private ApplicationContext applicationContext;
 

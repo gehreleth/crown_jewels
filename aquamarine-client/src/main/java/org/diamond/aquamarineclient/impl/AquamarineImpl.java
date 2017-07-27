@@ -1,0 +1,163 @@
+package org.diamond.aquamarineclient.impl;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.methods.*;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.diamond.aquamarineclient.Aquamarine;
+import org.diamond.aquamarineclient.Blob;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.UUID;
+
+public class AquamarineImpl implements Aquamarine {
+    private final String endpoint;
+
+    public AquamarineImpl(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    @Override
+    public Iterable<UUID> listContents() throws IOException {
+        Iterable<UUID> retVal;
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+            HttpGet httpget = new HttpGet(endpoint);
+            try (CloseableHttpResponse response = httpclient.execute(httpget)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode == 200) {
+                    HttpEntity entity = response.getEntity();
+                    retVal = collectBlobList(entity);
+                } else {
+                    throw new HttpResponseException(statusCode, "Http error");
+                }
+            }
+        }
+        return retVal;
+    }
+
+    private ArrayList<UUID> collectBlobList(HttpEntity entity) throws IOException {
+        ArrayList<UUID> retVal = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()))) {
+            String line;
+            while (true) {
+                line = reader.readLine();
+                if (line == null)
+                    break;
+                retVal.add(UUID.fromString(line));
+            }
+        }
+        return retVal;
+    }
+
+    @Override
+    public UUID createBlob(String mimeType, InputStream inputStream, long length) throws IOException {
+        UUID retVal;
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+            ContentType contentType = ContentType.create(mimeType);
+            InputStreamEntity inputEntity = new InputStreamEntity(inputStream, length, contentType);
+            HttpPut httpPut = new HttpPut(endpoint + '/');
+            httpPut.setEntity(inputEntity);
+            try (CloseableHttpResponse response = httpclient.execute(httpPut)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode == 200) {
+                    HttpEntity entity = response.getEntity();
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()))) {
+                        retVal = UUID.fromString(reader.readLine());
+                    }
+                } else {
+                    throw new HttpResponseException(statusCode, "Http error");
+                }
+            }
+        }
+        return retVal;
+    }
+
+    @Override
+    public Blob retrieveBlob(UUID id) throws IOException {
+        return new BlobImpl(endpoint, id);
+    }
+
+    @Override
+    public void updateBlob(UUID id, String mimeType, InputStream inputStream, long length) throws IOException {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+            HttpPost httpPost = new HttpPost(endpoint + '/' + id.toString());
+            InputStreamEntity inputEntity = new InputStreamEntity(inputStream, length, ContentType.create(mimeType));
+            httpPost.setEntity(inputEntity);
+            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode != 200) {
+                    throw new HttpResponseException(statusCode, "Http error");
+                }
+            }
+        }
+    }
+
+    @Override
+    public void removeBlob(UUID id) throws IOException {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+            HttpDelete httpDelete = new HttpDelete(endpoint + '/' + id.toString());
+            try (CloseableHttpResponse response = httpclient.execute(httpDelete)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode != 200) {
+                    throw new HttpResponseException(statusCode, "Http error");
+                }
+            }
+        }
+    }
+
+    private static class BlobImpl implements Blob {
+        private final CloseableHttpClient httpclient;
+        private final CloseableHttpResponse response;
+        private final InputStream inputStream;
+        private final String mimeType;
+        private final long contentLength;
+        private final UUID id;
+
+        BlobImpl(String endpoint, UUID id) throws IOException {
+            httpclient =  HttpClients.createDefault();
+            this.id = id;
+            HttpGet httpget = new HttpGet(endpoint + '/' + id.toString());
+            response = httpclient.execute(httpget);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 200) {
+                HttpEntity entity = response.getEntity();
+                this.mimeType = entity.getContentType().getValue();
+                this.contentLength = entity.getContentLength();
+                this.inputStream = entity.getContent();
+            } else {
+                throw new HttpResponseException(statusCode, "Http error");
+            }
+        }
+
+        @Override
+        public UUID getUUID() {
+            return id;
+        }
+
+        @Override
+        public String getMimeType() {
+            return mimeType;
+        }
+
+        @Override
+        public long getLength() {
+            return contentLength;
+        }
+
+        @Override
+        public InputStream getContentStream() throws IOException {
+            return inputStream;
+        }
+
+        @Override
+        public void close() throws Exception {
+            if (inputStream != null) { try {inputStream.close(); } catch (Exception e) { } }
+            if (response != null) { try {response.close();} catch (Exception e) { } }
+            if (httpclient != null) { try {httpclient.close();} catch (Exception e) { } }
+        }
+    }
+}

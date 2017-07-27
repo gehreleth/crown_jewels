@@ -254,7 +254,6 @@ public class Servlet extends HttpServlet {
                 }
                 stmt = conn.prepareStatement("delete from blob_storage where guid = ?");
                 stmt.setString(1, path);
-                stmt.executeUpdate();
                 if (stmt.executeUpdate() != 0) {
                     sendStatus(response, 200, "Record " + path + " has been deleted");
                 } else {

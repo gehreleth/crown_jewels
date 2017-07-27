@@ -11,6 +11,7 @@ import org.hibernate.cfg.Environment;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -25,6 +26,7 @@ import persistence.PersistenceRootMarker;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackageClasses = PersistenceRootMarker.class)
+@PropertySource("classpath:persistence.properties")
 class PersistenceConfig {
     @Value("${dataSource.poolName}")
     private String poolName;
