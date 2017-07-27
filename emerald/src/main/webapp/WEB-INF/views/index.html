@@ -1,0 +1,16 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>HelloWorld page</title>
+</head>
+<body>
+	<div>
+		<form method="POST" enctype="multipart/form-data" action="#" th:attr="action=@{/handleFile}">
+	        <table>
+	            <tr><td>File to upload:</td><td><input type="file" name="file" /></td></tr>
+    			<tr><td></td><td><input type="submit" value="Upload" /></td></tr>
+    		</table>
+    	</form>
+    </div>
+</body>
+</html>
