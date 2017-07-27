@@ -113,6 +113,7 @@ public class AquamarineImpl implements Aquamarine {
         private final CloseableHttpClient httpclient;
         private final CloseableHttpResponse response;
         private final InputStream inputStream;
+        private InputStream wrappedStream = null;
         private final String mimeType;
         private final long contentLength;
         private final UUID id;
@@ -150,14 +151,76 @@ public class AquamarineImpl implements Aquamarine {
 
         @Override
         public InputStream getContentStream() throws IOException {
-            return inputStream;
+            if (wrappedStream == null) {
+                wrappedStream = new BlobISAdapter(this, inputStream);
+            }
+            return wrappedStream;
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() throws IOException {
             if (inputStream != null) { try {inputStream.close(); } catch (Exception e) { } }
             if (response != null) { try {response.close();} catch (Exception e) { } }
             if (httpclient != null) { try {httpclient.close();} catch (Exception e) { } }
+        }
+    }
+
+    private static class BlobISAdapter extends InputStream {
+        private final Blob blob;
+        private final InputStream underlyingStream;
+
+        public BlobISAdapter(Blob blob, InputStream underlyingStream) throws IOException {
+            this.blob = blob;
+            this.underlyingStream = underlyingStream;
+        }
+
+        @Override
+        public int read() throws IOException {
+            return this.underlyingStream.read();
+        }
+
+        @Override
+        public int read(byte[] b) throws IOException {
+            return this.underlyingStream.read(b);
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            return this.underlyingStream.read(b, off, len);
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            return this.underlyingStream.skip(n);
+        }
+
+        @Override
+        public int available() throws IOException {
+            return this.underlyingStream.available();
+        }
+
+        @Override
+        public synchronized void mark(int readlimit) {
+            this.underlyingStream.mark(readlimit);
+        }
+
+        @Override
+        public synchronized void reset() throws IOException {
+            this.underlyingStream.reset();
+        }
+
+        @Override
+        public boolean markSupported() {
+            return this.underlyingStream.markSupported();
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                blob.close();
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
         }
     }
 }
