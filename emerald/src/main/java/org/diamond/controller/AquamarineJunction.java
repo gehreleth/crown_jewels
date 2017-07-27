@@ -16,7 +16,7 @@ import java.util.UUID;
 @Controller
 public class AquamarineJunction {
     @Autowired
-    Aquamarine aquamarine;
+    private Aquamarine aquamarine;
 
     @RequestMapping(value = "/img/{aquamarineId}", method = RequestMethod.GET)
     public ResponseEntity<InputStreamResource> img(@PathVariable String aquamarineId) {
