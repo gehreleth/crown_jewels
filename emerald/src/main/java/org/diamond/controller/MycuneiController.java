@@ -30,9 +30,6 @@ public class MycuneiController {
 	@Autowired
 	private SourceImageRepository sourceImageRepository;
 
-	@Autowired
-	SessionFactory sessionFactory;
-
 	@GetMapping("/")
 	public String root(ModelMap model) {
 		return "index.html";
@@ -54,7 +51,7 @@ public class MycuneiController {
 			file.transferTo(tmp);
 			ZipFile zipFile = new ZipFile(tmp);
 			SourceImageCollection sourceImageCollection = new SourceImageCollection(file.getFileItem().getName());
-			for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
+			/*for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
 				ZipEntry ze = entries.nextElement();
 				SourceImage sourceImage = new SourceImage(sourceImageCollection, ze.getName(), "image/jpeg");
 				sourceImage = sourceImageRepository.save(sourceImage);
@@ -66,7 +63,7 @@ public class MycuneiController {
 				} finally {
 					if (is != null) { try { is.close(); } catch (Exception e) {} }
 				}
-			}
+			} */
 			zipFile.close();
 			sourceImageCollectionRepository.save(sourceImageCollection);
 		} catch (IOException e) {
