@@ -1,7 +1,6 @@
-package persistence.srcimages.entities;
+package org.diamond.persistence.srcimages.entities;
 
 import javax.persistence.*;
-import java.sql.Blob;
 import java.util.UUID;
 
 @SuppressWarnings("serial")
@@ -16,11 +15,15 @@ public class SourceImage implements java.io.Serializable  {
     @ManyToOne(cascade = CascadeType.ALL)
     private SourceImageCollection sourceImageCollection;
 
+    @Column(name = "ORIGINAL_NAME")
+    private String originalName;
+
     @Column(name = "AQUAMARINE_ID")
     private UUID aquamarineId;
 
-    public SourceImage(SourceImageCollection sourceImageCollection, UUID aquamarineId) {
+    public SourceImage(SourceImageCollection sourceImageCollection, String originalName, UUID aquamarineId) {
         this.sourceImageCollection = sourceImageCollection;
+        this.originalName = originalName;
         this.aquamarineId = aquamarineId;
     }
 
@@ -30,6 +33,10 @@ public class SourceImage implements java.io.Serializable  {
 
     public SourceImageCollection getSourceImageCollection() {
         return sourceImageCollection;
+    }
+
+    public String getOriginalName() {
+        return originalName;
     }
 
     public UUID getAquamarineId() {

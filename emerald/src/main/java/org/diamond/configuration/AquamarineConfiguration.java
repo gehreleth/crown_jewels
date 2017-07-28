@@ -1,5 +1,7 @@
 package org.diamond.configuration;
 
+import org.diamond.aquamarine.IAquamarineService;
+import org.diamond.aquamarine.impl.AquamarineServiceImpl;
 import org.diamond.aquamarineclient.Aquamarine;
 import org.diamond.aquamarineclient.impl.AquamarineImpl;
 import org.springframework.beans.factory.annotation.Value;

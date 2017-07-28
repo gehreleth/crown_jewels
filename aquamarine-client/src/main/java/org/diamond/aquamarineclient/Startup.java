@@ -78,7 +78,7 @@ public class Startup {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
         return retVal;
     }

@@ -1,4 +1,4 @@
-package persistence.srcimages.entities;
+package org.diamond.persistence.srcimages.entities;
 
 import javax.persistence.*;
 import java.time.Instant;

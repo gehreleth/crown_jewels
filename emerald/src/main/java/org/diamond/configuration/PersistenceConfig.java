@@ -21,11 +21,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import org.springframework.util.ClassUtils;
-import persistence.PersistenceRootMarker;
+import org.diamond.persistence.IPersistenceRootMarker;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackageClasses = PersistenceRootMarker.class)
+@EnableJpaRepositories(basePackageClasses = IPersistenceRootMarker.class)
 @PropertySource("classpath:persistence.properties")
 class PersistenceConfig {
     @Value("${dataSource.poolName}")
@@ -89,7 +89,7 @@ class PersistenceConfig {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
         LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
         entityManagerFactoryBean.setDataSource(dataSource);
-        String entities = ClassUtils.getPackageName(PersistenceRootMarker.class);
+        String entities = ClassUtils.getPackageName(IPersistenceRootMarker.class);
         String converters = ClassUtils.getPackageName(Jsr310JpaConverters.class);
         entityManagerFactoryBean.setPackagesToScan(entities, converters);
         entityManagerFactoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
