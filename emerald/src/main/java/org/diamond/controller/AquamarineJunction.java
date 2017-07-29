@@ -18,6 +18,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -71,7 +73,7 @@ public class AquamarineJunction {
                     jsonElement = gson.toJsonTree(new Object[]{"COMPLETE",
                             submitOperationResult.getMessage(),
                             submitOperationResult.getResult(),
-                            submitOperationResult.getTimestamp()});
+                            new Date(submitOperationResult.getTimestamp().toEpochMilli())});
                 } else {
                     jsonElement = gson.toJsonTree(new Object[]{"PENDING"});
                 }
