@@ -18,7 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -61,38 +60,34 @@ public class AquamarineJunction {
     }
 
     @GetMapping(value = "/aquamarineJobStatus/{jobId}")
-    public ResponseEntity<String> jobStatus(@PathVariable Long jobId) {
-        ResponseEntity<String> retVal = null;
+    public ResponseEntity<String> jobStatus(@PathVariable Long jobId) throws ExecutionException, InterruptedException {
+        ResponseEntity<String> entity;
         Future<SubmitOperationResult> future = pendingJobs.getIfPresent(jobId);
-        if (future != null ) {
-            try {
-                Gson gson = new Gson();
-                JsonElement jsonElement;
-                if (future.isDone()) {
-                    SubmitOperationResult submitOperationResult = future.get();
-                    jsonElement = gson.toJsonTree(new Object[]{"COMPLETE",
-                            submitOperationResult.getMessage(),
-                            submitOperationResult.getResult(),
-                            new Date(submitOperationResult.getTimestamp().toEpochMilli())});
-                } else {
-                    jsonElement = gson.toJsonTree(new Object[]{"PENDING"});
-                }
-                String result = jsonElement.toString();
-                retVal = ResponseEntity.ok()
-                            .contentLength(result.length())
-                            .contentType(MediaType.APPLICATION_JSON_UTF8)
-                            .body(result);
-            } catch (ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
+        if (future != null) {
+            Gson gson = new Gson();
+            JsonElement jsonElement;
+            if (future.isDone()) {
+                SubmitOperationResult submitOperationResult = future.get();
+                jsonElement = gson.toJsonTree(new Object[]{"COMPLETE",
+                        submitOperationResult.getMessage(),
+                        submitOperationResult.getResult(),
+                        new Date(submitOperationResult.getTimestamp().toEpochMilli())});
+            } else {
+                jsonElement = gson.toJsonTree(new Object[]{"PENDING"});
             }
+            String result = jsonElement.toString();
+            entity = ResponseEntity.ok()
+                    .contentLength(result.length())
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .body(result);
         } else {
-            retVal = ResponseEntity.notFound().build();
+            entity = ResponseEntity.notFound().build();
         }
-        return retVal;
+        return entity;
     }
 
     @PostMapping("/handleFile")
-    public String handleFile(@RequestParam("file") CommonsMultipartFile file, RedirectAttributes redirectAttributes) {
+    public String handleFile(@RequestParam("file") CommonsMultipartFile file, RedirectAttributes redirectAttributes) throws IOException {
         File tmp = null;
         try {
             tmp = new File(System.getProperty("java.io.tmpdir")
@@ -102,8 +97,6 @@ public class AquamarineJunction {
             Long jobId = trackPendingUploadJob(aquamarineService.submitNewCollection(file.getOriginalFilename(), tmp));
             redirectAttributes.addAttribute("aquamarineJob", jobId);
             tmp = null;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } finally {
             if (tmp != null) { try { tmp.delete(); } catch (Exception e) { } }
         }
