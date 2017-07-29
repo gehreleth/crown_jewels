@@ -11,6 +11,7 @@ import org.diamond.persistence.srcimages.entities.SourceImage;
 import org.diamond.persistence.srcimages.entities.SourceImageCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +57,7 @@ public class AquamarineServiceImpl implements IAquamarineService {
     }
 
     @Override
+    @Async
     @Transactional
     public Future<SubmitOperationResult> submitNewCollection(String formName, File temporaryFile) {
         SubmitOperationResult retVal;

@@ -16,7 +16,7 @@ public class SubmitOperationResult {
     }
 
     public static SubmitOperationResult makeSuccess() {
-        return new SubmitOperationResult(Status.SUSSESS, Instant.now(), null);
+        return new SubmitOperationResult(Status.SUCCESS, Instant.now(), null);
     }
 
     public static SubmitOperationResult makeFail(String reason) {
@@ -36,6 +36,6 @@ public class SubmitOperationResult {
     }
 
     public enum Status {
-        SUSSESS, FAIL
+        SUCCESS, FAIL
     }
 }
