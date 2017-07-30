@@ -1,16 +1,41 @@
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>HelloWorld page</title>
-</head>
-<body>
-	<div>
-		<form method="POST" enctype="multipart/form-data" action="#" th:attr="action=@{/handleFile}">
-	        <table>
-	            <tr><td>File to upload:</td><td><input type="file" name="file" /></td></tr>
-    			<tr><td></td><td><input type="submit" value="Upload" /></td></tr>
-    		</table>
-    	</form>
-    </div>
-</body>
+    <head>
+	    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	    <title>HelloWorld page</title>
+	    <link th:href="@{/static/css/jquery.treetable.css}" rel="stylesheet" type="text/css" />
+	    <script th:src="@{/static/js/jquery.treetable.js}"></script>
+    </head>
+    <body>
+        <script>
+            $("#source_collection").treetable();
+        </script>
+        <div>
+            <table id="source_collection">
+                <tr><th>Name</th><th>Content type</th><th>Length</th></tr>
+                <tr data-tt-id="1">
+                    <td>coll.zip</td><td>application/zip</td><td>---</td>
+                </tr>
+                <tr data-tt-id="2" data-tt-parent-id="1">
+                    <td>Folder1</td><td>Folder</td><td>---</td>
+                </tr>
+                <tr data-tt-id="3" data-tt-parent-id="2">
+                    <td>A.pdf</td><td>application/pdf</td><td>16384</td>
+                </tr>
+                <tr data-tt-id="4"  data-tt-parent-id="2">
+                    <td>B.pdf</td><td>application/pdf</td><td>16384</td>
+                </tr>
+                <tr data-tt-id="5"  data-tt-parent-id="2">
+                    <td>C.pdf</td><td>application/pdf</td><td>16384</td>
+                </tr>
+            </table>
+        </div>
+	    <div>
+		    <form method="POST" enctype="multipart/form-data" action="#" th:attr="action=@{/handleFile}">
+	            <table>
+	                <tr><td>File to upload:</td><td><input type="file" name="file" /></td></tr>
+    			    <tr><td></td><td><input type="submit" value="Upload" /></td></tr>
+    		    </table>
+    	    </form>
+        </div>
+    </body>
 </html>
