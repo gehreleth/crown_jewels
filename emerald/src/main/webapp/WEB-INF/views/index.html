@@ -2,13 +2,10 @@
     <head>
 	    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 	    <title>HelloWorld page</title>
-	    <link th:href="@{/static/css/jquery.treetable.css}" rel="stylesheet" type="text/css" />
-	    <script th:src="@{/static/js/jquery.treetable.js}"></script>
+	    <link th:href="@{/static/frontend-pm/jquery-treetable/css/jquery.treetable.css}" rel="stylesheet" type="text/css" />
+        <link th:href="@{/static/frontend-pm/jquery-treetable/css/jquery.treetable.theme.default.css}" rel="stylesheet" type="text/css" />
     </head>
     <body>
-        <script>
-            $("#source_collection").treetable();
-        </script>
         <div>
             <table id="source_collection">
                 <tr><th>Name</th><th>Content type</th><th>Length</th></tr>
@@ -29,6 +26,14 @@
                 </tr>
             </table>
         </div>
+        <script th:src="@{/static/frontend-pm/jquery/jquery.js}"></script>
+        <script th:src="@{/static/frontend-pm/jquery-ui/ui/jquery.ui.core.js}"></script>
+        <script th:src="@{/static/frontend-pm/jquery-ui/ui/jquery.ui.widget.js}"></script>
+        <script th:src="@{/static/frontend-pm/jquery-ui/ui/jquery.ui.mouse.js}"></script>
+        <script th:src="@{/static/frontend-pm/jquery-treetable/jquery.treetable.js}"></script>
+        <script>
+            $("#source_collection").treetable();
+        </script>
 	    <div>
 		    <form method="POST" enctype="multipart/form-data" action="#" th:attr="action=@{/handleFile}">
 	            <table>

@@ -24,6 +24,8 @@ public class SourceImageCollection implements java.io.Serializable  {
     @OneToMany(cascade=ALL, mappedBy="sourceImageCollection")
     private Set<SourceImage> sourceImages;
 
+    public SourceImageCollection() {}
+
     public SourceImageCollection(String fileName) {
         this.fileName = fileName;
         this.uploadTs = Instant.now();

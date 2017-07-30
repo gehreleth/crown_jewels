@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import org.diamond.aquamarine.StorageNode;
 import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
 import org.diamond.aquamarine.SubmitOperationResult;
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -57,6 +59,19 @@ public class AquamarineJunction {
             retVal = ResponseEntity.notFound().build();
         }
         return retVal;
+    }
+
+    @GetMapping(value = "/storage")
+    public ResponseEntity<String> storage() {
+        ResponseEntity<String> entity = null;
+        List<StorageNode> storageContents = aquamarineService.listContentsAsTree();
+        Gson gson = new Gson();
+        JsonElement jsonElement = gson.toJsonTree(storageContents);
+        String result = jsonElement.toString();
+        return ResponseEntity.ok()
+                .contentLength(result.length())
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(result);
     }
 
     @GetMapping(value = "/aquamarineJobStatus/{jobId}")

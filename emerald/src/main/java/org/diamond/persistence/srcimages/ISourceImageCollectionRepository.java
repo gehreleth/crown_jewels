@@ -6,5 +6,4 @@ import org.diamond.persistence.srcimages.entities.SourceImageCollection;
 
 @Repository
 public interface ISourceImageCollectionRepository extends JpaRepository<SourceImageCollection, Long> {
-    SourceImageCollection findOneByFileName(String fileName);
 }

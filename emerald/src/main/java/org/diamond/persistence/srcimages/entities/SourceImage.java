@@ -21,6 +21,8 @@ public class SourceImage implements java.io.Serializable  {
     @Column(name = "AQUAMARINE_ID")
     private UUID aquamarineId;
 
+    public SourceImage() { }
+
     public SourceImage(SourceImageCollection sourceImageCollection, String originalName, UUID aquamarineId) {
         this.sourceImageCollection = sourceImageCollection;
         this.originalName = originalName;

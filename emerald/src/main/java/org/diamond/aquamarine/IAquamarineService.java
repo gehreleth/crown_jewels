@@ -4,6 +4,7 @@ import org.springframework.scheduling.annotation.Async;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
@@ -21,4 +22,6 @@ public interface IAquamarineService {
 
     @Async
     Future<SubmitOperationResult> submitNewCollection(String formName, File temporaryFile);
+
+    List<StorageNode> listContentsAsTree();
 }
