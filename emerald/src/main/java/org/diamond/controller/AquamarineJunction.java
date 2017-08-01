@@ -46,7 +46,7 @@ public class AquamarineJunction {
         return retVal;
     }
 
-    @GetMapping(value = "/img/{aquamarineId}")
+    @GetMapping(value = "/aquamarine-img/{aquamarineId}")
     public ResponseEntity<InputStreamResource> img(@PathVariable UUID aquamarineId) {
         ResponseEntity<InputStreamResource> retVal;
         try {
@@ -61,7 +61,7 @@ public class AquamarineJunction {
         return retVal;
     }
 
-    @GetMapping(value = "/storage")
+    @GetMapping(value = "/aquamarine-browse-storage")
     public ResponseEntity<String> storage() {
         ResponseEntity<String> entity = null;
         List<StorageNode> storageContents = aquamarineService.listContentsAsTree();
@@ -74,7 +74,7 @@ public class AquamarineJunction {
                 .body(result);
     }
 
-    @GetMapping(value = "/aquamarineJobStatus/{jobId}")
+    @GetMapping(value = "/aquamarine-job-status/{jobId}")
     public ResponseEntity<String> jobStatus(@PathVariable Long jobId) throws ExecutionException, InterruptedException {
         ResponseEntity<String> entity;
         Future<SubmitOperationResult> future = pendingJobs.getIfPresent(jobId);
@@ -101,7 +101,7 @@ public class AquamarineJunction {
         return entity;
     }
 
-    @PostMapping("/handleFile")
+    @PostMapping("/aquamarine-submit-job")
     public String handleFile(@RequestParam("file") CommonsMultipartFile file, RedirectAttributes redirectAttributes) throws IOException {
         File tmp = null;
         try {
