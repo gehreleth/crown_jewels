@@ -4,6 +4,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.diamond.aquamarine.StorageNode;
 import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
@@ -103,19 +105,26 @@ public class AquamarineJunction {
     }
 
     @PostMapping("/submit-content")
-    public String handleFile(@RequestParam("file") CommonsMultipartFile file, RedirectAttributes redirectAttributes) throws IOException {
+    public ResponseEntity<String> handleFile(@RequestParam("file") CommonsMultipartFile file, RedirectAttributes redirectAttributes) {
         File tmp = null;
+        ResponseEntity<String> retVal = null;
         try {
             tmp = new File(System.getProperty("java.io.tmpdir")
                     + File.separator
                     + "file" + System.currentTimeMillis() + ".tmp");
             file.transferTo(tmp);
             Long jobId = trackPendingUploadJob(aquamarineService.submitNewCollection(file.getOriginalFilename(), tmp));
-            redirectAttributes.addAttribute("aquamarineJob", jobId);
+            JsonObject jsobj = new JsonObject();
+            jsobj.add("success", new JsonPrimitive(Boolean.TRUE));
+            jsobj.add("trackingId", new JsonPrimitive(jobId));
+            String str = jsobj.toString();
+            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(str);
             tmp = null;
+        } catch (Exception e) {
+            retVal = ResponseEntity.status(500).body(e.getMessage());
         } finally {
             if (tmp != null) { try { tmp.delete(); } catch (Exception e) { } }
         }
-        return "redirect:/";
+        return retVal;
     }
 }
