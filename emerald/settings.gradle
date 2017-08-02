@@ -1,4 +1,2 @@
-include ':aquamarine-client'
-project(':aquamarine-client').projectDir = new File(settingsDir, '../aquamarine-client')
-include 'emerald-frontend'
-
+include 'aquamarine-client'
+include 'emerald-angular'

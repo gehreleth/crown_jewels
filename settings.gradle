@@ -1,1 +1,4 @@
 rootProject.name = 'crown_jewels'
+
+include 'emerald'
+include 'aquamarine'

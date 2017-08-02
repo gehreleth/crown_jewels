@@ -37,7 +37,12 @@ dependencies {
 }
 version 'unspecified'
 
-apply plugin: 'java'
+task copyAngular(type: Copy) {
+    from 'emerald-angular/dist' into 'src/main/webapp/static'
+}
+
+copyAngular.dependsOn('emerald-angular:build')
+war.dependsOn(copyAngular)
 
 sourceCompatibility = 1.8
 
