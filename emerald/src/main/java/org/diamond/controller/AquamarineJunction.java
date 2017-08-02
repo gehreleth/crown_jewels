@@ -97,7 +97,7 @@ public class AquamarineJunction {
     }
 
     @PostMapping("/submit-content")
-    public ResponseEntity<String> handleFile(@RequestParam("file") CommonsMultipartFile file, RedirectAttributes redirectAttributes) {
+    public ResponseEntity<String> handleFile(@RequestParam("file") CommonsMultipartFile file) throws IOException {
         File tmp = null;
         ResponseEntity<String> retVal;
         try {
@@ -112,8 +112,6 @@ public class AquamarineJunction {
             String str = jsobj.toString();
             retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(str);
             tmp = null;
-        } catch (Exception e) {
-            retVal = ResponseEntity.status(500).body(e.getMessage());
         } finally {
             if (tmp != null) { try { tmp.delete(); } catch (Exception e) { } }
         }
