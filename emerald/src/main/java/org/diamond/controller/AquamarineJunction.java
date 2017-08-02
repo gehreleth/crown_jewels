@@ -107,7 +107,7 @@ public class AquamarineJunction {
     @PostMapping("/submit-content")
     public ResponseEntity<String> handleFile(@RequestParam("file") CommonsMultipartFile file, RedirectAttributes redirectAttributes) {
         File tmp = null;
-        ResponseEntity<String> retVal = null;
+        ResponseEntity<String> retVal;
         try {
             tmp = new File(System.getProperty("java.io.tmpdir")
                     + File.separator
