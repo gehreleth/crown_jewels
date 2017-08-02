@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Controller
+@RequestMapping("/storage")
 public class AquamarineJunction {
     @Autowired
     private IAquamarineService aquamarineService;
@@ -46,7 +47,7 @@ public class AquamarineJunction {
         return retVal;
     }
 
-    @GetMapping(value = "/aquamarine-img/{aquamarineId}")
+    @GetMapping(value = "/img/{aquamarineId}")
     public ResponseEntity<InputStreamResource> img(@PathVariable UUID aquamarineId) {
         ResponseEntity<InputStreamResource> retVal;
         try {
@@ -61,7 +62,7 @@ public class AquamarineJunction {
         return retVal;
     }
 
-    @GetMapping(value = "/aquamarine-browse-storage")
+    @GetMapping(value = "/content-tree")
     public ResponseEntity<String> storage() {
         ResponseEntity<String> entity = null;
         List<StorageNode> storageContents = aquamarineService.listContentsAsTree();
@@ -74,10 +75,10 @@ public class AquamarineJunction {
                 .body(result);
     }
 
-    @GetMapping(value = "/aquamarine-job-status/{jobId}")
-    public ResponseEntity<String> jobStatus(@PathVariable Long jobId) throws ExecutionException, InterruptedException {
+    @GetMapping(value = "/submit-status/{submitId}")
+    public ResponseEntity<String> jobStatus(@PathVariable Long submitId) throws ExecutionException, InterruptedException {
         ResponseEntity<String> entity;
-        Future<SubmitOperationResult> future = pendingJobs.getIfPresent(jobId);
+        Future<SubmitOperationResult> future = pendingJobs.getIfPresent(submitId);
         if (future != null) {
             Gson gson = new Gson();
             JsonElement jsonElement;
@@ -101,7 +102,7 @@ public class AquamarineJunction {
         return entity;
     }
 
-    @PostMapping("/aquamarine-submit-job")
+    @PostMapping("/submit-content")
     public String handleFile(@RequestParam("file") CommonsMultipartFile file, RedirectAttributes redirectAttributes) throws IOException {
         File tmp = null;
         try {
