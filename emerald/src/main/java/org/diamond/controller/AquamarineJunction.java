@@ -2,10 +2,7 @@ package org.diamond.controller;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import org.diamond.aquamarine.StorageNode;
 import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
@@ -82,22 +79,17 @@ public class AquamarineJunction {
         ResponseEntity<String> entity;
         Future<SubmitOperationResult> future = pendingJobs.getIfPresent(submitId);
         if (future != null) {
-            Gson gson = new Gson();
-            JsonElement jsonElement;
+            JsonObject jsobj = new JsonObject();
+            jsobj.addProperty("status","PENDING");
+            jsobj.add("message", JsonNull.INSTANCE);
+            jsobj.add("timestamp", JsonNull.INSTANCE);
             if (future.isDone()) {
                 SubmitOperationResult submitOperationResult = future.get();
-                jsonElement = gson.toJsonTree(new Object[]{"COMPLETE",
-                        submitOperationResult.getMessage(),
-                        submitOperationResult.getResult(),
-                        new Date(submitOperationResult.getTimestamp().toEpochMilli())});
-            } else {
-                jsonElement = gson.toJsonTree(new Object[]{"PENDING"});
+                jsobj.addProperty("status", submitOperationResult.getResult().toString());
+                jsobj.addProperty("message", submitOperationResult.getMessage());
+                jsobj.addProperty("timestamp", submitOperationResult.getTimestamp().toEpochMilli());
             }
-            String result = jsonElement.toString();
-            entity = ResponseEntity.ok()
-                    .contentLength(result.length())
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .body(result);
+            entity = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(jsobj.toString());
         } else {
             entity = ResponseEntity.notFound().build();
         }
@@ -115,8 +107,8 @@ public class AquamarineJunction {
             file.transferTo(tmp);
             Long jobId = trackPendingUploadJob(aquamarineService.submitNewCollection(file.getOriginalFilename(), tmp));
             JsonObject jsobj = new JsonObject();
-            jsobj.add("success", new JsonPrimitive(Boolean.TRUE));
-            jsobj.add("trackingId", new JsonPrimitive(jobId));
+            jsobj.addProperty("success", Boolean.TRUE);
+            jsobj.addProperty("trackingId", jobId);
             String str = jsobj.toString();
             retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(str);
             tmp = null;
