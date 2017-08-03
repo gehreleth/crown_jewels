@@ -1,0 +1,8 @@
+.upload-form-layout {
+  display: grid;
+  grid-template-columns: 200px auto;
+}
+
+.upload-form-add-file-button {
+  float: right;
+}

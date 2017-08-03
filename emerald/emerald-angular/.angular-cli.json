@@ -20,13 +20,12 @@
       "prefix": "app",
       "styles": [
         "styles.css",
-        "./assets/styles/bootstrap.min.css",
-        "./assets/styles/font-awesome.min.css",
-        "./assets/styles/style.css",
-        "./assets/styles/theme.css",
-        "./assets/styles/primeng.css"
+        "../node_modules/bootstrap/dist/css/bootstrap.min.css",
+        "../node_modules/font-awesome/css/font-awesome.css"
       ],
-      "scripts": [],
+      "scripts": ["../node_modules/jquery/dist/jquery.js",
+                  "../node_modules/tether/dist/js/tether.js",
+                  "../node_modules/bootstrap/dist/js/bootstrap.js"],
       "environmentSource": "environments/environment.ts",
       "environments": {
         "dev": "environments/environment.ts",

@@ -1,4 +1,11 @@
-<ay-treeTable [value]="data">
-    <ay-column field="name" header="Name"></ay-column>
-    <ay-column field="gender" header="Gender"></ay-column>
-</ay-treeTable>
+<div class="col-lg-3">
+	<div class="panel panel-info">
+		<div class="panel-body">
+			<tree-view [Nodes]="Nodes"
+					   [SelectedNode]="selectedNode"
+					   (onSelectedChanged)="onSelectNode($event)"
+					   (onRequestNodes)="onRequest($event)">
+			</tree-view>
+		</div>
+	</div>
+</div>
