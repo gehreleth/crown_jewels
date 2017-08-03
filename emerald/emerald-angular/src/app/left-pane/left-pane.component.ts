@@ -27,7 +27,7 @@ export class LeftPaneComponent implements OnInit {
       name: "A",
       children: null,
       isExpanded: false,
-      badge: 1,
+      badge: 0,
       parent: null,
       isLeaf: false
     }
@@ -35,7 +35,7 @@ export class LeftPaneComponent implements OnInit {
       name: "a",
       children: null,
       isExpanded: false,
-      badge: 1,
+      badge: 0,
       parent: root1,
       isLeaf: true
     }
@@ -44,7 +44,7 @@ export class LeftPaneComponent implements OnInit {
       name: "B",
       children: null,
       isExpanded: false,
-      badge: 1,
+      badge: 0,
       parent: null,
       isLeaf: false
     }
@@ -52,7 +52,7 @@ export class LeftPaneComponent implements OnInit {
       name: "b",
       children: null,
       isExpanded: false,
-      badge: 1,
+      badge: 0,
       parent: root2,
       isLeaf: true
     }
