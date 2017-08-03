@@ -8,6 +8,7 @@ import { AppComponent } from './app.component';
 import { LeftPaneComponent } from './left-pane/left-pane.component';
 import { RightPaneComponent } from './right-pane/right-pane.component';
 import { UploadFormComponent } from './upload-form/upload-form.component';
+import { EmeraldBackendStorageService } from './emerald-backend-storage.service'
 
 @NgModule({
   declarations: [
@@ -21,7 +22,7 @@ import { UploadFormComponent } from './upload-form/upload-form.component';
     TreeTableModule,
     HttpModule
   ],
-  providers: [],
+  providers: [ EmeraldBackendStorageService ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
