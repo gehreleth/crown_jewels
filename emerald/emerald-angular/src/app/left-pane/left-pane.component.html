@@ -1,11 +1,11 @@
-<div class="col-lg-3">
-	<div class="panel panel-info">
-		<div class="panel-body">
-			<tree-view [Nodes]="Nodes"
-					   [SelectedNode]="selectedNode"
-					   (onSelectedChanged)="onSelectNode($event)"
-					   (onRequestNodes)="onRequest($event)">
-			</tree-view>
-		</div>
-	</div>
+<div>
+  <tree-view [Nodes]="Nodes"
+             [SelectedNode]="selectedNode"
+             (onSelectedChanged)="onSelectNode($event)"
+             (onRequestNodes)="onRequest($event)">
+  </tree-view>
+</div>
+<hr>
+<div>
+  <app-upload-form></app-upload-form>
 </div>
