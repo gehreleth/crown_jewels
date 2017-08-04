@@ -57,23 +57,23 @@ public class StorageNode {
         return retVal;
     }
 
-    public static StorageNode makeNewImage(StorageNode parent, String text, UUID quamarineId) {
+    public static StorageNode makeNewImage(StorageNode parent, String text, UUID aquamarineId) {
         StorageNode retVal = new StorageNode();
         retVal.setNodeType(NodeType.Image);
         retVal.setText(text);
         retVal.setParent(parent);
         retVal.setUploadTs(null);
-        retVal.setAquamarineId(quamarineId);
+        retVal.setAquamarineId(aquamarineId);
         return retVal;
     }
 
-    public static StorageNode makeNewOther(StorageNode parent, String text, UUID quamarineId) {
+    public static StorageNode makeNewOther(StorageNode parent, String text, UUID aquamarineId) {
         StorageNode retVal = new StorageNode();
         retVal.setNodeType(NodeType.Other);
         retVal.setText(text);
         retVal.setParent(parent);
         retVal.setUploadTs(null);
-        retVal.setAquamarineId(quamarineId);
+        retVal.setAquamarineId(aquamarineId);
         return retVal;
     }
 
