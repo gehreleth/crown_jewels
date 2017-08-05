@@ -11,7 +11,7 @@ import { EmeraldBackendStorageService } from '../emerald-backend-storage.service
   styleUrls: ['./upload-form.component.css']
 })
 export class UploadFormComponent implements OnInit {
-  constructor(private storage: EmeraldBackendStorageService, private el: ElementRef) { }
+  constructor(private storage: EmeraldBackendStorageService) { }
   @ViewChild("fileInput") fileInput: ElementRef;
 
   ngOnInit() {}
