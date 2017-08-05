@@ -8,90 +8,39 @@ import { EmeraldBackendStorageService } from '../emerald-backend-storage.service
   templateUrl: './left-pane.component.html',
   styleUrls: ['./left-pane.component.css']
 })
+
 export class LeftPaneComponent implements OnInit {
-	Nodes: Array<ITreeNode>;
-	selectedNode: ITreeNode; // нужен для отображения детальной информации по выбранному узлу.
+	Nodes: Array<ITreeNode> = [];
+	selectedNode: ITreeNode = null;
 
-	//constructor(private treeService: TreeService) {
-  constructor(private storage : EmeraldBackendStorageService) {
-	}
+  constructor(private storage : EmeraldBackendStorageService) {}
 
-	// начальное заполнение верхнего уровня иерархии
+	// initial node request
 	ngOnInit() {
-		//this.treeService.GetNodes(0).subscribe(
-		//	res => this.Nodes = res,
-		//	error => console.log(error)
-		//);
-    const root1 : ITreeNode = { id: 1,
-      name: "A.zip",
-      children: null,
-      isExpanded: false,
-      parent: null,
-      type: NodeType.Zip
-    }
-    const child1_1 : ITreeNode = { id: 11,
-      name: "Dir A",
-      children: null,
-      isExpanded: false,
-      parent: root1,
-      type: NodeType.Folder
-    }
-    root1.children = [ child1_1 ];
-    const child1_1_1 : ITreeNode = { id: 111,
-      name: "Image.png",
-      children: null,
-      isExpanded: false,
-      parent: child1_1,
-      type: NodeType.Image
-    }
-    const child1_1_2 : ITreeNode = { id: 112,
-      name: "File.doc",
-      children: null,
-      isExpanded: false,
-      parent: child1_1,
-      type: NodeType.Other
-    }
-    child1_1.children = [ child1_1_1, child1_1_2 ]
-    const root2 : ITreeNode = { id: 2,
-      name: "B",
-      children: null,
-      isExpanded: false,
-      parent: null,
-      type: NodeType.Zip
-    }
-    const child2_1 : ITreeNode = { id: 21,
-      name: "Dir B",
-      children: null,
-      isExpanded: false,
-      parent: root2,
-      type: NodeType.Folder
-    }
-    root2.children = [ child2_1 ];
-    const child2_1_1 : ITreeNode = { id: 211,
-      name: "Image2.png",
-      children: null,
-      isExpanded: false,
-      parent: child2_1,
-      type: NodeType.Image
-    }
-    const child2_1_2 : ITreeNode = { id: 212,
-      name: "File2.doc",
-      children: null,
-      isExpanded: false,
-      parent: child2_1,
-      type: NodeType.Other
-    }
-    child2_1.children = [ child2_1_1, child2_1_2 ]
-    this.Nodes = [root1, root2]
+    this.storage.onNewRoots.subscribe(() => this.refresh())
+    this.storage.onNewRoots.emit()
 	}
-	// обработка события смены выбранного узла
+
+  private refresh() {
+    let lookup = new Set<number>(this.Nodes.map((node) => node.id));
+    this.storage.populateChildren(null)
+      .then((roots: Array<ITreeNode>) =>
+        roots.filter(r => {
+                  console.log(r)
+                  return !lookup.has(r.id)
+                }))
+      .then((newNodes) => {
+        console.log(newNodes)
+        this.Nodes = this.Nodes.concat(newNodes)
+      });
+  }
+
 	onSelectNode(node: ITreeNode) {
 		this.selectedNode = node;
 	}
-	// обработка события вложенных узлов
+
 	onRequest(parent: ITreeNode) {
-		//this.treeService.GetNodes(parent.id).subscribe(
-		//	res => parent.children = res,
-		//	error=> console.log(error));
+    this.storage.populateChildren(parent).then(
+      (children : Array<ITreeNode>) => { parent.children = children;});
 	}
 }

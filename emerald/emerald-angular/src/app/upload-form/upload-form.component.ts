@@ -1,4 +1,8 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component,
+         ElementRef,
+         ViewChild,
+         OnInit } from '@angular/core';
+import { Http, Response } from '@angular/http';
 import { EmeraldBackendStorageService } from '../emerald-backend-storage.service'
 
 @Component({
@@ -6,22 +10,16 @@ import { EmeraldBackendStorageService } from '../emerald-backend-storage.service
   templateUrl: './upload-form.component.html',
   styleUrls: ['./upload-form.component.css']
 })
-
 export class UploadFormComponent implements OnInit {
-  @ViewChild("fileInput") fileInput;
-
-  constructor(private storage : EmeraldBackendStorageService) { }
+  constructor(private storage: EmeraldBackendStorageService, private el: ElementRef) { }
+  @ViewChild("fileInput") fileInput: ElementRef;
 
   ngOnInit() {}
 
-  addFile(): void {
-      let fi = this.fileInput.nativeElement;
-      if (fi.files && fi.files[0]) {
-          let fileToUpload = fi.files[0];
-          this.storage.submit(fileToUpload)
-            /* .then(res => {
-                console.log(res)
-              }); */
-      }
+  onUpload() {
+    let files = this.fileInput.nativeElement['files'] as FileList;
+    if (files.length == 1) {
+      this.storage.upload(files[0])
+    }
   }
 }

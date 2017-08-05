@@ -16,7 +16,7 @@ import { TreeView } from './tree-view/tree-view.component'
     LeftPaneComponent,
     RightPaneComponent,
     UploadFormComponent,
-    TreeView
+    TreeView,
   ],
   imports: [
     BrowserModule,

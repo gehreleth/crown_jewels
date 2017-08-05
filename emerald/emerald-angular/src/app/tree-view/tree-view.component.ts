@@ -1,6 +1,20 @@
 import {Component, Input, Output, EventEmitter} from "@angular/core";
 
 export enum NodeType { Zip, Folder, Image, Other };
+export namespace NodeType {
+  export function parse(arg: string) {
+    switch (arg) {
+      case "Zip":
+        return NodeType.Zip;
+      case "Folder":
+        return NodeType.Folder;
+      case "Image":
+        return NodeType.Image;
+      default:
+        return NodeType.Other;
+    }
+  }
+}
 
 export interface ITreeNode {
 	id: number;
@@ -9,6 +23,7 @@ export interface ITreeNode {
 	isExpanded: boolean;
 	parent: ITreeNode;
 	type: NodeType;
+  aquamarineId: string;
 }
 
 @Component({
