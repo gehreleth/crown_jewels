@@ -22,6 +22,4 @@ public interface IAquamarineService {
 
     @Async
     Future<SubmitOperationResult> submitNewCollection(String formName, File temporaryFile);
-
-    //List<StorageNode> listContentsAsTree();
 }

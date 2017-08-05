@@ -6,6 +6,8 @@ import com.google.gson.*;
 import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
 import org.diamond.aquamarine.SubmitOperationResult;
+import org.diamond.persistence.srcimages.IStorageNodeRepository;
+import org.diamond.persistence.srcimages.entities.StorageNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
@@ -17,6 +19,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -27,6 +30,9 @@ import java.util.concurrent.TimeUnit;
 public class AquamarineJunction {
     @Autowired
     private IAquamarineService aquamarineService;
+
+    @Autowired
+    private IStorageNodeRepository storageNodeRepository;
 
     private static long jobIdSeed = 0L;
 
@@ -58,17 +64,31 @@ public class AquamarineJunction {
         return retVal;
     }
 
-    @GetMapping(value = "/content-tree")
-    public ResponseEntity<String> storage() {
-        ResponseEntity<String> entity = null;
-        //List<StorageNode> storageContents = new ArrayList<StorageNode>();
-        Gson gson = new Gson();
-        JsonElement jsonElement = gson.toJsonTree(new Object());
-        String result = jsonElement.toString();
-        return ResponseEntity.ok()
-                .contentLength(result.length())
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(result);
+    @GetMapping(value = "/browse")
+    public ResponseEntity<String> browse() {
+        JsonElement je = collectNodes(storageNodeRepository.findAllRootNodes());
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(je.toString());
+    }
+
+    @GetMapping(value = "/browse/{parentId}")
+    public ResponseEntity<String> browse(@PathVariable Long parentId) {
+        StorageNode parent = storageNodeRepository.findOne(parentId);
+        JsonElement je = collectNodes(storageNodeRepository.findAllChildrenByParentId(parentId));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(je.toString());
+    }
+
+    private static JsonElement collectNodes(List<StorageNode> arg) {
+        final JsonArray retVal = new JsonArray();
+        arg.stream().map((StorageNode storageNode) -> {
+                    JsonObject e = new JsonObject();
+                    e.addProperty("id", storageNode.getId());
+                    e.addProperty("type", storageNode.getNodeType().toString());
+                    e.addProperty("text", storageNode.getText());
+                    UUID aquamarineId = storageNode.getAquamarineId();
+                    e.addProperty("aquamarineId", aquamarineId != null ? aquamarineId.toString() : null);
+                    return e;
+                }).forEach(q -> retVal.add(q));
+        return retVal;
     }
 
     @GetMapping(value = "/submit-status/{submitId}")
@@ -108,7 +128,7 @@ public class AquamarineJunction {
             jsobj.addProperty("trackingId", jobId);
             String str = jsobj.toString();
             retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(str);
-            tmp = null;
+            tmp = null; // If everything is ok, this temporary file is in async worker's possession now
         } finally {
             if (tmp != null) { try { tmp.delete(); } catch (Exception e) { } }
         }
