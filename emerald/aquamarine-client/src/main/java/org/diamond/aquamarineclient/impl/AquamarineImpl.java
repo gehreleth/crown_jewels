@@ -1,5 +1,6 @@
 package org.diamond.aquamarineclient.impl;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.*;
@@ -7,12 +8,16 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.HTTP;
 import org.diamond.aquamarineclient.Aquamarine;
 import org.diamond.aquamarineclient.Blob;
+import org.diamond.aquamarineclient.ContentDesc;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.UUID;
+
+import static java.lang.Long.parseLong;
 
 public class AquamarineImpl implements Aquamarine {
     private final String endpoint;
@@ -79,6 +84,39 @@ public class AquamarineImpl implements Aquamarine {
     @Override
     public Blob retrieveBlob(UUID id) throws IOException {
         return new BlobImpl(endpoint, id);
+    }
+
+    @Override
+    public ContentDesc retrieveContentDesc(final UUID id) throws IOException {
+        ContentDesc retVal;
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+            HttpHead httpHead = new HttpHead(endpoint + '/' + id.toString());
+            try (CloseableHttpResponse response = httpclient.execute(httpHead)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode != 200) {
+                    throw new HttpResponseException(statusCode, "Http error");
+                }
+                final String mimeType = response.getFirstHeader(HTTP.CONTENT_TYPE).getValue();
+                final long length = Long.parseLong(response.getFirstHeader(HTTP.CONTENT_LEN).getValue());
+                retVal = new ContentDesc() {
+                    @Override
+                    public UUID getUUID() {
+                        return id;
+                    }
+
+                    @Override
+                    public String getMimeType() {
+                        return mimeType;
+                    }
+
+                    @Override
+                    public long getLength() {
+                        return length;
+                    }
+                };
+            }
+        }
+        return retVal;
     }
 
     @Override

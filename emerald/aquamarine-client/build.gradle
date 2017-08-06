@@ -2,6 +2,8 @@ group 'org.diamond'
 version '0.1-DEV'
 
 apply plugin: 'java'
+apply plugin: 'war'
+
 
 sourceCompatibility = 1.8
 

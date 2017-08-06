@@ -24,6 +24,7 @@ public class Startup {
         HashSet<String> knownCommands = new HashSet<>();
         knownCommands.add("--list");
         knownCommands.add("--get");
+        knownCommands.add("--head");
         knownCommands.add("--put");
         knownCommands.add("--alter");
         knownCommands.add("--delete");
@@ -42,6 +43,8 @@ public class Startup {
                 retCode = performListRequest(args);
             } else if ("--get".equals(args[0])) {
                 retCode = performGetRequest(args);
+            } else if ("--head".equals(args[0])) {
+                retCode = performHeadRequest(args);
             } else if ("--put".equals(args[0])) {
                 retCode = performPutRequest(args);
             } else if ("--alter".equals(args[0])) {
@@ -62,6 +65,16 @@ public class Startup {
         for (UUID uuid: uuids) {
             System.out.println(uuid.toString());
         }
+        return retVal;
+    }
+
+    private static int performHeadRequest(String[] args) throws IOException {
+        Aquamarine aquamarine = new AquamarineImpl(args[1]);
+        int retVal = 0;
+        ContentDesc contentDesc = aquamarine.retrieveContentDesc(UUID.fromString(args[2]));
+        System.out.println("UUID: " + contentDesc.getUUID().toString());
+        System.out.println("Content-Type: " + contentDesc.getMimeType());
+        System.out.println("Content-Length: " + contentDesc.getLength());
         return retVal;
     }
 

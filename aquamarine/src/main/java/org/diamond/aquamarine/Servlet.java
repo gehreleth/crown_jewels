@@ -45,6 +45,24 @@ public class Servlet extends HttpServlet {
     }
 
     @Override
+    protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String path = req.getServletPath();
+        if (!"/".equals(path)) {
+            Connection conn = null;
+            try {
+                conn = getConnection();
+                returnContent(path, resp, true, conn);
+            } catch (SQLException e) {
+                throw new ServletException(e);
+            } finally {
+                if (conn != null) { try { conn.close(); } catch (Exception e) { } }
+            }
+        } else {
+            sendStatus(resp, 404, "Index HEAD is not supported (yet)");
+        }
+    }
+
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Connection conn = null;
         try {
@@ -62,7 +80,7 @@ public class Servlet extends HttpServlet {
         if ("/".equals(path)) {
             returnList(response, conn);
         } else {
-            returnContent(path, response, conn);
+            returnContent(path, response, false, conn);
         }
     }
 
@@ -82,7 +100,7 @@ public class Servlet extends HttpServlet {
         }
     }
 
-    private void returnContent(String path, HttpServletResponse response, Connection conn) throws SQLException, IOException {
+    private void returnContent(String path, HttpServletResponse response, boolean onlyHead, Connection conn) throws SQLException, IOException {
         PreparedStatement stmt = null;
         try {
             outer:
@@ -108,7 +126,9 @@ public class Servlet extends HttpServlet {
                     response.setStatus(200);
                     response.setContentType(contentType);
                     response.setContentLength((int) contentLength);
-                    sendLobContent(conn, oid, response.getOutputStream());
+                    if (!onlyHead) {
+                        sendLobContent(conn, oid, response.getOutputStream());
+                    }
                 } else {
                     sendStatus(response, 404, "Content not found");
                 }
