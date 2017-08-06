@@ -87,7 +87,7 @@ public class AquamarineJunction {
                     UUID aquamarineId = storageNode.getAquamarineId();
                     e.addProperty("aquamarineId", aquamarineId != null ? aquamarineId.toString() : null);
                     return e;
-                }).forEach(q -> retVal.add(q));
+                }).forEach(retVal::add);
         return retVal;
     }
 

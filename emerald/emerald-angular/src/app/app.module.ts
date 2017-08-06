@@ -9,10 +9,12 @@ import { RightPaneComponent } from './right-pane/right-pane.component';
 import { UploadFormComponent } from './upload-form/upload-form.component';
 import { EmeraldBackendStorageService } from './emerald-backend-storage.service';
 import { TreeView } from './tree-view/tree-view.component'
+import { PdfViewerComponent } from 'ng2-pdf-viewer';
 
 @NgModule({
   declarations: [
     AppComponent,
+    PdfViewerComponent,
     LeftPaneComponent,
     RightPaneComponent,
     UploadFormComponent,
