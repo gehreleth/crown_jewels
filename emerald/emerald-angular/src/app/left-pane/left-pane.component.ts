@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { TreeView, ITreeNode, NodeType } from '../tree-view/tree-view.component';
-import { EmeraldBackendStorageService } from '../emerald-backend-storage.service'
+import { TreeView } from '../tree-view/tree-view.component';
+import { EmeraldBackendStorageService,
+   ITreeNode, NodeType } from '../emerald-backend-storage.service'
 
 @Component({
   selector: 'app-left-pane',
   templateUrl: './left-pane.component.html',
   styleUrls: ['./left-pane.component.css']
 })
-
 export class LeftPaneComponent implements OnInit {
 	Nodes: Array<ITreeNode> = [];
 	selectedNode: ITreeNode = null;
@@ -36,7 +36,8 @@ export class LeftPaneComponent implements OnInit {
   }
 
 	onSelectNode(node: ITreeNode) {
-		this.selectedNode = node;
+    this.selectedNode = node;
+		this.storage.activeNode.next(node);
 	}
 
 	onRequest(parent: ITreeNode) {

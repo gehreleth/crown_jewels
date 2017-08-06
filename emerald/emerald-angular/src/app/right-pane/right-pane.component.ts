@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit  } from '@angular/core';
+import { EmeraldBackendStorageService,
+   ITreeNode, NodeType } from '../emerald-backend-storage.service'
 
 @Component({
   selector: 'app-right-pane',
@@ -6,7 +8,16 @@ import { Component } from '@angular/core';
   styleUrls: ['./right-pane.component.css']
 })
 
-export class RightPaneComponent {
-  pdfSrc: string = '/emerald/storage/img/5cb20fe3-0718-4d56-86ad-4192c05cd5d3';
+export class RightPaneComponent implements OnInit {
+  pdfSrc: string = null;
   page: number = 1;
+  constructor(private storage : EmeraldBackendStorageService) {}
+
+  ngOnInit() {
+    this.storage.activeNode.subscribe((activeNode: ITreeNode) => {
+      if (activeNode.aquamarineId != null) {
+        this.pdfSrc = '/emerald/storage/img/' + activeNode.aquamarineId
+      }
+    })
+	}
 }
