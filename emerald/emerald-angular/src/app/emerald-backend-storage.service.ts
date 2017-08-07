@@ -28,6 +28,8 @@ export interface ITreeNode {
 	parent: ITreeNode;
 	type: NodeType;
   aquamarineId: string;
+  mimeType: string;
+  contentLength: number;
 }
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
@@ -65,7 +67,9 @@ export class EmeraldBackendStorageService {
           isExpanded: false,
           parent: parent,
           type: NodeType.parse(ee['type'] as string),
-          aquamarineId: ee['aquamarineId'] as string
+          aquamarineId: ee['aquamarineId'] as string,
+          mimeType: ee['mimeType'] as string,
+          contentLength: ee['contentLength']
         }
         return node;
       })

@@ -4,9 +4,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
+import org.diamond.aquamarine.IContentInfo;
 import org.diamond.aquamarine.SubmitOperationResult;
 import org.diamond.aquamarineclient.Aquamarine;
 import org.diamond.aquamarineclient.Blob;
+import org.diamond.aquamarineclient.ContentDesc;
 import org.diamond.persistence.srcimages.IStorageNodeRepository;
 import org.diamond.persistence.srcimages.entities.StorageNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,22 @@ public class AquamarineServiceImpl implements IAquamarineService {
             if (blob != null) try { blob.close(); } catch (Exception e) { }
         }
         return new ContentImpl(mimeType, length, resource);
+    }
+
+    @Override
+    public IContentInfo retrieveContentInfo(UUID uuid) throws IOException {
+        final ContentDesc contentDesc = aquamarine.retrieveContentDesc(uuid);
+        return new IContentInfo() {
+            @Override
+            public String getMimeType() {
+                return contentDesc.getMimeType();
+            }
+
+            @Override
+            public long getLength() {
+                return contentDesc.getLength();
+            }
+        };
     }
 
     @Override

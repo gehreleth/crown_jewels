@@ -16,7 +16,7 @@ export class RightPaneComponent implements OnInit {
   ngOnInit() {
     this.storage.activeNode.subscribe((activeNode: ITreeNode) => {
       if (activeNode.aquamarineId != null) {
-        this.pdfSrc = '/emerald/storage/img/' + activeNode.aquamarineId
+        this.pdfSrc = '/emerald/storage/get-content/' + activeNode.aquamarineId
       }
     })
 	}

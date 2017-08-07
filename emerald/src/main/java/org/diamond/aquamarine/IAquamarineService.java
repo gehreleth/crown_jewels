@@ -20,6 +20,8 @@ public interface IAquamarineService {
      */
     IContent retrieveContent(UUID uuid) throws IOException;
 
+    IContentInfo retrieveContentInfo(UUID uuid) throws IOException;
+
     @Async
     Future<SubmitOperationResult> submitNewCollection(String formName, File temporaryFile);
 }

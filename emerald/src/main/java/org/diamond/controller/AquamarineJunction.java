@@ -3,8 +3,10 @@ package org.diamond.controller;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.*;
+import org.apache.http.HttpStatus;
 import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
+import org.diamond.aquamarine.IContentInfo;
 import org.diamond.aquamarine.SubmitOperationResult;
 import org.diamond.persistence.srcimages.IStorageNodeRepository;
 import org.diamond.persistence.srcimages.entities.StorageNode;
@@ -49,8 +51,23 @@ public class AquamarineJunction {
         return retVal;
     }
 
-    @GetMapping(value = "/img/{aquamarineId}")
-    public ResponseEntity<InputStreamResource> img(@PathVariable UUID aquamarineId) {
+    @GetMapping(value = "/get-content-info/{aquamarineId}")
+    public ResponseEntity<String> getContentInfo(@PathVariable UUID aquamarineId) {
+        ResponseEntity<String> retVal;
+        try {
+            IContentInfo contentInfo = aquamarineService.retrieveContentInfo(aquamarineId);
+            JsonObject jso = new JsonObject();
+            jso.addProperty("mimeType", contentInfo.getMimeType());
+            jso.addProperty("length", contentInfo.getLength());
+            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(jso.toString());
+        } catch (Exception e) {
+            retVal = ResponseEntity.notFound().build();
+        }
+        return retVal;
+    }
+
+    @GetMapping(value = "/get-content/{aquamarineId}")
+    public ResponseEntity<InputStreamResource> getContent(@PathVariable UUID aquamarineId) {
         ResponseEntity<InputStreamResource> retVal;
         try {
             IContent content = aquamarineService.retrieveContent(aquamarineId);
@@ -66,28 +83,56 @@ public class AquamarineJunction {
 
     @GetMapping(value = "/browse")
     public ResponseEntity<String> browse() {
-        JsonElement je = collectNodes(storageNodeRepository.findAllRootNodes());
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(je.toString());
+        ResponseEntity<String> retVal;
+        try {
+            JsonElement je = collectNodes(storageNodeRepository.findAllRootNodes());
+            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(je.toString());
+        } catch (Exception e) {
+            retVal = ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).body(e.getMessage());
+        }
+        return retVal;
+
     }
 
     @GetMapping(value = "/browse/{parentId}")
     public ResponseEntity<String> browse(@PathVariable Long parentId) {
-        StorageNode parent = storageNodeRepository.findOne(parentId);
-        JsonElement je = collectNodes(storageNodeRepository.findAllChildrenByParentId(parentId));
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(je.toString());
+        ResponseEntity<String> retVal;
+        try {
+            JsonElement je = collectNodes(storageNodeRepository.findAllChildrenByParentId(parentId));
+            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(je.toString());
+        } catch (Exception e) {
+            retVal = ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).body(e.getMessage());
+        }
+        return retVal;
     }
 
-    private static JsonElement collectNodes(List<StorageNode> arg) {
+    private JsonElement collectNodes(List<StorageNode> arg) {
         final JsonArray retVal = new JsonArray();
         arg.stream().map((StorageNode storageNode) -> {
-                    JsonObject e = new JsonObject();
-                    e.addProperty("id", storageNode.getId());
-                    e.addProperty("type", storageNode.getNodeType().toString());
-                    e.addProperty("text", storageNode.getText());
-                    UUID aquamarineId = storageNode.getAquamarineId();
-                    e.addProperty("aquamarineId", aquamarineId != null ? aquamarineId.toString() : null);
-                    return e;
-                }).forEach(retVal::add);
+            JsonObject jso;
+            try {
+                UUID aquamarineId = storageNode.getAquamarineId();
+                Long contentLength = null;
+                String mimeType = null;
+                String aquamarineIdStr = null;
+                if (aquamarineId != null) {
+                    aquamarineIdStr = aquamarineId.toString();
+                    IContentInfo contentInfo = aquamarineService.retrieveContentInfo(aquamarineId);
+                    contentLength = contentInfo.getLength();
+                    mimeType = contentInfo.getMimeType();
+                }
+                jso = new JsonObject();
+                jso.addProperty("id", storageNode.getId());
+                jso.addProperty("type", storageNode.getNodeType().toString());
+                jso.addProperty("text", storageNode.getText());
+                jso.addProperty("aquamarineId", aquamarineIdStr);
+                jso.addProperty("contentLength", contentLength);
+                jso.addProperty("mimeType", mimeType);
+            } catch (Exception e1) {
+                throw new RuntimeException(e1);
+            }
+            return jso;
+        }).forEach(retVal::add);
         return retVal;
     }
 
