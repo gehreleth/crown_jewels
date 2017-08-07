@@ -23,13 +23,13 @@ export namespace NodeType {
 export interface ITreeNode {
 	id: number;
 	name: string;
-	children: Array<ITreeNode>;
+	children: Array<ITreeNode> | null;
 	isExpanded: boolean;
-	parent: ITreeNode;
+	parent: ITreeNode | null;
 	type: NodeType;
-  aquamarineId: string;
-  mimeType: string;
-  contentLength: number;
+  aquamarineId: string | null;
+  mimeType: string | null;
+  contentLength: number | null;
 }
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
@@ -57,8 +57,9 @@ export class EmeraldBackendStorageService {
     let rsp = parent != null
       ? this.http.get("/emerald/storage/browse/" + parent.id)
       : this.http.get("/emerald/storage/browse");
-    return rsp.map((response: Response) => JSON.parse(response.text()))
-      .toPromise().then((serverAnswer: any) => {
+    return rsp.map((response: Response) =>
+      JSON.parse(response.text())).toPromise()
+      .then((serverAnswer: any) => {
         let arr = serverAnswer as any[];
         return arr.map((ee:any) => {
           const node : ITreeNode = { id: ee['id'] as number,
