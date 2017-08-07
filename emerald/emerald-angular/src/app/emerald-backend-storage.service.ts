@@ -69,7 +69,7 @@ export class EmeraldBackendStorageService {
           type: NodeType.parse(ee['type'] as string),
           aquamarineId: ee['aquamarineId'] as string,
           mimeType: ee['mimeType'] as string,
-          contentLength: ee['contentLength']
+          contentLength: ee['contentLength'] as number
         }
         return node;
       })
