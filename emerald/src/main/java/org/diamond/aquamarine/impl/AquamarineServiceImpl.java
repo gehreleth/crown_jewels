@@ -29,6 +29,8 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static java.util.stream.Collectors.toSet;
+
 @Service
 public class AquamarineServiceImpl implements IAquamarineService {
     @Autowired
@@ -36,6 +38,10 @@ public class AquamarineServiceImpl implements IAquamarineService {
 
     @Autowired
     private IStorageNodeRepository storageNodeRepository;
+
+    private static final Pattern EXT_PATTERN = Pattern.compile("(?<base>.*)(?<ext>\\.(\\w{1,4}))$");
+
+    private static final Pattern CONFLICT_RESOLVER_PATTERN = Pattern.compile("(?<base>.*)\\((?<num>\\d+)\\)$");
 
     @Override
     public IContent retrieveContent(UUID uuid) throws IOException {
@@ -75,8 +81,48 @@ public class AquamarineServiceImpl implements IAquamarineService {
     @Async
     @Transactional
     public Future<SubmitOperationResult> submitNewCollection(String formName, File temporaryFile) {
+        String baseName;
+        {
+            Matcher m = EXT_PATTERN.matcher(formName);
+            if (!m.matches()) {
+                return new AsyncResult<>(SubmitOperationResult.makeFail("Only .zip files are accepted"));
+            }
+            baseName = m.group("base");
+        }
+        Set<String> possibleConflicts = storageNodeRepository.findAllRootNodesWithTextPattern(baseName + "%").stream()
+                .map((StorageNode sn) -> sn.getText()).collect(toSet());
+        String storageName;
+        if (!possibleConflicts.contains(formName)) {
+            storageName = formName;
+        } else {
+            String candidate = baseName + "(1).zip";
+            if (!possibleConflicts.contains(candidate)) {
+                storageName = candidate;
+            } else {
+                storageName = "lastResort_" + Long.toString(System.currentTimeMillis()) + ".zip";
+                for (String q : possibleConflicts) {
+                    String w;
+                    {
+                        Matcher m = EXT_PATTERN.matcher(q);
+                        if (m.matches()) {
+                            w = m.group("base");
+                        } else {
+                            w = q;
+                        }
+                    }
+                    Matcher m = CONFLICT_RESOLVER_PATTERN.matcher(w);
+                    if (m.matches()) {
+                        candidate = baseName + "(" + (Integer.parseInt(m.group("num")) + 1) + ").zip";
+                        if (!possibleConflicts.contains(candidate)) {
+                            storageName = candidate;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         SubmitOperationResult retVal;
-        StorageNode storageNode = storageNodeRepository.save(StorageNode.makeNewZip(formName, Instant.now()));
+        StorageNode storageNode = storageNodeRepository.save(StorageNode.makeNewZip(storageName, Instant.now()));
         try (ZipFile zipFile = new ZipFile(temporaryFile)) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             HashMap<String, Pair<StorageNode, StorageNode> > dirStruct = new HashMap<>();
@@ -91,6 +137,10 @@ public class AquamarineServiceImpl implements IAquamarineService {
             try { temporaryFile.delete(); } catch (Exception e) { }
         }
         return new AsyncResult<>(retVal);
+    }
+
+    private String findSuitableStorageName(String formName) {
+        return null;
     }
 
     private void processZipEntry(StorageNode rootNode,
@@ -138,7 +188,7 @@ public class AquamarineServiceImpl implements IAquamarineService {
         return retVal;
     }
 
-    private static final Pattern EXT_PATTERN = Pattern.compile(".*(?<ext>\\.(\\w{1,4}))$");
+
 
     private static String getSuitableExtension(ZipEntry zipEntry) {
         Matcher m = EXT_PATTERN.matcher(zipEntry.getName());
