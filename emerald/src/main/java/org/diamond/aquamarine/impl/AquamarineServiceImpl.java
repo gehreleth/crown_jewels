@@ -89,38 +89,7 @@ public class AquamarineServiceImpl implements IAquamarineService {
             }
             baseName = m.group("base");
         }
-        Set<String> possibleConflicts = storageNodeRepository.findAllRootNodesWithTextPattern(baseName + "%").stream()
-                .map((StorageNode sn) -> sn.getText()).collect(toSet());
-        String storageName;
-        if (!possibleConflicts.contains(formName)) {
-            storageName = formName;
-        } else {
-            String candidate = baseName + "(1).zip";
-            if (!possibleConflicts.contains(candidate)) {
-                storageName = candidate;
-            } else {
-                storageName = "lastResort_" + Long.toString(System.currentTimeMillis()) + ".zip";
-                for (String q : possibleConflicts) {
-                    String w;
-                    {
-                        Matcher m = EXT_PATTERN.matcher(q);
-                        if (m.matches()) {
-                            w = m.group("base");
-                        } else {
-                            w = q;
-                        }
-                    }
-                    Matcher m = CONFLICT_RESOLVER_PATTERN.matcher(w);
-                    if (m.matches()) {
-                        candidate = baseName + "(" + (Integer.parseInt(m.group("num")) + 1) + ").zip";
-                        if (!possibleConflicts.contains(candidate)) {
-                            storageName = candidate;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        String storageName = resolvePossibleNameConflicts(formName, baseName);
         SubmitOperationResult retVal;
         StorageNode storageNode = storageNodeRepository.save(StorageNode.makeNewZip(storageName, Instant.now()));
         try (ZipFile zipFile = new ZipFile(temporaryFile)) {
@@ -139,9 +108,42 @@ public class AquamarineServiceImpl implements IAquamarineService {
         return new AsyncResult<>(retVal);
     }
 
-    private String findSuitableStorageName(String formName) {
-        return null;
+    private String resolvePossibleNameConflicts(String formName, String baseName) {
+        Set<String> possibleConflicts = storageNodeRepository.findAllRootNodesWithTextPattern(baseName + "%").stream()
+                .map((StorageNode sn) -> sn.getText()).collect(toSet());
+        String retVal;
+        if (!possibleConflicts.contains(formName)) {
+            retVal = formName;
+        } else {
+            String candidate = baseName + "(1).zip";
+            if (!possibleConflicts.contains(candidate)) {
+                retVal = candidate;
+            } else {
+                retVal = "lastResort_" + Long.toString(System.currentTimeMillis()) + ".zip";
+                for (String q : possibleConflicts) {
+                    String w;
+                    {
+                        Matcher m = EXT_PATTERN.matcher(q);
+                        if (m.matches()) {
+                            w = m.group("base");
+                        } else {
+                            w = q;
+                        }
+                    }
+                    Matcher m = CONFLICT_RESOLVER_PATTERN.matcher(w);
+                    if (m.matches()) {
+                        candidate = baseName + "(" + (Integer.parseInt(m.group("num")) + 1) + ").zip";
+                        if (!possibleConflicts.contains(candidate)) {
+                            retVal = candidate;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return retVal;
     }
+
 
     private void processZipEntry(StorageNode rootNode,
                                  ZipFile zipFile,
