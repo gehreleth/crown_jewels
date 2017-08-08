@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { EmeraldBackendStorageService,
+   ITreeNode, NodeType } from './emerald-backend-storage.service'
 
 @Component({
   selector: 'app-root',
@@ -7,9 +9,20 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponent implements OnInit {
   title = 'Emerald';
+  pdfSrc: string = null;
+  page: number = 1;
 
-  constructor() { }
+  constructor(private storage : EmeraldBackendStorageService) { }
 
-  ngOnInit() { }
+  ngOnInit() {
+    this.storage.activeNode.subscribe((activeNode: ITreeNode) => {
+      if (activeNode.aquamarineId != null) {
+        this.pdfSrc = '/emerald/storage/get-content/' + activeNode.aquamarineId
+      }
+    })
+  }
 
+  afterLoadComplete(pdfDocumentProxy) {
+    console.log(pdfDocumentProxy.getMetadata())
+  }
 }

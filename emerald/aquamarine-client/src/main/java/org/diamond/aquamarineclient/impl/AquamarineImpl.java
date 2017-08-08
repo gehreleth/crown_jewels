@@ -1,6 +1,5 @@
 package org.diamond.aquamarineclient.impl;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.*;
@@ -16,8 +15,6 @@ import org.diamond.aquamarineclient.ContentDesc;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.UUID;
-
-import static java.lang.Long.parseLong;
 
 public class AquamarineImpl implements Aquamarine {
     private final String endpoint;
@@ -140,7 +137,7 @@ public class AquamarineImpl implements Aquamarine {
             HttpDelete httpDelete = new HttpDelete(endpoint + '/' + id.toString());
             try (CloseableHttpResponse response = httpclient.execute(httpDelete)) {
                 int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode != 200) {
+                    if (statusCode != 200) {
                     throw new HttpResponseException(statusCode, "Http error");
                 }
             }
