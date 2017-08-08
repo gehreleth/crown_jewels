@@ -9,15 +9,26 @@ import { EmeraldBackendStorageService,
 })
 export class AppComponent implements OnInit {
   title = 'Emerald';
-  pdfSrc: string = null;
+  contentUrl: string = null;
   page: number = 1;
+  mimeType: string = null;
+  contentLength: number = 0;
+  nodeIsPdf: boolean = false;
 
   constructor(private storage : EmeraldBackendStorageService) { }
 
   ngOnInit() {
     this.storage.activeNode.subscribe((activeNode: ITreeNode) => {
       if (activeNode.aquamarineId != null) {
-        this.pdfSrc = '/emerald/storage/get-content/' + activeNode.aquamarineId
+        this.mimeType = activeNode.mimeType;
+        this.contentLength = activeNode.contentLength;
+        this.contentUrl = '/emerald/storage/get-content/' + activeNode.aquamarineId;
+        this.nodeIsPdf = this.mimeType === 'application/pdf' ? true : false;
+      } else {
+        this.mimeType = null;
+        this.contentLength = 0;
+        this.contentUrl = null;
+        this.nodeIsPdf = false;        
       }
     })
   }

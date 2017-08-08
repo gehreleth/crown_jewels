@@ -32,10 +32,13 @@
       <app-left-pane></app-left-pane>
     </div>
     <main class="col-sm-7 offset-sm-5 col-md-9 offset-md-3 pt-3">
-      <pdf-viewer [src]="pdfSrc"
-                  [page]="page"
-                  [original-size]="false">
-      </pdf-viewer>
+      <p *ngIf="nodeIsPdf">
+        <pdf-viewer [src]="contentUrl"
+                    [page]="page"
+                    [original-size]="false">
+        </pdf-viewer>
+      </p>
+      <p *ngIf="!nodeIsPdf">Please, select a PDF document</p>
     </main>
   </div>
 </div>
