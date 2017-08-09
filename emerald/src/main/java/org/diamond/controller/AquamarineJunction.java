@@ -145,18 +145,20 @@ public class AquamarineJunction {
            StorageNode sn = branchItr.next();
            JsonObject branchNode = convertNodeToJson(sn);
            JsonElement nextBranchNode = mergeEachBranchNodeWithSiblings0(branchItr);
-           JsonArray nextBranchNodeSiblings = collectNodes(sn.getChildren());
-           Long nextBranchNodeId = getIdField(nextBranchNode);
-           if (nextBranchNode != null) {
-               for (int i = 0; i < nextBranchNodeSiblings.size(); ++i) {
-                   Long id = getIdField(nextBranchNodeSiblings.get(i));
-                   if (nextBranchNodeId.equals(id)) {
-                       nextBranchNodeSiblings.set(i, nextBranchNode);
-                       break;
+           if (!nextBranchNode.isJsonNull()) {
+               JsonArray nextBranchNodeSiblings = collectNodes(sn.getChildren());
+               Long nextBranchNodeId = getIdField(nextBranchNode);
+               if (nextBranchNode != null) {
+                   for (int i = 0; i < nextBranchNodeSiblings.size(); ++i) {
+                       Long id = getIdField(nextBranchNodeSiblings.get(i));
+                       if (nextBranchNodeId.equals(id)) {
+                           nextBranchNodeSiblings.set(i, nextBranchNode);
+                           break;
+                       }
                    }
                }
+               branchNode.add("children", nextBranchNodeSiblings);
            }
-           branchNode.add("children", nextBranchNodeSiblings);
            retVal = branchNode;
         }
         return retVal;
