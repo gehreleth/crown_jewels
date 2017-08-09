@@ -12,6 +12,7 @@ import { TreeView } from './tree-view/tree-view.component'
 import { PdfViewerComponent } from 'ng2-pdf-viewer';
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
+import { MenuComponent } from './menu/menu.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse', pathMatch: 'full' },
@@ -24,6 +25,7 @@ const routes: Routes = [
     UploadFormComponent,
     TreeView,
     BrowserComponent,
+    MenuComponent,
   ],
   imports: [
     BrowserModule,
