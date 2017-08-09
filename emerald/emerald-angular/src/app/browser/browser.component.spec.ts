@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LeftPaneComponent } from './left-pane.component';
+import { BrowserComponent } from './browser.component';
 
-describe('LeftPaneComponent', () => {
-  let component: LeftPaneComponent;
-  let fixture: ComponentFixture<LeftPaneComponent>;
+describe('BrowserComponent', () => {
+  let component: BrowserComponent;
+  let fixture: ComponentFixture<BrowserComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ LeftPaneComponent ]
+      declarations: [ BrowserComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LeftPaneComponent);
+    fixture = TestBed.createComponent(BrowserComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
