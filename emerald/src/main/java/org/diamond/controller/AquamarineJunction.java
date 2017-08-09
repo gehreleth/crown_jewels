@@ -148,13 +148,11 @@ public class AquamarineJunction {
            if (!nextBranchNode.isJsonNull()) {
                JsonArray nextBranchNodeSiblings = collectNodes(sn.getChildren());
                Long nextBranchNodeId = getIdField(nextBranchNode);
-               if (nextBranchNode != null) {
-                   for (int i = 0; i < nextBranchNodeSiblings.size(); ++i) {
-                       Long id = getIdField(nextBranchNodeSiblings.get(i));
-                       if (nextBranchNodeId.equals(id)) {
-                           nextBranchNodeSiblings.set(i, nextBranchNode);
-                           break;
-                       }
+               for (int i = 0; i < nextBranchNodeSiblings.size(); ++i) {
+                   Long id = getIdField(nextBranchNodeSiblings.get(i));
+                   if (nextBranchNodeId.equals(id)) {
+                       nextBranchNodeSiblings.set(i, nextBranchNode);
+                       break;
                    }
                }
                branchNode.add("children", nextBranchNodeSiblings);
