@@ -2,7 +2,7 @@ package org.diamond.persistence.srcimages.entities;
 
 import javax.persistence.*;
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 @SuppressWarnings("serial")
@@ -19,7 +19,8 @@ public class StorageNode {
     private StorageNode parent;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy="parent")
-    private Set<StorageNode> children;
+    @OrderBy("text")
+    private List<StorageNode> children;
 
     @Column(name = "node_type")
     private NodeType nodeType;
@@ -89,11 +90,11 @@ public class StorageNode {
         this.parent = parent;
     }
 
-    public Set<StorageNode> getChildren() {
+    public List<StorageNode> getChildren() {
         return children;
     }
 
-    public void setChildren(Set<StorageNode> children) {
+    public void setChildren(List<StorageNode> children) {
         this.children = children;
     }
 

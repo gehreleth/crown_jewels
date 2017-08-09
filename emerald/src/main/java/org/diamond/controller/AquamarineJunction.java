@@ -10,6 +10,8 @@ import org.diamond.aquamarine.IContentInfo;
 import org.diamond.aquamarine.SubmitOperationResult;
 import org.diamond.persistence.srcimages.IStorageNodeRepository;
 import org.diamond.persistence.srcimages.entities.StorageNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
@@ -17,19 +19,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Controller
 @RequestMapping("/storage")
 public class AquamarineJunction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AquamarineJunction.class);
+
     @Autowired
     private IAquamarineService aquamarineService;
 
@@ -61,6 +64,7 @@ public class AquamarineJunction {
             jso.addProperty("length", contentInfo.getLength());
             retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(jso.toString());
         } catch (Exception e) {
+            LOGGER.error("getContentInfo", e);
             retVal = ResponseEntity.notFound().build();
         }
         return retVal;
@@ -76,90 +80,164 @@ public class AquamarineJunction {
                         .contentType(MediaType.parseMediaType(content.getMimeType()))
                         .body(content.getData());
         } catch (Exception e) {
+            LOGGER.error("getContent", e);
             retVal = ResponseEntity.notFound().build();
         }
         return retVal;
     }
 
-    @GetMapping(value = "/browse")
-    public ResponseEntity<String> browse() {
+    @GetMapping(value = "/populate-root")
+    public ResponseEntity<String> populateRoot() {
         ResponseEntity<String> retVal;
         try {
             JsonElement je = collectNodes(storageNodeRepository.findAllRootNodes());
             retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(je.toString());
         } catch (Exception e) {
+            LOGGER.error("populateRoot", e);
             retVal = ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).body(e.getMessage());
         }
         return retVal;
 
     }
 
-    @GetMapping(value = "/browse/{parentId}")
-    public ResponseEntity<String> browse(@PathVariable Long parentId) {
+    @GetMapping(value = "/populate-children/{parentId}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<String> populateChildren(@PathVariable Long parentId) {
         ResponseEntity<String> retVal;
         try {
-            JsonElement je = collectNodes(storageNodeRepository.findAllChildrenByParentId(parentId));
+            JsonElement je = collectNodes(storageNodeRepository.findOne(parentId).getChildren());
             retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(je.toString());
         } catch (Exception e) {
+            LOGGER.error("populateChildren", e);
             retVal = ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).body(e.getMessage());
         }
         return retVal;
     }
 
-    private JsonElement collectNodes(List<StorageNode> arg) {
-        final JsonArray retVal = new JsonArray();
-        arg.stream().map((StorageNode storageNode) -> {
-            JsonObject jso;
-            try {
-                UUID aquamarineId = storageNode.getAquamarineId();
-                Long contentLength = null;
-                String mimeType = null;
-                String aquamarineIdStr = null;
-                if (aquamarineId != null) {
-                    aquamarineIdStr = aquamarineId.toString();
-                    IContentInfo contentInfo = aquamarineService.retrieveContentInfo(aquamarineId);
-                    contentLength = contentInfo.getLength();
-                    mimeType = contentInfo.getMimeType();
-                }
-                jso = new JsonObject();
-                jso.addProperty("id", storageNode.getId());
-                jso.addProperty("type", storageNode.getNodeType().toString());
-                jso.addProperty("text", storageNode.getText());
-                jso.addProperty("aquamarineId", aquamarineIdStr);
-                jso.addProperty("contentLength", contentLength);
-                jso.addProperty("mimeType", mimeType);
-            } catch (Exception e1) {
-                throw new RuntimeException(e1);
+    @GetMapping(value = "/populate-branch/{terminalNodeId}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<String> populateBranch(@PathVariable Long terminalNodeId) {
+        ResponseEntity<String> retVal;
+        try {
+            ArrayList<StorageNode> branch = new ArrayList<>();
+            StorageNode node = storageNodeRepository.findOne(terminalNodeId);
+            while (node != null) {
+                branch.add(node);
+                node = node.getParent();
             }
-            return jso;
-        }).forEach(retVal::add);
+            Collections.reverse(branch); // Order : from root to leaf
+            JsonElement jse = mergeEachBranchNodeWithSiblings(branch);
+            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(jse.toString());
+        } catch (Exception e) {
+            LOGGER.error("populateBranch", e);
+            retVal = ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).body(e.getMessage());
+        }
         return retVal;
+    }
+
+    private JsonElement mergeEachBranchNodeWithSiblings(Collection<StorageNode> branch) {
+        return mergeEachBranchNodeWithSiblings0(branch.iterator());
+    }
+
+    private JsonElement mergeEachBranchNodeWithSiblings0(Iterator<StorageNode> branchItr) {
+        JsonElement retVal = JsonNull.INSTANCE;
+        if (branchItr.hasNext()) {
+           StorageNode sn = branchItr.next();
+           JsonObject branchNode = convertNodeToJson(sn);
+           JsonElement nextBranchNode = mergeEachBranchNodeWithSiblings0(branchItr);
+           JsonArray nextBranchNodeSiblings = collectNodes(sn.getChildren());
+           Long nextBranchNodeId = getIdField(nextBranchNode);
+           if (nextBranchNode != null) {
+               for (int i = 0; i < nextBranchNodeSiblings.size(); ++i) {
+                   Long id = getIdField(nextBranchNodeSiblings.get(i));
+                   if (nextBranchNodeId.equals(id)) {
+                       nextBranchNodeSiblings.set(i, nextBranchNode);
+                       break;
+                   }
+               }
+           }
+           branchNode.add("children", nextBranchNodeSiblings);
+           retVal = branchNode;
+        }
+        return retVal;
+    }
+
+    private static Long getIdField(JsonElement jse) {
+        Long retVal = null;
+        try {
+            JsonObject oo = jse.isJsonObject() ? jse.getAsJsonObject() : null;
+            if (oo != null) {
+                JsonElement eeid = oo.has("id") ? oo.get("id") : null;
+                retVal = eeid != null ? eeid.getAsLong() : null;
+            }
+        } catch (Exception e) {
+            LOGGER.error("Bad typecast", e);
+        }
+        return retVal;
+    }
+
+    private JsonArray collectNodes(Collection<StorageNode> arg) {
+        final JsonArray retVal = new JsonArray();
+        arg.stream().map(this::convertNodeToJson).forEach(retVal::add);
+        return retVal;
+    }
+
+    private JsonObject convertNodeToJson(StorageNode storageNode) {
+        JsonObject jso;
+        try {
+            UUID aquamarineId = storageNode.getAquamarineId();
+            Long contentLength = null;
+            String mimeType = null;
+            String aquamarineIdStr = null;
+            if (aquamarineId != null) {
+                aquamarineIdStr = aquamarineId.toString();
+                IContentInfo contentInfo = aquamarineService.retrieveContentInfo(aquamarineId);
+                contentLength = contentInfo.getLength();
+                mimeType = contentInfo.getMimeType();
+            }
+            jso = new JsonObject();
+            jso.addProperty("id", storageNode.getId());
+            jso.addProperty("type", storageNode.getNodeType().toString());
+            jso.addProperty("text", storageNode.getText());
+            jso.add("children", JsonNull.INSTANCE);
+            jso.addProperty("aquamarineId", aquamarineIdStr);
+            jso.addProperty("contentLength", contentLength);
+            jso.addProperty("mimeType", mimeType);
+        } catch (Exception e1) {
+            throw new RuntimeException(e1);
+        }
+        return jso;
     }
 
     @GetMapping(value = "/submit-status/{submitId}")
-    public ResponseEntity<String> jobStatus(@PathVariable Long submitId) throws ExecutionException, InterruptedException {
+    public ResponseEntity<String> jobStatus(@PathVariable Long submitId)  {
         ResponseEntity<String> entity;
         Future<SubmitOperationResult> future = pendingJobs.getIfPresent(submitId);
-        if (future != null) {
-            JsonObject jsobj = new JsonObject();
-            jsobj.addProperty("status","PENDING");
-            jsobj.add("message", JsonNull.INSTANCE);
-            jsobj.add("timestamp", JsonNull.INSTANCE);
-            if (future.isDone()) {
-                SubmitOperationResult submitOperationResult = future.get();
-                jsobj.addProperty("status", submitOperationResult.getResult().toString());
-                jsobj.addProperty("message", submitOperationResult.getMessage());
-                jsobj.addProperty("timestamp", submitOperationResult.getTimestamp().toEpochMilli());
+        try {
+            if (future != null) {
+                JsonObject jsobj = new JsonObject();
+                jsobj.addProperty("status", "PENDING");
+                jsobj.add("message", JsonNull.INSTANCE);
+                jsobj.add("timestamp", JsonNull.INSTANCE);
+                if (future.isDone()) {
+                    SubmitOperationResult submitOperationResult = future.get();
+                    jsobj.addProperty("status", submitOperationResult.getResult().toString());
+                    jsobj.addProperty("message", submitOperationResult.getMessage());
+                    jsobj.addProperty("timestamp", submitOperationResult.getTimestamp().toEpochMilli());
+                }
+                entity = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(jsobj.toString());
+            } else {
+                entity = ResponseEntity.notFound().build();
             }
-            entity = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(jsobj.toString());
-        } else {
-            entity = ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            LOGGER.error("jobStatus", e);
+            entity = ResponseEntity.badRequest().build();
         }
         return entity;
     }
 
     @PostMapping("/submit-content")
-    public ResponseEntity<String> handleFile(@RequestParam("file") CommonsMultipartFile file) throws IOException {
+    public ResponseEntity<String> handleFile(@RequestParam("file") CommonsMultipartFile file) {
         File tmp = null;
         ResponseEntity<String> retVal;
         try {
@@ -174,6 +252,9 @@ public class AquamarineJunction {
             String str = jsobj.toString();
             retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(str);
             tmp = null; // If everything is ok, this temporary file is in async worker's possession now
+        } catch (IOException e) {
+            LOGGER.error("handleFile", e);
+            retVal = ResponseEntity.badRequest().build();
         } finally {
             if (tmp != null) { try { tmp.delete(); } catch (Exception e) { } }
         }

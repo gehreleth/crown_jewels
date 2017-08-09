@@ -15,8 +15,8 @@ import { BrowserComponent } from './browser/browser.component';
 import { MenuComponent } from './menu/menu.component';
 
 const routes: Routes = [
-    { path: '', redirectTo: 'browse', pathMatch: 'full' },
-    { path: 'browse', component: BrowserComponent }
+    { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
+    { path: 'browse/:id', component: BrowserComponent }
 ];
 @NgModule({
   declarations: [

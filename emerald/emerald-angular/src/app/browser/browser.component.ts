@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { EmeraldBackendStorageService,
          ITreeNode,
          NodeType } from '../emerald-backend-storage.service'
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-browser',
@@ -10,15 +10,17 @@ import { Router } from '@angular/router';
   styleUrls: ['./browser.component.css']
 })
 export class BrowserComponent implements OnInit {
-  title = 'Emerald';
+  id: number | null = null;
+  title: string = 'Emerald';
   contentUrl: string = null;
   page: number = 1;
   mimeType: string = null;
   contentLength: number = 0;
   nodeIsPdf: boolean = false;
+  private isNumberRe: RegExp = new RegExp("^\\d+$");
 
   constructor(private storage : EmeraldBackendStorageService,
-    private router : Router)
+    private router : Router, private route: ActivatedRoute)
   { }
 
   ngOnInit() {
@@ -38,6 +40,13 @@ export class BrowserComponent implements OnInit {
         this.nodeIsPdf = false;
       }
     })
+
+    this.route.params.subscribe(params => {
+      let idParam : string = params['id'];
+      if (this.isNumberRe.test(idParam)) {
+        this.onSelectId(parseInt(idParam));
+      }
+    });
   }
 
   afterLoadComplete(pdfDocumentProxy) {
@@ -59,6 +68,10 @@ export class BrowserComponent implements OnInit {
         console.log(newNodes)
         this.Nodes = this.Nodes.concat(newNodes)
       });
+  }
+
+  onSelectId(id: number) {
+    this.id = id;
   }
 
   onSelectNode(node: ITreeNode) {

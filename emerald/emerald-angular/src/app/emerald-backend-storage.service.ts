@@ -53,28 +53,35 @@ export class EmeraldBackendStorageService {
 
   constructor(private http: Http) { }
 
+  populateBranchByNodeId(id : number) : Promise< Array<ITreeNode> > {
+    let rsp = this.http.get("/emerald/storage/populate-branch/" + id)
+    return null;
+  }
+
   populateChildren(parent: ITreeNode) : Promise< Array<ITreeNode> > {
     let rsp = parent != null
-      ? this.http.get("/emerald/storage/browse/" + parent.id)
-      : this.http.get("/emerald/storage/browse");
+      ? this.http.get("/emerald/storage/populate-children/" + parent.id)
+      : this.http.get("/emerald/storage/populate-root");
     return rsp.map((response: Response) =>
       JSON.parse(response.text())).toPromise()
-      .then((serverAnswer: any) => {
-        let arr = serverAnswer as any[];
-        return arr.map((ee:any) => {
-          const node : ITreeNode = { id: ee['id'] as number,
-          name: ee['text'] as string,
-          children: null,
-          isExpanded: false,
-          parent: parent,
-          type: NodeType.parse(ee['type'] as string),
-          aquamarineId: ee['aquamarineId'] as string,
-          mimeType: ee['mimeType'] as string,
-          contentLength: ee['contentLength'] as number
-        }
-        return node;
-      })
-  })
+        .then((serverAnswer: any) => {
+          let arr = serverAnswer as any[];
+          return arr.map((ee:any) => this.dict2Node(ee, parent)) })
+}
+
+private dict2Node(arg: any, parent: ITreeNode | null) : ITreeNode {
+  const retVal : ITreeNode = {
+    id: parseInt(arg['id']),
+    name: arg['text'] as string,
+    children: null,
+    isExpanded: false,
+    parent: parent,
+    type: NodeType.parse(arg['type'] as string),
+    aquamarineId: arg['aquamarineId'] as string,
+    mimeType: arg['mimeType'] as string,
+    contentLength: arg['contentLength'] as number
+  }
+  return retVal;
 }
 
 upload(file: any) {
