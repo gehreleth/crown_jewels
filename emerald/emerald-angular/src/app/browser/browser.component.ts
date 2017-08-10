@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { EmeraldBackendStorageService,
-         ITreeNode,
-         NodeType } from '../emerald-backend-storage.service'
+import { EmeraldBackendStorageService, ITreeNode, NodeType } from '../emerald-backend-storage.service'
 import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -9,6 +7,7 @@ import { Router, ActivatedRoute } from '@angular/router';
   templateUrl: './browser.component.html',
   styleUrls: ['./browser.component.css']
 })
+
 export class BrowserComponent implements OnInit {
   id: number | null = null;
   title: string = 'Emerald';
@@ -17,6 +16,9 @@ export class BrowserComponent implements OnInit {
   mimeType: string = null;
   contentLength: number = 0;
   nodeIsPdf: boolean = false;
+  Nodes: Array<ITreeNode> = [];
+  selectedNode: ITreeNode = null;
+
   private isNumberRe: RegExp = new RegExp("^\\d+$");
 
   constructor(private storage : EmeraldBackendStorageService,
@@ -53,17 +55,14 @@ export class BrowserComponent implements OnInit {
     console.log(pdfDocumentProxy.getMetadata())
   }
 
-  Nodes: Array<ITreeNode> = [];
-  selectedNode: ITreeNode = null;
-
   private refresh() {
     let lookup = new Set<number>(this.Nodes.map((node) => node.id));
     this.storage.populateChildren(null)
       .then((roots: Array<ITreeNode>) =>
-        roots.filter(r => {
-                  console.log(r)
-                  return !lookup.has(r.id)
-                }))
+      roots.filter(r => {
+        console.log(r)
+        return !lookup.has(r.id)
+      }))
       .then((newNodes) => {
         console.log(newNodes)
         this.Nodes = this.Nodes.concat(newNodes)
@@ -71,7 +70,17 @@ export class BrowserComponent implements OnInit {
   }
 
   onSelectId(id: number) {
-    this.id = id;
+    this.storage.populateBranchByTerminalNodeId(id)
+    .then((branchRoot: ITreeNode) => {
+      this.Nodes = ITreeNode.mergeBranches(null, this.Nodes, [branchRoot])
+      this.expandBranch(branchRoot, id)
+    })
+  }
+
+  private
+
+  expandBranch(branchRoot: ITreeNode, id: number) {
+
   }
 
   onSelectNode(node: ITreeNode) {
