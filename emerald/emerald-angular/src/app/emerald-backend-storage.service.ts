@@ -101,7 +101,7 @@ export class EmeraldBackendStorageService {
   private Id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
 
   constructor(private http: Http) {
-    this.onNewRoots.subscribe(() => this.populateChildren(null))
+    this.onNewRoots.subscribe(() => this.populateChildren(null, true))
     this.onNewRoots.emit()
   }
 
@@ -252,12 +252,14 @@ export class EmeraldBackendStorageService {
    * @param parent parent node (a ITreeNode instance, not id) or null for root
    * @returns Array of children
    */
-  populateChildren(parent: ITreeNode | null) : Promise< Array<ITreeNode> > {
+  populateChildren(parent: ITreeNode | null, forceRefresh : boolean = false) :
+    Promise< Array<ITreeNode> >
+  {
     let children : Array<ITreeNode> | null =
       parent != null
         ? parent.children
         : this.Nodes;
-    if (children != null) {
+    if (!forceRefresh && children != null) {
       return new Promise< Array<ITreeNode> >(resolve => resolve(children))
     } else {
       let rsp = parent != null
@@ -269,14 +271,17 @@ export class EmeraldBackendStorageService {
           let arr = serverAnswer as any[]
           return arr.map((ee:any) => ITreeNode.fromDict(ee, parent))
         })
+        .then((ch : Array<ITreeNode>) => ch.filter(n => !this.Id2Node.has(n.id)))
         .then((ch : Array<ITreeNode>) => {
-          if (parent != null) {
-            parent.children = ch;
-          } else {
-            this.Nodes = ch;
-          }
+          let oldCh = parent != null ? parent.children : this.Nodes;
+          let newCh = oldCh != null ? oldCh.concat(ch) : ch;
           ch.forEach(n => this.Id2Node.set(n.id, n))
-          return this.populateChildren(parent)
+          if (parent != null) {
+            parent.children = newCh;
+          } else {
+            this.Nodes = newCh;
+          }
+          return this.populateChildren(parent, false)
         })
     }
   }
