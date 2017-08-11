@@ -40,7 +40,7 @@ export namespace ITreeNode {
   * @param parent ITreeNode instance for parent -
   * it can't be taken from a dict because dicts contains only atomics,
   * BTW there's a cyclic dependency problem
-  * _or_ null if we're conctructing a root node
+  * _OR_ null if we're conctructing a root node
   *
   * @returns new ITreeNode instance with children == null
   */
@@ -76,90 +76,6 @@ export namespace ITreeNode {
       retVal.children = children.map((c) => fromDictRec(c, retVal))
     }
     return retVal
-  }
-
-  /**
-  * Merges a new branch into a tree, most likely a lazily initiated tree and
-  * its eagerly initiated branch just received from the server.
-  *
-  * @param parent the root branch from where we start merging.
-  * Server currently give a whole branch growing from the root,
-  * so this parameter is supposed to be null.
-  * _But_ this recursive function uses this parameter internally
-  * for merging sub-branches.
-  *
-  * @param src collection of exinting nodes on a branch
-  *
-  * @param newBranch collection of new nodes we merge with.
-  * This algorithm assumes that newBranch have caterpillar tree structure.
-  *
-  * @returns src collection merged with new nodes
-  */
-  export function mergeBranch(parent: ITreeNode, src: Array<ITreeNode>,
-    newBranch: Array<ITreeNode>): Array<ITreeNode>
-  {
-    let retVal : Array<ITreeNode>;
-    let srcIds = new Map<number, ITreeNode>();
-
-    if (src != null) {
-      retVal = src;
-      src.forEach((q) => srcIds.set(q.id, q))
-    } else {
-      retVal = []
-    }
-
-    newBranch.forEach((q) => { q.parent = parent })
-    let nextNodeInBranch : ITreeNode | null = null
-    newBranch
-      .filter((q) => q.children != null)
-      .forEach((q => { nextNodeInBranch = q }))
-
-    if (nextNodeInBranch != null) {
-      let existingSrcBranch = srcIds.get(nextNodeInBranch.id)
-
-      let nestedSrc : Array<ITreeNode> =
-        existingSrcBranch != null ? existingSrcBranch.children : null
-
-      nextNodeInBranch.children =
-        mergeBranch(nextNodeInBranch, nestedSrc, nextNodeInBranch.children)
-
-      if (srcIds.has(nextNodeInBranch.id)) {
-        retVal = retVal.map((q) => q.id != nextNodeInBranch.id ? q : nextNodeInBranch)
-      } else {
-        retVal = retVal.concat([nextNodeInBranch])
-        srcIds.set(nextNodeInBranch.id, nextNodeInBranch)
-      }
-    }
-    retVal = retVal.concat(newBranch.filter((q) => !srcIds.has(q.id)))
-    return retVal
-  }
-
-  /**
-  * Collects all nodes from the root of a caterpillar tree to the
-  * target node with given id
-  *
-  * @param node root of a caterpillar tree.
-  *
-  * @param id of the target node
-  *
-  * @param acc all nodes in the path
-  *
-  * @returns src collection merged with new nodes
-  */
-  export function tracePathToTargetNode(node: ITreeNode,
-    id: number, acc: Array<ITreeNode>) : Array<ITreeNode>
-  {
-    acc = acc.concat([node])
-    if (node.id == id) {
-      return acc
-    } else {
-      let nextStep = node.children.filter((q) => q.children != null || q.id == id)
-      if (nextStep.length != 0) {
-        return this.tracePathToTargetNode(nextStep[0], id, acc)
-      } else {
-        throw new Error("Bad branch")
-      }
-    }
   }
 }
 
@@ -198,6 +114,90 @@ export class EmeraldBackendStorageService {
       });
     })
     this.onNewRoots.emit()
+  }
+
+  /**
+  * Merges a new branch into a tree, most likely a lazily initiated tree and
+  * its eagerly initiated branch just received from the server.
+  *
+  * @param parent the root branch from where we start merging.
+  * Server currently give a whole branch growing from the root,
+  * so this parameter is supposed to be null.
+  * _But_ this recursive function uses this parameter internally
+  * for merging sub-branches.
+  *
+  * @param src collection of exinting nodes on a branch
+  *
+  * @param newBranch collection of new nodes we merge with.
+  * This algorithm assumes that newBranch have caterpillar tree structure.
+  *
+  * @returns src collection merged with new nodes
+  */
+  private mergeBranch(parent: ITreeNode, src: Array<ITreeNode>,
+    newBranch: Array<ITreeNode>): Array<ITreeNode>
+  {
+    let retVal : Array<ITreeNode>;
+    let srcIds = new Map<number, ITreeNode>();
+
+    if (src != null) {
+      retVal = src;
+      src.forEach((q) => srcIds.set(q.id, q))
+    } else {
+      retVal = []
+    }
+
+    newBranch.forEach((q) => { q.parent = parent })
+    let nextNodeInBranch : ITreeNode | null = null
+    newBranch
+      .filter((q) => q.children != null)
+      .forEach((q => { nextNodeInBranch = q }))
+
+    if (nextNodeInBranch != null) {
+      let existingSrcBranch = srcIds.get(nextNodeInBranch.id)
+
+      let nestedSrc : Array<ITreeNode> =
+        existingSrcBranch != null ? existingSrcBranch.children : null
+
+      nextNodeInBranch.children =
+        this.mergeBranch(nextNodeInBranch, nestedSrc, nextNodeInBranch.children)
+
+      if (srcIds.has(nextNodeInBranch.id)) {
+        retVal = retVal.map((q) => q.id != nextNodeInBranch.id ? q : nextNodeInBranch)
+      } else {
+        retVal = retVal.concat([nextNodeInBranch])
+        srcIds.set(nextNodeInBranch.id, nextNodeInBranch)
+      }
+    }
+    retVal = retVal.concat(newBranch.filter((q) => !srcIds.has(q.id)))
+    return retVal
+  }
+
+  /**
+   * Collects all nodes from the root of a caterpillar tree to the
+   * target node with given id
+   *
+   * @param node root of a caterpillar tree.
+   *
+   * @param id of the target node
+   *
+   * @param acc all nodes in the path
+   *
+   * @returns src collection merged with new nodes
+   */
+  private tracePathToTargetNode(node: ITreeNode,
+    id: number, acc: Array<ITreeNode>) : Array<ITreeNode>
+  {
+    acc = acc.concat([node])
+    if (node.id == id) {
+      return acc
+    } else {
+      let nextStep = node.children.filter((q) => q.children != null || q.id == id)
+      if (nextStep.length != 0) {
+        return this.tracePathToTargetNode(nextStep[0], id, acc)
+      } else {
+        throw new Error("Bad branch")
+      }
+    }
   }
 
 /**
