@@ -2,7 +2,7 @@
   <div class="row">
     <div class="col-sm-5 col-md-3 hidden-xs-down bg-faded sidebar">
       <div>
-        <tree-view [Nodes]="Nodes"
+        <tree-view [Nodes]="storage.Nodes"
                    [SelectedNode]="selectedNode"
                    (onSelectedChanged)="onSelectNode($event)"
                    (onRequestNodes)="onRequest($event)">

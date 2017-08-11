@@ -16,7 +16,6 @@ export class BrowserComponent implements OnInit {
   mimeType: string = null;
   contentLength: number = 0;
   nodeIsPdf: boolean = false;
-  Nodes: Array<ITreeNode> = [];
   selectedNode: ITreeNode = null;
 
   private isNumberRe: RegExp = new RegExp("^\\d+$");
@@ -26,10 +25,8 @@ export class BrowserComponent implements OnInit {
   { }
 
   ngOnInit() {
-    this.storage.onNewRoots.subscribe(() => this.refresh())
-    this.storage.onNewRoots.emit()
-
     this.storage.activeNode.subscribe((activeNode: ITreeNode) => {
+      this.selectedNode = activeNode;
       if (activeNode.aquamarineId != null) {
         this.mimeType = activeNode.mimeType;
         this.contentLength = activeNode.contentLength;
@@ -55,28 +52,14 @@ export class BrowserComponent implements OnInit {
     console.log(pdfDocumentProxy.getMetadata())
   }
 
-  private refresh() {
-    let lookup = new Set<number>(this.Nodes.map((node) => node.id));
-    this.storage.populateChildren(null)
-      .then((roots: Array<ITreeNode>) =>
-      roots.filter(r => {
-        console.log(r)
-        return !lookup.has(r.id)
-      }))
-      .then((newNodes) => {
-        console.log(newNodes)
-        this.Nodes = this.Nodes.concat(newNodes)
-      });
-  }
-
   onSelectId(id: number) {
-    this.storage.populateBranchByTerminalNodeId(id)
+    /*this.storage.populateBranchByTerminalNodeId(id)
     .then((branchRoot: ITreeNode) => {
       let path =
         ITreeNode.tracePathToTargetNode(branchRoot, id, []).map((q) => q.id)
       this.Nodes = ITreeNode.mergeBranch(null, this.Nodes, [branchRoot])
       this.expandBranch(path)
-    })
+    })*/
   }
 
   private expandBranch(path : Array<number>) {
@@ -84,12 +67,13 @@ export class BrowserComponent implements OnInit {
   }
 
   onSelectNode(node: ITreeNode) {
-    this.selectedNode = node;
     this.storage.activeNode.next(node);
   }
 
   onRequest(parent: ITreeNode) {
     this.storage.populateChildren(parent).then(
-      (children : Array<ITreeNode>) => { parent.children = children;});
+      (children : Array<ITreeNode>) => {
+        parent.children = children
+      });
   }
 }

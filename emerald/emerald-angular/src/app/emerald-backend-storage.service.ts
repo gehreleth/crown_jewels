@@ -181,7 +181,24 @@ namespace TrackingStatus {
 export class EmeraldBackendStorageService {
   onNewRoots: EventEmitter<void> = new EventEmitter<void>();
   activeNode: Subject<ITreeNode> = new Subject<ITreeNode>();
-  constructor(private http: Http) { }
+  Nodes: Array<ITreeNode> = [];
+
+  constructor(private http: Http) {
+    this.onNewRoots.subscribe(() => {
+      let lookup = new Set<number>(this.Nodes.map((node) => node.id));
+      this.populateChildren(null)
+        .then((roots: Array<ITreeNode>) =>
+        roots.filter(r => {
+          console.log(r)
+          return !lookup.has(r.id)
+        }))
+        .then((newNodes) => {
+          console.log(newNodes)
+          this.Nodes = this.Nodes.concat(newNodes)
+      });
+    })
+    this.onNewRoots.emit()
+  }
 
 /**
  * @param id of a branch's terminal node
