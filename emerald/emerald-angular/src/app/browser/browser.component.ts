@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { EmeraldBackendStorageService, ITreeNode, NodeType } from '../emerald-backend-storage.service'
 import { Router, ActivatedRoute } from '@angular/router';
+import { EmeraldBackendStorageService, ITreeNode, NodeType } from '../emerald-backend-storage.service'
 
 @Component({
   selector: 'app-browser',
@@ -53,13 +53,7 @@ export class BrowserComponent implements OnInit {
   }
 
   onSelectId(id: number) {
-    /*this.storage.populateBranchByTerminalNodeId(id)
-    .then((branchRoot: ITreeNode) => {
-      let path =
-        ITreeNode.tracePathToTargetNode(branchRoot, id, []).map((q) => q.id)
-      this.Nodes = ITreeNode.mergeBranch(null, this.Nodes, [branchRoot])
-      this.expandBranch(path)
-    })*/
+    this.storage.getNodeById(id).then((q) => console.log(q))
   }
 
   private expandBranch(path : Array<number>) {

@@ -98,22 +98,60 @@ export class EmeraldBackendStorageService {
   onNewRoots: EventEmitter<void> = new EventEmitter<void>();
   activeNode: Subject<ITreeNode> = new Subject<ITreeNode>();
   Nodes: Array<ITreeNode> = [];
+  private Id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
 
   constructor(private http: Http) {
     this.onNewRoots.subscribe(() => {
-      let lookup = new Set<number>(this.Nodes.map((node) => node.id));
       this.populateChildren(null)
-        .then((roots: Array<ITreeNode>) =>
-        roots.filter(r => {
-          console.log(r)
-          return !lookup.has(r.id)
-        }))
-        .then((newNodes) => {
-          console.log(newNodes)
-          this.Nodes = this.Nodes.concat(newNodes)
-      });
+        .then((roots: Array<ITreeNode>) => roots.filter(r => !this.Id2Node.has(r.id)))
+        .then((newNodes: Array<ITreeNode>) => {
+          this.Nodes = this.Nodes.concat(newNodes.map(n => {
+            this.Id2Node.set(n.id, n)
+            return n
+          }))
+        });
     })
     this.onNewRoots.emit()
+  }
+
+  private mergeBranch(newBranchRoot: ITreeNode) {
+    let lookup = new Map<number, ITreeNode>();
+    EmeraldBackendStorageService.makeSliceToMerge(this.Nodes,
+      [newBranchRoot], lookup);
+    let newNodes = EmeraldBackendStorageService.mergeBranch0(null, this.Nodes,
+      [newBranchRoot], lookup)
+    let newId2Node = EmeraldBackendStorageService.mergeLookups(this.Id2Node, lookup);
+    this.Nodes = newNodes
+    this.Id2Node = newId2Node
+  }
+
+  private static mergeLookups(oldMap: Map<number, ITreeNode>,
+    newMap : Map<number, ITreeNode>) : Map<number, ITreeNode>
+  {
+    let retVal = new Map<number, ITreeNode>(oldMap)
+    newMap.forEach((v, k) => retVal.set(k,v))
+    return retVal
+  }
+
+  private static makeSliceToMerge(src: Array<ITreeNode>,
+    newBranch: Array<ITreeNode>, lookup: Map<number, ITreeNode>)
+  {
+    src.forEach((n) => lookup.set(n.id, n))
+    let nextNodeInBranch : ITreeNode | null = null
+    newBranch
+      .filter(n => n.children != null)
+      .forEach(n => { nextNodeInBranch = n })
+    if (nextNodeInBranch != null && nextNodeInBranch.children != null) {
+      let srcNested : Array<ITreeNode> = [];
+      {
+        let src0 = lookup.get(nextNodeInBranch.id)
+        if (src0 != null) {
+          srcNested = src0.children != null ? src0.children : [];
+        }
+      }
+      EmeraldBackendStorageService
+        .makeSliceToMerge(srcNested, nextNodeInBranch.children, lookup)
+    }
   }
 
   /**
@@ -133,42 +171,41 @@ export class EmeraldBackendStorageService {
   *
   * @returns src collection merged with new nodes
   */
-  private mergeBranch(parent: ITreeNode, src: Array<ITreeNode>,
-    newBranch: Array<ITreeNode>): Array<ITreeNode>
+  private static mergeBranch0(parent: ITreeNode, src: Array<ITreeNode>,
+    newBranch: Array<ITreeNode>, lookup: Map<number, ITreeNode>): Array<ITreeNode>
   {
-    let retVal : Array<ITreeNode>;
-    let srcIds = new Map<number, ITreeNode>();
-
-    if (src != null) {
-      retVal = src;
-      src.forEach((q) => srcIds.set(q.id, q))
-    } else {
-      retVal = []
-    }
-
+    let retVal : Array<ITreeNode> = src != null ? src : [];
     newBranch.forEach((q) => { q.parent = parent })
+
     let nextNodeInBranch : ITreeNode | null = null
     newBranch
       .filter((q) => q.children != null)
       .forEach((q => { nextNodeInBranch = q }))
 
     if (nextNodeInBranch != null) {
-      let existingSrcBranch = srcIds.get(nextNodeInBranch.id)
+      let existingSrcBranch = lookup.get(nextNodeInBranch.id)
 
-      let nestedSrc : Array<ITreeNode> =
+      let nestedSrc : Array<ITreeNode> | null =
         existingSrcBranch != null ? existingSrcBranch.children : null
 
       nextNodeInBranch.children =
-        this.mergeBranch(nextNodeInBranch, nestedSrc, nextNodeInBranch.children)
+        this.mergeBranch0(nextNodeInBranch, nestedSrc,
+          nextNodeInBranch.children, lookup)
 
-      if (srcIds.has(nextNodeInBranch.id)) {
-        retVal = retVal.map((q) => q.id != nextNodeInBranch.id ? q : nextNodeInBranch)
+      if (lookup.has(nextNodeInBranch.id)) {
+        retVal = retVal.map((q) =>
+          q.id != nextNodeInBranch.id ? q : nextNodeInBranch)
       } else {
         retVal = retVal.concat([nextNodeInBranch])
-        srcIds.set(nextNodeInBranch.id, nextNodeInBranch)
       }
+      lookup.set(nextNodeInBranch.id, nextNodeInBranch)
     }
-    retVal = retVal.concat(newBranch.filter((q) => !srcIds.has(q.id)))
+    retVal = retVal.concat(newBranch
+      .filter((q) => !lookup.has(q.id))
+      .map((q) => {
+        lookup.set(q.id, q)
+        return q
+      }))
     return retVal
   }
 
@@ -205,11 +242,19 @@ export class EmeraldBackendStorageService {
  * @returns tree segment Root Node -> ... Terminal Terminal node
  * with each sibling filled along the way
  */
-  populateBranchByTerminalNodeId(id : number) : Promise<ITreeNode> {
-    let rsp = this.http.get("/emerald/storage/populate-branch/" + id);
-    return rsp.map((response: Response) =>
-    JSON.parse(response.text())).toPromise()
-      .then((serverAnswer: any) => ITreeNode.fromDictRec(serverAnswer, null));
+  getNodeById(id : number) : Promise<ITreeNode> {
+    if (this.Id2Node.has(id)) {
+      return new Promise<ITreeNode>((resolve) => resolve(this.Id2Node.get(id)))
+    } else {
+      let rsp = this.http.get("/emerald/storage/populate-branch/" + id);
+      return rsp.map((response: Response) =>
+      JSON.parse(response.text())).toPromise()
+        .then((serverAnswer: any) => ITreeNode.fromDictRec(serverAnswer, null))
+        .then((n : ITreeNode) => {
+          this.mergeBranch(n)
+          return this.getNodeById(id)
+        })
+    }
   }
 
   /**
@@ -224,7 +269,7 @@ export class EmeraldBackendStorageService {
     JSON.parse(response.text())).toPromise()
       .then((serverAnswer: any) => {
         let arr = serverAnswer as any[]
-        return arr.map((ee:any) => ITreeNode.fromDict(ee, parent))
+        return arr.map((ee:any) => ITreeNode.fromDict(ee, parent));
       })
   }
 
