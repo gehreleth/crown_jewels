@@ -72,14 +72,14 @@ export class BrowserComponent implements OnInit {
   onSelectId(id: number) {
     this.storage.populateBranchByTerminalNodeId(id)
     .then((branchRoot: ITreeNode) => {
-      this.Nodes = ITreeNode.mergeBranches(null, this.Nodes, [branchRoot])
-      this.expandBranch(branchRoot, id)
+      let path =
+        ITreeNode.tracePathToTargetNode(branchRoot, id, []).map((q) => q.id)
+      this.Nodes = ITreeNode.mergeBranch(null, this.Nodes, [branchRoot])
+      this.expandBranch(path)
     })
   }
 
-  private
-
-  expandBranch(branchRoot: ITreeNode, id: number) {
+  private expandBranch(path : Array<number>) {
 
   }
 
