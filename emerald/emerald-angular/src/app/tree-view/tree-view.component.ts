@@ -16,10 +16,11 @@ import {ITreeNode, NodeType} from '../emerald-backend-storage.service'
             <i *ngSwitchCase="nodeType.Image"  class="nodeicon fa fa-file-image-o"></i>
             <i *ngSwitchDefault class="nodeicon fa fa-file"></i>
           </i>
-					<span class="nodetext {{node == SelectedNode ? 'bg-info' : ''}} {{node.parent ? '' : 'text-root'}}"
+					<a [routerLink]="['/browse', node.id]">{{node.name}}</a>
+					<!-- span class="nodetext {{node == SelectedNode ? 'bg-info' : ''}} {{node.parent ? '' : 'text-root'}}"
 						  (click)="onSelectNode(node)">
-						{{node.name}}
-					</span>
+
+					</span -->
 					<!-- span *ngIf="node.badge > 0" class="nodebage badge">{{node.badge}}</span -->
 					<tree-view [Nodes]="node.children"
 							   [SelectedNode]="SelectedNode"

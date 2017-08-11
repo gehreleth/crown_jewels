@@ -97,20 +97,11 @@ namespace TrackingStatus {
 export class EmeraldBackendStorageService {
   onNewRoots: EventEmitter<void> = new EventEmitter<void>();
   activeNode: Subject<ITreeNode> = new Subject<ITreeNode>();
-  Nodes: Array<ITreeNode> = [];
+  Nodes: Array<ITreeNode> = null;
   private Id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
 
   constructor(private http: Http) {
-    this.onNewRoots.subscribe(() => {
-      this.populateChildren(null)
-        .then((roots: Array<ITreeNode>) => roots.filter(r => !this.Id2Node.has(r.id)))
-        .then((newNodes: Array<ITreeNode>) => {
-          this.Nodes = this.Nodes.concat(newNodes.map(n => {
-            this.Id2Node.set(n.id, n)
-            return n
-          }))
-        });
-    })
+    this.onNewRoots.subscribe(() => this.populateChildren(null))
     this.onNewRoots.emit()
   }
 
@@ -262,15 +253,32 @@ export class EmeraldBackendStorageService {
    * @returns Array of children
    */
   populateChildren(parent: ITreeNode | null) : Promise< Array<ITreeNode> > {
-    let rsp = parent != null
-      ? this.http.get("/emerald/storage/populate-children/" + parent.id)
-      : this.http.get("/emerald/storage/populate-root");
-    return rsp.map((response: Response) =>
-    JSON.parse(response.text())).toPromise()
-      .then((serverAnswer: any) => {
-        let arr = serverAnswer as any[]
-        return arr.map((ee:any) => ITreeNode.fromDict(ee, parent));
-      })
+    let children : Array<ITreeNode> | null =
+      parent != null
+        ? parent.children
+        : this.Nodes;
+    if (children != null) {
+      return new Promise< Array<ITreeNode> >(resolve => resolve(children))
+    } else {
+      let rsp = parent != null
+        ? this.http.get("/emerald/storage/populate-children/" + parent.id)
+        : this.http.get("/emerald/storage/populate-root");
+      return rsp.map((response: Response) =>
+      JSON.parse(response.text())).toPromise()
+        .then((serverAnswer: any) => {
+          let arr = serverAnswer as any[]
+          return arr.map((ee:any) => ITreeNode.fromDict(ee, parent))
+        })
+        .then((ch : Array<ITreeNode>) => {
+          if (parent != null) {
+            parent.children = ch;
+          } else {
+            this.Nodes = ch;
+          }
+          ch.forEach(n => this.Id2Node.set(n.id, n))
+          return this.populateChildren(parent)
+        })
+    }
   }
 
   upload(file: any) {
