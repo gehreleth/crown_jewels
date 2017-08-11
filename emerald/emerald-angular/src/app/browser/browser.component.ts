@@ -53,7 +53,14 @@ export class BrowserComponent implements OnInit {
   }
 
   onSelectId(id: number) {
-    this.storage.getNodeById(id).then((q) => console.log(q))
+    this.storage.getNodeById(id).then(node => {
+      let cur = node
+      while (cur != null) {
+        cur.isExpanded = true
+        cur = cur.parent
+      }
+      this.onSelectNode(node)
+    })
   }
 
   private expandBranch(path : Array<number>) {
