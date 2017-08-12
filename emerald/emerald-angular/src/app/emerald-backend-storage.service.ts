@@ -280,6 +280,9 @@ export class EmeraldBackendStorageService {
             this.Nodes = newCh;
           }
           return this.populateChildren(parent, false)
+        }).catch(error => {
+          console.log(error)
+          new Promise< Array<ITreeNode> >(resolve => undefined)
         })
     }
   }
