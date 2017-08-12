@@ -11,12 +11,6 @@
 				<i *ngSwitchDefault class="nodeicon fa fa-file"></i>
 			</i>
 			<a class="nodetext {{node == SelectedNode ? 'bg-info' : ''}} {{node.parent ? '' : 'text-root'}}" [routerLink]="['/browse', node.id]">{{node.name}}</a>
-			<!-- span class="nodetext {{node == SelectedNode ? 'bg-info' : ''}} {{node.parent ? '' : 'text-root'}}"
-					(click)="onSelectNode(node)">
-
-
-			</span -->
-			<!-- span *ngIf="node.badge > 0" class="nodebage badge">{{node.badge}}</span -->
 			<tree-view [Nodes]="node.children"
 						 [SelectedNode]="SelectedNode"
 						 (onSelectedChanged)="onSelectNode($event)"
