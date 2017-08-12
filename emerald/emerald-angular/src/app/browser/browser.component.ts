@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { EmeraldBackendStorageService, ITreeNode, NodeType } from '../emerald-backend-storage.service'
 import { Subject } from 'rxjs/Subject';
 
@@ -22,7 +22,7 @@ export class BrowserComponent implements OnInit {
   private isNumberRe: RegExp = new RegExp("^\\d+$");
 
   constructor(private storage : EmeraldBackendStorageService,
-    private router : Router, private route: ActivatedRoute)
+     private route: ActivatedRoute)
   { }
 
   ngOnInit() {
