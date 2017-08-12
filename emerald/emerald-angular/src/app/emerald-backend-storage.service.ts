@@ -1,6 +1,5 @@
 import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Response } from '@angular/http';
-import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/map';
 
@@ -96,7 +95,6 @@ namespace TrackingStatus {
 @Injectable()
 export class EmeraldBackendStorageService {
   onNewRoots: EventEmitter<void> = new EventEmitter<void>();
-  activeNode: Subject<ITreeNode> = new Subject<ITreeNode>();
   Nodes: Array<ITreeNode> = null;
   private Id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
 

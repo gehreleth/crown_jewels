@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { EmeraldBackendStorageService, ITreeNode, NodeType } from '../emerald-backend-storage.service'
+import { Subject } from 'rxjs/Subject';
 
 @Component({
   selector: 'app-browser',
@@ -17,6 +18,7 @@ export class BrowserComponent implements OnInit {
   contentLength: number = 0;
   nodeIsPdf: boolean = false;
   selectedNode: ITreeNode = null;
+  selectedNodeSubj: Subject<ITreeNode> = new Subject<ITreeNode>();
 
   private isNumberRe: RegExp = new RegExp("^\\d+$");
 
@@ -25,8 +27,7 @@ export class BrowserComponent implements OnInit {
   { }
 
   ngOnInit() {
-    this.storage.activeNode.subscribe((activeNode: ITreeNode) => {
-      this.selectedNode = activeNode;
+    this.selectedNodeSubj.subscribe((activeNode: ITreeNode) => {
       if (activeNode.aquamarineId != null) {
         this.mimeType = activeNode.mimeType;
         this.contentLength = activeNode.contentLength;
@@ -38,6 +39,7 @@ export class BrowserComponent implements OnInit {
         this.contentUrl = null;
         this.nodeIsPdf = false;
       }
+      this.selectedNode = activeNode;
     })
 
     this.route.params.subscribe(params => {
@@ -68,7 +70,7 @@ export class BrowserComponent implements OnInit {
   }
 
   onSelectNode(node: ITreeNode) {
-    this.storage.activeNode.next(node);
+    this.selectedNodeSubj.next(node);
   }
 
   onRequest(parent: ITreeNode) {
