@@ -32,6 +32,23 @@ describe('MockBackend EmeraldBackendStorageService populateChildren', () => {
     expect(this.lastConnection.request.url).toEqual("/emerald/storage/populate-root", 'url invalid');
   });
 
+  it('populateChildren(non-null) should query current service url', () => {
+    let parent = ITreeNode.fromDict(
+      JSON.parse(`  {
+          "id": 20,
+          "type": "Zip",
+          "text": "coll.zip",
+          "children": null,
+          "aquamarineId": null,
+          "contentLength": null,
+          "mimeType": null
+        }`), null)
+    this.backendStorageService.populateChildren(parent);
+    expect(this.lastConnection).toBeDefined('no http service connection at all?');
+    expect(this.lastConnection.request.url)
+      .toEqual("/emerald/storage/populate-children/20", 'url invalid');
+  });
+
   it('populateChildren(null) should return storage root', fakeAsync(() => {
        let result: ITreeNode[];
        this.backendStorageService.populateChildren(null)
@@ -69,7 +86,7 @@ describe('MockBackend EmeraldBackendStorageService populateChildren', () => {
        })));
        tick();
        expect(result.length).toEqual(3, 'There are exactly three entities');
-       //expect(result[0]).toEqual(HERO_ONE, ' HERO_ONE should be the first hero');
+       expect(result[2].id).toEqual(31, 'Third entity\'s id is 31');
        //expect(result[1]).toEqual(HERO_TWO, ' HERO_TWO should be the second hero');
      }));
 
