@@ -12,7 +12,6 @@ export class TreeView {
 	@Input() Nodes: Array<ITreeNode>;
 	@Input() SelectedNode: ITreeNode;
 
-	@Output() onSelectedChanged: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
 	@Output() onRequestNodes: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
 
 	constructor() { }
@@ -26,10 +25,6 @@ export class TreeView {
         return true;
     }
   }
-
-	onSelectNode(node: ITreeNode) {
-		this.onSelectedChanged.emit(node);
-	}
 
 	onExpand(node: ITreeNode) {
 		node.isExpanded = !node.isExpanded;
