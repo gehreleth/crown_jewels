@@ -1,19 +1,28 @@
 <ul class="treenodes">
-	<li *ngFor="#node of Nodes" class="treenode">
-		<i class="nodebutton fa fa-{{node.isExpanded ? 'minus' : 'plus'}}-square-o"
-		   (click)="onExpand(node)">
+	<li *ngFor="let node of Nodes" class="treenode">
+		<i *ngIf="!isLeaf(node)" class="nodebutton fa fa-{{node.isExpanded ? 'minus' : 'plus'}}-square-o"
+			 (click)="onExpand(node)">
 		</i>
+		<div class="nodeinfo">
+			<i [ngSwitch]="node.type">
+				<i *ngSwitchCase="nodeType.Zip" class="nodeicon fa fa-file-archive-o"></i>
+				<i *ngSwitchCase="nodeType.Folder" class="nodeicon fa fa-folder-o"></i>
+				<i *ngSwitchCase="nodeType.Image"  class="nodeicon fa fa-file-image-o"></i>
+				<i *ngSwitchDefault class="nodeicon fa fa-file"></i>
+			</i>
+			<a class="nodetext {{node == SelectedNode ? 'bg-info' : ''}} {{node.parent ? '' : 'text-root'}}" [routerLink]="['/browse', node.id]">{{node.name}}</a>
+			<!-- span class="nodetext {{node == SelectedNode ? 'bg-info' : ''}} {{node.parent ? '' : 'text-root'}}"
+					(click)="onSelectNode(node)">
 
-		<span class="nodetext {{node == SelectedNode ? 'bg-info' : ''}}"
-			  (click)="onSelectNode(node)">
-			{{node.name}}
-		</span>
 
-		<tree-view [Nodes]="node.children"
-				   [SelectedNode]="SelectedNode"
-				   (onSelectedChanged)="onSelectNode($event)"
-				   (onRequestNodes)="onRequest($event)"
-				   *ngIf="node.isExpanded">
-		</tree-view>
+			</span -->
+			<!-- span *ngIf="node.badge > 0" class="nodebage badge">{{node.badge}}</span -->
+			<tree-view [Nodes]="node.children"
+						 [SelectedNode]="SelectedNode"
+						 (onSelectedChanged)="onSelectNode($event)"
+						 (onRequestNodes)="onRequestLocal($event)"
+						 *ngIf="node.isExpanded">
+			</tree-view>
+		</div>
 	</li>
 </ul>
