@@ -11,7 +11,6 @@ import { Subject } from 'rxjs/Subject';
 
 export class BrowserComponent implements OnInit {
   id: number | null = null;
-  title: string = 'Emerald';
   contentUrl: string = null;
   page: number = 1;
   mimeType: string = null;
