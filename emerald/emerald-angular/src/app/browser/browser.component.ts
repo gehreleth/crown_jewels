@@ -65,10 +65,6 @@ export class BrowserComponent implements OnInit {
     })
   }
 
-  private expandBranch(path : Array<number>) {
-
-  }
-
   onSelectNode(node: ITreeNode) {
     this.selectedNodeSubj.next(node);
   }
