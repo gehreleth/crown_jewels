@@ -27,11 +27,11 @@ export class BrowserComponent implements OnInit {
   { }
 
   ngOnInit() {
-    this.selectedNodeSubj.subscribe((activeNode: ITreeNode) => {
-      if (activeNode.aquamarineId != null) {
-        this.mimeType = activeNode.mimeType;
-        this.contentLength = activeNode.contentLength;
-        this.contentUrl = '/emerald/storage/get-content/' + activeNode.aquamarineId;
+    this.selectedNodeSubj.subscribe((node: ITreeNode) => {
+      if (node.aquamarineId != null) {
+        this.mimeType = node.mimeType;
+        this.contentLength = node.contentLength;
+        this.contentUrl = '/emerald/storage/get-content/' + node.aquamarineId;
         this.nodeIsPdf = this.mimeType === 'application/pdf' ? true : false;
       } else {
         this.mimeType = null;
@@ -39,7 +39,7 @@ export class BrowserComponent implements OnInit {
         this.contentUrl = null;
         this.nodeIsPdf = false;
       }
-      this.selectedNode = activeNode;
+      this.selectedNode = node;
     })
 
     this.route.params.subscribe(params => {
