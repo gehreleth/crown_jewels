@@ -7,8 +7,12 @@ import { Router } from '@angular/router';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
+  title: string = 'Emerald'
+
   constructor(private router: Router)
   { }
+
+
 
   ngOnInit() {}
 }
