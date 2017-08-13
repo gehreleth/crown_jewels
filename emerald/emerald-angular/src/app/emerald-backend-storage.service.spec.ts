@@ -296,15 +296,25 @@ describe('MockBackend EmeraldBackendStorageService populateChildren', () => {
         tick();
         expect(result2.id).toEqual(12, 'Result should be valid');
         expect(result2.type).toEqual(NodeType.Image, 'Result should be valid');
+        expect(result2.name).toEqual("lena_color.gif", 'Result should be valid');
+        expect(result2.children).toBeNull('Leaf should\'t have children');
+        expect(result2.aquamarineId).toEqual("1bf3143d-0f93-4d68-857a-298178ecdb93",
+          'Result should be valid');
+        expect(result2.contentLength).toEqual(227335, 'Result should be valid');
+        expect(result2.mimeType).toEqual("image/gif", 'Result should be valid');
+
         result2 = result2.parent
         expect(result2.id).toEqual(10, 'Result should be valid');
         expect(result2.type).toEqual(NodeType.Folder, 'Result should be valid');
+
         result2 = result2.parent
         expect(result2.id).toEqual(9, 'Result should be valid');
         expect(result2.type).toEqual(NodeType.Folder, 'Result should be valid');
+
         result2 = result2.parent
         expect(result2.id).toEqual(2, 'Result should be valid');
         expect(result2.type).toEqual(NodeType.Folder, 'Result should be valid');
+
         result2 = result2.parent
         expect(result2.id).toEqual(1, 'Result should be valid');
         expect(result2.type).toEqual(NodeType.Zip, 'Result should be valid');
