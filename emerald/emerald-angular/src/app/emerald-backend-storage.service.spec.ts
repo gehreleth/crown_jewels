@@ -147,7 +147,7 @@ describe('MockBackend EmeraldBackendStorageService populateChildren', () => {
         }
       ]`,})));
       tick();
-      expect(result.length).toEqual(1, 'There are exactly one entities');
+      expect(result.length).toEqual(1, 'There are exactly one entity');
       expect(result[0].id).toEqual(21, 'Third entity\'s id is 31');
       expect(this.backendStorageService.Nodes.length)
       .toEqual(3, 'Three nodes in the root are expected ');
@@ -156,6 +156,159 @@ describe('MockBackend EmeraldBackendStorageService populateChildren', () => {
       expect(this.backendStorageService.Nodes[1].children[0].type)
       .toEqual(NodeType.Folder, 'Child is folder');
     }));
+
+    it('getNodeById() should query current service url', () => {
+        this.backendStorageService.getNodeById(12);
+        expect(this.lastConnection).toBeDefined('no http service connection at all?');
+        expect(this.lastConnection.request.url)
+        .toEqual("/emerald/storage/populate-branch/12", 'url invalid');
+      });
+
+    it('populateChildren(null), then getNodeById()', fakeAsync(() => {
+    let result: ITreeNode[];
+    this.backendStorageService.populateChildren(null)
+    .then((rootEntities: ITreeNode[]) => result = rootEntities);
+    this.lastConnection.mockRespond(new Response(new ResponseOptions({
+      body: `[
+        {
+          "id": 1,
+          "type": "Zip",
+          "text": "test3.zip",
+          "children": null,
+          "aquamarineId": null,
+          "contentLength": null,
+          "mimeType": null
+        },
+        {
+          "id": 20,
+          "type": "Zip",
+          "text": "coll.zip",
+          "children": null,
+          "aquamarineId": null,
+          "contentLength": null,
+          "mimeType": null
+        },
+        {
+          "id": 31,
+          "type": "Zip",
+          "text": "arc1.zip",
+          "children": null,
+          "aquamarineId": null,
+          "contentLength": null,
+          "mimeType": null
+        }
+      ]`,})));
+      tick();
+      expect(result.length).toEqual(3, 'There are exactly three entities');
+      expect(result[2].id).toEqual(31, 'Third entity\'s id is 31');
+      expect(this.backendStorageService.Nodes.length)
+      .toEqual(3, 'Three nodes in the cache are expected ');
+
+      let result2: ITreeNode
+      this.backendStorageService.getNodeById(12)
+      .then((rootEntities: ITreeNode) => result2 = rootEntities);
+      this.lastConnection.mockRespond(new Response(new ResponseOptions({
+        body: `{
+  "id": 1,
+  "type": "Zip",
+  "text": "test3.zip",
+  "children": [
+    {
+      "id": 2,
+      "type": "Folder",
+      "text": "test3",
+      "children": [
+        {
+          "id": 3,
+          "type": "Folder",
+          "text": "fold1",
+          "children": null,
+          "aquamarineId": null,
+          "contentLength": null,
+          "mimeType": null
+        },
+        {
+          "id": 9,
+          "type": "Folder",
+          "text": "fold2",
+          "children": [
+            {
+              "id": 10,
+              "type": "Folder",
+              "text": "b1",
+              "children": [
+                {
+                  "id": 11,
+                  "type": "Image",
+                  "text": "504485_original.png",
+                  "children": null,
+                  "aquamarineId": "829b10c4-a3a2-4044-903f-b2b96d5292d2",
+                  "contentLength": 36714,
+                  "mimeType": "image/png"
+                },
+                {
+                  "id": 12,
+                  "type": "Image",
+                  "text": "lena_color.gif",
+                  "children": null,
+                  "aquamarineId": "1bf3143d-0f93-4d68-857a-298178ecdb93",
+                  "contentLength": 227335,
+                  "mimeType": "image/gif"
+                }
+              ],
+              "aquamarineId": null,
+              "contentLength": null,
+              "mimeType": null
+            },
+            {
+              "id": 13,
+              "type": "Folder",
+              "text": "b2",
+              "children": null,
+              "aquamarineId": null,
+              "contentLength": null,
+              "mimeType": null
+            }
+          ],
+          "aquamarineId": null,
+          "contentLength": null,
+          "mimeType": null
+        },
+        {
+          "id": 16,
+          "type": "Folder",
+          "text": "fold3",
+          "children": null,
+          "aquamarineId": null,
+          "contentLength": null,
+          "mimeType": null
+        }
+      ],
+      "aquamarineId": null,
+      "contentLength": null,
+      "mimeType": null
+    }
+  ],
+  "aquamarineId": null,
+  "contentLength": null,
+  "mimeType": null
+}`,})));
+        tick();
+        expect(result2.id).toEqual(12, 'Result should be valid');
+        expect(result2.type).toEqual(NodeType.Image, 'Result should be valid');
+        result2 = result2.parent
+        expect(result2.id).toEqual(10, 'Result should be valid');
+        expect(result2.type).toEqual(NodeType.Folder, 'Result should be valid');
+        result2 = result2.parent
+        expect(result2.id).toEqual(9, 'Result should be valid');
+        expect(result2.type).toEqual(NodeType.Folder, 'Result should be valid');
+        result2 = result2.parent
+        expect(result2.id).toEqual(2, 'Result should be valid');
+        expect(result2.type).toEqual(NodeType.Folder, 'Result should be valid');
+        result2 = result2.parent
+        expect(result2.id).toEqual(1, 'Result should be valid');
+        expect(result2.type).toEqual(NodeType.Zip, 'Result should be valid');
+      }));
 
     it('populateChildren(null) while server is down', fakeAsync(() => {
       let result: ITreeNode[];
