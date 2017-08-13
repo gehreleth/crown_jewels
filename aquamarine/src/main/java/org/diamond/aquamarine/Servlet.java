@@ -289,6 +289,8 @@ public class Servlet extends HttpServlet {
         }
     }
 
+    private static final int LOB_BUFF_SIZE = 65536;
+
     private static long createLob(Connection conn, InputStream inputStream) throws SQLException, IOException {
         LargeObject obj = null;
         long oid;
@@ -296,9 +298,9 @@ public class Servlet extends HttpServlet {
             LargeObjectManager lobj = ((org.postgresql.PGConnection) conn).getLargeObjectAPI();
             oid = lobj.createLO(LargeObjectManager.READ | LargeObjectManager.WRITE);
             obj = lobj.open(oid, LargeObjectManager.WRITE);
-            byte buf[] = new byte[2048];
-            int s = 0;
-            while ((s = inputStream.read(buf, 0, 2048)) > 0) {
+            byte buf[] = new byte[LOB_BUFF_SIZE];
+            int s;
+            while ((s = inputStream.read(buf, 0, LOB_BUFF_SIZE)) > 0) {
                 obj.write(buf, 0, s);
             }
         } finally {
@@ -312,9 +314,9 @@ public class Servlet extends HttpServlet {
         try {
             LargeObjectManager lobj = ((org.postgresql.PGConnection)conn).getLargeObjectAPI();
             obj = lobj.open(oid, LargeObjectManager.READ);
-            byte buf[] = new byte[2048];
-            int s = 0;
-            while ((s = obj.read(buf, 0, 2048)) > 0) {
+            byte buf[] = new byte[LOB_BUFF_SIZE];
+            int s;
+            while ((s = obj.read(buf, 0, LOB_BUFF_SIZE)) > 0) {
                 outputStream.write(buf, 0, s);
             }
         } finally {
