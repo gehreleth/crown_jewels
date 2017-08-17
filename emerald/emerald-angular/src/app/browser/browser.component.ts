@@ -18,6 +18,7 @@ export class BrowserComponent implements OnInit {
   nodeIsPdf: boolean = false;
   selectedNode: ITreeNode = null;
   selectedNodeSubj: Subject<ITreeNode> = new Subject<ITreeNode>();
+  busy: Promise<any>;
 
   private isNumberRe: RegExp = new RegExp("^\\d+$");
 
@@ -54,7 +55,9 @@ export class BrowserComponent implements OnInit {
   }
 
   onSelectId(id: number) {
-    this.storage.getNodeById(id).then(node => {
+    let pr = this.storage.getNodeById(id);
+    this.busy = pr;
+    pr.then(node => {
       let cur = node;
       while (cur != null) {
         cur.isExpanded = true;
@@ -69,9 +72,8 @@ export class BrowserComponent implements OnInit {
   }
 
   onRequest(parent: ITreeNode) {
-    this.storage.populateChildren(parent).then(
-      (children : Array<ITreeNode>) => {
-        parent.children = children;
-      });
+    let pr = this.storage.populateChildren(parent);
+    this.busy = pr;
+    pr.then(children => { parent.children = children; });
   }
 }

@@ -13,6 +13,8 @@ import { PdfViewerComponent } from 'ng2-pdf-viewer';
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
 import { MenuComponent } from './menu/menu.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { BusyModule } from 'angular2-busy';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -31,6 +33,8 @@ const routes: Routes = [
     BrowserModule,
     AngularFontAwesomeModule,
     HttpModule,
+    BrowserAnimationsModule,
+    BusyModule,
     RouterModule.forRoot(routes)
   ],
   providers: [ EmeraldBackendStorageService,

@@ -1,6 +1,7 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-5 col-md-3 hidden-xs-down bg-faded sidebar">
+      <div [ngBusy]="busy"></div>
       <div>
         <tree-view [Nodes]="storage.Nodes"
                    [SelectedNode]="selectedNode"
