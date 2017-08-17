@@ -28,7 +28,7 @@ export class BrowserComponent implements OnInit {
 
   ngOnInit() {
     this.selectedNodeSubj.subscribe((node: ITreeNode) => {
-      if (node.aquamarineId != null) {
+      if (node.aquamarineId) {
         this.mimeType = node.mimeType;
         this.contentLength = node.contentLength;
         this.contentUrl = '/emerald/storage/get-content/' + node.aquamarineId;
@@ -59,7 +59,7 @@ export class BrowserComponent implements OnInit {
     this.busy = pr;
     pr.then(node => {
       let cur = node;
-      while (cur != null) {
+      while (cur) {
         cur.isExpanded = true;
         cur = cur.parent;
       }
