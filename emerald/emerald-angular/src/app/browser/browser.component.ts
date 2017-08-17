@@ -50,17 +50,17 @@ export class BrowserComponent implements OnInit {
   }
 
   afterLoadComplete(pdfDocumentProxy) {
-    console.log(pdfDocumentProxy.getMetadata())
+    console.log(pdfDocumentProxy.getMetadata());
   }
 
   onSelectId(id: number) {
     this.storage.getNodeById(id).then(node => {
-      let cur = node
+      let cur = node;
       while (cur != null) {
-        cur.isExpanded = true
-        cur = cur.parent
+        cur.isExpanded = true;
+        cur = cur.parent;
       }
-      this.onSelectNode(node)
+      this.onSelectNode(node);
     })
   }
 
@@ -71,7 +71,7 @@ export class BrowserComponent implements OnInit {
   onRequest(parent: ITreeNode) {
     this.storage.populateChildren(parent).then(
       (children : Array<ITreeNode>) => {
-        parent.children = children
+        parent.children = children;
       });
   }
 }

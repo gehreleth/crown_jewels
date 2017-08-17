@@ -19,7 +19,7 @@ export class UploadFormComponent implements OnInit {
   onUpload() {
     let files = this.fileInput.nativeElement['files'] as FileList;
     if (files.length == 1) {
-      this.storage.upload(files[0])
+      this.storage.upload(files[0]);
     }
   }
 }

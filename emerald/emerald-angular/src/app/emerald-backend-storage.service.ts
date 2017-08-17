@@ -7,11 +7,11 @@ export enum NodeType { Zip, Folder, Image, Other };
 export namespace NodeType {
   export function parse(arg: string) {
     switch (arg) {
-      case "Zip":
+      case 'Zip':
       return NodeType.Zip;
-      case "Folder":
+      case 'Folder':
       return NodeType.Folder;
-      case "Image":
+      case 'Image':
       return NodeType.Image;
       default:
       return NodeType.Other;
@@ -81,9 +81,9 @@ enum TrackingStatus { PENDING, SUCCESS, FAIL };
 namespace TrackingStatus {
   export function parse(arg: string): TrackingStatus {
     switch (arg) {
-      case "PENDING":
+      case 'PENDING':
       return TrackingStatus.PENDING;
-      case "SUCCESS":
+      case 'SUCCESS':
       return TrackingStatus.SUCCESS;
       default:
       return TrackingStatus.FAIL;
@@ -240,7 +240,7 @@ export class EmeraldBackendStorageService {
     else {
       const rsp = parent
         ? this.http.get(`/emerald/storage/populate-children/${parent.id}`)
-        : this.http.get("/emerald/storage/populate-root");
+        : this.http.get('/emerald/storage/populate-root');
       return rsp.map((response: Response) => response.json()).toPromise()
         .then((serverAnswer: any) => {
           let arr = serverAnswer as any[];
@@ -287,7 +287,7 @@ export class EmeraldBackendStorageService {
       .subscribe((rsp: Response) =>
     {
       const dict = rsp.json();
-      const status = TrackingStatus.parse(dict["status"] as string);
+      const status = TrackingStatus.parse(dict['status'] as string);
       switch (status) {
         case TrackingStatus.SUCCESS:
           this.onNewRoots.emit();
