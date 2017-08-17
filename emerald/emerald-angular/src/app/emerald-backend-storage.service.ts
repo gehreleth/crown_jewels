@@ -69,12 +69,11 @@ export namespace ITreeNode {
   * @returns new ITreeNode instance
   */
   export function fromDictRec(arg: any, parent: ITreeNode | null) : ITreeNode {
-    let retVal = fromDict(arg, parent)
-    let children = arg['children'] as any[]
-    if (children != null) {
-      retVal.children = children.map((c) => fromDictRec(c, retVal))
-    }
-    return retVal
+    let retVal = fromDict(arg, parent);
+    const children = arg['children'] as any[] | null;
+    if (children)
+      retVal.children = children.map(c => fromDictRec(c, retVal));
+    return retVal;
   }
 }
 
@@ -99,47 +98,56 @@ export class EmeraldBackendStorageService {
   private Id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
 
   constructor(private http: Http) {
-    this.onNewRoots.subscribe(() => this.populateChildren(null, true))
-    this.onNewRoots.emit()
+    this.onNewRoots.subscribe(() => this.populateChildren(null, true));
+    this.onNewRoots.emit();
   }
 
+  /**
+  * This function merges eagerly received branch to a lazily initiated tree.
+  * Needed for eages context when user explicitly request exact node by its id.
+  * This node may be absent from a tree because it's initiated lazily ad may
+  * miss lots of branches.
+  *
+  * @param newBranchRoot new branch eagerly received from the server.
+  * it should have caterpillar tree structure.
+  */
   private mergeBranch(newBranchRoot: ITreeNode) {
     let lookup = new Map<number, ITreeNode>();
     EmeraldBackendStorageService.makeSliceToMerge(this.Nodes,
       [newBranchRoot], lookup);
     let newNodes = EmeraldBackendStorageService.mergeBranch0(null, this.Nodes,
-      [newBranchRoot], lookup)
-    let newId2Node = EmeraldBackendStorageService.mergeLookups(this.Id2Node, lookup);
-    this.Nodes = newNodes
-    this.Id2Node = newId2Node
+      [newBranchRoot], lookup);
+    let newId2Node = new Map<number, ITreeNode>(this.Id2Node);
+    lookup.forEach((v, k) => newId2Node.set(k, v));
+    this.Nodes = newNodes;
+    this.Id2Node = newId2Node;
   }
 
-  private static mergeLookups(oldMap: Map<number, ITreeNode>,
-    newMap : Map<number, ITreeNode>) : Map<number, ITreeNode>
-  {
-    let retVal = new Map<number, ITreeNode>(oldMap)
-    newMap.forEach((v, k) => retVal.set(k,v))
-    return retVal
-  }
-
+  /**
+  * Builds a set of nodes that should be kept intact during mergeBranch procedure
+  * Basically, it's all the nodes that already exist in the tree,
+  * but nave intersection with the branch.
+  *
+  * @param src of the nodes that already exist in one level of hiererchy
+  * @param newBranch branch we're merging with
+  * @param lookup the procedure will store its output here.
+  * we can't make it a return value because this function it recursive and uses
+  * this as accumulator shared between all its recursive contexts.
+  */
   private static makeSliceToMerge(src: Array<ITreeNode>,
     newBranch: Array<ITreeNode>, lookup: Map<number, ITreeNode>)
   {
-    src.forEach((n) => lookup.set(n.id, n))
-    let nextNodeInBranch : ITreeNode | null = null
-    newBranch
-      .filter(n => n.children != null)
-      .forEach(n => { nextNodeInBranch = n })
-    if (nextNodeInBranch != null && nextNodeInBranch.children != null) {
+    src.forEach(n => lookup.set(n.id, n));
+    const nextNodeInBranch = newBranch.filter(n => n.children).pop();
+    if (nextNodeInBranch) {
       let srcNested : Array<ITreeNode> = [];
       {
-        let src0 = lookup.get(nextNodeInBranch.id)
-        if (src0 != null) {
-          srcNested = src0.children != null ? src0.children : [];
-        }
+        const src0 = lookup.get(nextNodeInBranch.id);
+        if (src0)
+          srcNested = src0.children ? src0.children : [];
       }
       EmeraldBackendStorageService
-        .makeSliceToMerge(srcNested, nextNodeInBranch.children, lookup)
+        .makeSliceToMerge(srcNested, nextNodeInBranch.children, lookup);
     }
   }
 
@@ -164,110 +172,79 @@ export class EmeraldBackendStorageService {
     newBranch: Array<ITreeNode>, lookup: Map<number, ITreeNode>): Array<ITreeNode>
   {
     let retVal : Array<ITreeNode> = src != null ? src : [];
-    newBranch.forEach((q) => { q.parent = parent })
+    newBranch.forEach(q => { q.parent = parent });
 
-    let nextNodeInBranch : ITreeNode | null = null
-    newBranch
-      .filter((q) => q.children != null)
-      .forEach((q => { nextNodeInBranch = q }))
+    // because the branch we're merging with has caterpillar structure,
+    // next node in it is the only one having children.
+    let nextNodeInBranch : ITreeNode | null =
+      newBranch.filter(q => q.children != null).pop();
 
-    if (nextNodeInBranch != null) {
-      let existingSrcBranch = lookup.get(nextNodeInBranch.id)
-
-      let nestedSrc : Array<ITreeNode> | null =
-        existingSrcBranch != null ? existingSrcBranch.children : null
+    if (nextNodeInBranch) {
+      // children are being merged by recursive application of the same procedure.
+      const existingSrcBranch = lookup.get(nextNodeInBranch.id);
+      const nestedSrc = existingSrcBranch ? existingSrcBranch.children : null;
 
       nextNodeInBranch.children =
         this.mergeBranch0(nextNodeInBranch, nestedSrc,
-          nextNodeInBranch.children, lookup)
+            nextNodeInBranch.children, lookup);
 
-      if (lookup.has(nextNodeInBranch.id)) {
-        retVal = retVal.map((q) =>
-          q.id != nextNodeInBranch.id ? q : nextNodeInBranch)
-      } else {
-        retVal = retVal.concat([nextNodeInBranch])
-      }
-      lookup.set(nextNodeInBranch.id, nextNodeInBranch)
+      // replace only trunk node (map) or add a new trunk (concat).
+      retVal = lookup.has(nextNodeInBranch.id)
+        ? retVal.map(q => q.id != nextNodeInBranch.id ? q : nextNodeInBranch)
+        : retVal.concat([nextNodeInBranch]);
+
+      lookup.set(nextNodeInBranch.id, nextNodeInBranch);
     }
+    // Don't update non-essential but already
+    // existing nodes (they're in the lookup).
     retVal = retVal.concat(newBranch
-      .filter((q) => !lookup.has(q.id))
-      .map((q) => {
-        lookup.set(q.id, q)
-        return q
-      }))
-    return retVal
-  }
-
-  /**
-   * Collects all nodes from the root of a caterpillar tree to the
-   * target node with given id
-   *
-   * @param node root of a caterpillar tree.
-   *
-   * @param id of the target node
-   *
-   * @param acc all nodes in the path
-   *
-   * @returns src collection merged with new nodes
-   */
-  private tracePathToTargetNode(node: ITreeNode,
-    id: number, acc: Array<ITreeNode>) : Array<ITreeNode>
-  {
-    acc = acc.concat([node])
-    if (node.id == id) {
-      return acc
-    } else {
-      let nextStep = node.children.filter((q) => q.children != null || q.id == id)
-      if (nextStep.length != 0) {
-        return this.tracePathToTargetNode(nextStep[0], id, acc)
-      } else {
-        throw new Error("Bad branch")
-      }
-    }
+      .filter(q => !lookup.has(q.id)).map(q => {
+        lookup.set(q.id, q);
+        return q;
+      }));
+    return retVal;
   }
 
 /**
- * @param id of a branch's terminal node
- * @returns tree segment Root Node -> ... Terminal Terminal node
- * with each sibling filled along the way
+ * @param id a node
+ *
+ * @returns node as a promise. If this node is currently absent from the tree,
+ * eagerly restore entire tree segment by using the populate-branch server call.
  */
   getNodeById(id : number) : Promise<ITreeNode> {
-    if (this.Id2Node.has(id)) {
-      return new Promise<ITreeNode>((resolve) => resolve(this.Id2Node.get(id)))
-    } else {
-      let rsp = this.http.get("/emerald/storage/populate-branch/" + id);
-      return rsp.map((response: Response) =>
-      JSON.parse(response.text())).toPromise()
+    if (this.Id2Node.has(id))
+      return new Promise<ITreeNode>(resolve => resolve(this.Id2Node.get(id)));
+    else {
+      const rsp = this.http.get(`/emerald/storage/populate-branch/${id}`);
+      return rsp.map((response: Response) => response.json()).toPromise()
         .then((serverAnswer: any) => ITreeNode.fromDictRec(serverAnswer, null))
         .then((n : ITreeNode) => {
-          this.mergeBranch(n)
-          return this.getNodeById(id)
-        })
+          this.mergeBranch(n);
+          return this.getNodeById(id);
+        });
     }
   }
 
   /**
    * @param parent parent node (a ITreeNode instance, not id) or null for root
+   * @param forceRefresh
+   *
    * @returns Array of children
    */
   populateChildren(parent: ITreeNode | null, forceRefresh : boolean = false) :
     Promise< Array<ITreeNode> >
   {
-    let children : Array<ITreeNode> | null =
-      parent != null
-        ? parent.children
-        : this.Nodes;
-    if (!forceRefresh && children != null) {
-      return new Promise< Array<ITreeNode> >(resolve => resolve(children))
-    } else {
-      let rsp = parent != null
-        ? this.http.get("/emerald/storage/populate-children/" + parent.id)
+    const children = parent ? parent.children : this.Nodes;
+    if (!forceRefresh && children != null)
+      return new Promise< Array<ITreeNode> >(resolve => resolve(children));
+    else {
+      const rsp = parent
+        ? this.http.get(`/emerald/storage/populate-children/${parent.id}`)
         : this.http.get("/emerald/storage/populate-root");
-      return rsp.map((response: Response) =>
-      JSON.parse(response.text())).toPromise()
+      return rsp.map((response: Response) => response.json()).toPromise()
         .then((serverAnswer: any) => {
-          let arr = serverAnswer as any[]
-          return arr.map((ee:any) => ITreeNode.fromDict(ee, parent))
+          let arr = serverAnswer as any[];
+          return arr.map((ee:any) => ITreeNode.fromDict(ee, parent));
         })
         .then((ch : Array<ITreeNode>) => ch.filter(n => !this.Id2Node.has(n.id)))
         .then((ch : Array<ITreeNode>) => {
@@ -279,39 +256,44 @@ export class EmeraldBackendStorageService {
           } else {
             this.Nodes = newCh;
           }
-          return this.populateChildren(parent, false)
+          return this.populateChildren(parent, false);
         }).catch(error => {
-          console.log(error)
-          new Promise< Array<ITreeNode> >(resolve => undefined)
+          console.log(error);
+          new Promise< Array<ITreeNode> >(resolve => undefined);
         })
     }
   }
 
+ /**
+  * Uploads a file using POST request. Polls for a server event
+  * signalling end of processing. Requests tree root update upon success.
+  */
   upload(file: any) {
     let formData = new FormData();
     formData.append('file', file);
     this.http.post('/emerald/storage/submit-content', formData)
     .subscribe((rsp: Response) => {
-      let dict = rsp.json()
-      let submitAccepted = dict['success'] as boolean
+      const dict = rsp.json();
+      const submitAccepted = dict['success'] as boolean;
       if (submitAccepted) {
-        let trackingId = dict['trackingId'] as number
-        this.trackBatchExecution(trackingId)
+        let trackingId = dict['trackingId'] as number;
+        this.trackBatchExecution(trackingId);
       }
     });
   }
 
   private trackBatchExecution(trackingId: number) {
-    this.http.get('/emerald/storage/submit-status/' + trackingId)
-    .subscribe((rsp: Response) => {
-      let dict = rsp.json()
-      let status = TrackingStatus.parse(dict["status"] as string)
+    this.http.get(`/emerald/storage/submit-status/${trackingId}`)
+      .subscribe((rsp: Response) =>
+    {
+      const dict = rsp.json();
+      const status = TrackingStatus.parse(dict["status"] as string);
       switch (status) {
         case TrackingStatus.SUCCESS:
-          this.onNewRoots.emit()
+          this.onNewRoots.emit();
           break;
         case TrackingStatus.PENDING:
-          setTimeout(() => this.trackBatchExecution(trackingId), 5000)
+          setTimeout(() => this.trackBatchExecution(trackingId), 5000);
           break;
         case TrackingStatus.FAIL:
         default:
