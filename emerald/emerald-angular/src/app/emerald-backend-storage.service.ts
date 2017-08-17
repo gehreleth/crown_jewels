@@ -248,19 +248,17 @@ export class EmeraldBackendStorageService {
         })
         .then((ch : Array<ITreeNode>) => ch.filter(n => !this.Id2Node.has(n.id)))
         .then((ch : Array<ITreeNode>) => {
-          let oldCh = parent != null ? parent.children : this.Nodes;
-          let newCh = oldCh != null ? oldCh.concat(ch) : ch;
+          let oldCh = parent ? parent.children : this.Nodes;
+          let newCh = oldCh ? oldCh.concat(ch) : ch;
           ch.forEach(n => this.Id2Node.set(n.id, n))
-          if (parent != null) {
+          if (parent)
             parent.children = newCh;
-          } else {
+          else
             this.Nodes = newCh;
-          }
           return this.populateChildren(parent, false);
         }).catch(error => {
-          console.log(error);
           new Promise< Array<ITreeNode> >(resolve => undefined);
-        })
+        });
     }
   }
 
