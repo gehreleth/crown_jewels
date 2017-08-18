@@ -10,12 +10,12 @@ import { Subject } from 'rxjs/Subject';
 })
 
 export class BrowserComponent implements OnInit {
+  public nodeType = NodeType;
   id: number | null = null;
   contentUrl: string = null;
   page: number = 1;
   mimeType: string = null;
   contentLength: number = 0;
-  nodeIsPdf: boolean = false;
   selectedNode: ITreeNode = null;
   selectedNodeSubj: Subject<ITreeNode> = new Subject<ITreeNode>();
   busy: Promise<any>;
@@ -32,12 +32,10 @@ export class BrowserComponent implements OnInit {
         this.mimeType = node.mimeType;
         this.contentLength = node.contentLength;
         this.contentUrl = '/emerald/storage/get-content/' + node.aquamarineId;
-        this.nodeIsPdf = this.mimeType === 'application/pdf' ? true : false;
       } else {
         this.mimeType = null;
         this.contentLength = 0;
         this.contentUrl = null;
-        this.nodeIsPdf = false;
       }
       this.selectedNode = node;
     })
@@ -48,10 +46,6 @@ export class BrowserComponent implements OnInit {
         this.onSelectId(parseInt(idParam));
       }
     });
-  }
-
-  afterLoadComplete(pdfDocumentProxy) {
-    console.log(pdfDocumentProxy.getMetadata());
   }
 
   onSelectId(id: number) {

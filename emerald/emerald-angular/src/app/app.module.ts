@@ -9,12 +9,12 @@ import { AppComponent } from './app.component';
 import { UploadFormComponent } from './upload-form/upload-form.component';
 import { EmeraldBackendStorageService } from './emerald-backend-storage.service';
 import { TreeView } from './tree-view/tree-view.component'
-import { PdfViewerComponent } from 'ng2-pdf-viewer';
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
 import { MenuComponent } from './menu/menu.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BusyModule } from 'angular2-busy';
+import { ImgRegionEditorComponent } from './img-region-editor/img-region-editor.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -23,11 +23,11 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     AppComponent,
-    PdfViewerComponent,
     UploadFormComponent,
     TreeView,
     BrowserComponent,
     MenuComponent,
+    ImgRegionEditorComponent,
   ],
   imports: [
     BrowserModule,

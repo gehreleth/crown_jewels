@@ -12,9 +12,9 @@
 			</i>
 			<a class="nodetext {{node == SelectedNode ? 'bg-info' : ''}} {{node.parent ? '' : 'text-root'}}" [routerLink]="['/browse', node.id]">{{node.name}}</a>
 			<tree-view [Nodes]="node.children"
-						 [SelectedNode]="SelectedNode"
-						 (onRequestNodes)="onRequestLocal($event)"
-						 *ngIf="node.isExpanded">
+						     [SelectedNode]="SelectedNode"
+						     (onRequestNodes)="onRequestLocal($event)"
+						     *ngIf="node.isExpanded">
 			</tree-view>
 		</div>
 	</li>

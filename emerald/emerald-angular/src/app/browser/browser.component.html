@@ -15,13 +15,23 @@
       </div>
     </div>
     <main class="col-sm-7 offset-sm-5 col-md-9 offset-md-3 pt-3">
-      <p *ngIf="nodeIsPdf">
-        <pdf-viewer [src]="contentUrl"
-                    [page]="page"
-                    [original-size]="false">
-        </pdf-viewer>
-      </p>
-      <p *ngIf="!nodeIsPdf">Please, select a PDF document</p>
+      <div *ngIf="selectedNode">
+        <div [ngSwitch]="selectedNode.type">
+				  <div *ngSwitchCase="nodeType.Zip">
+            <p>Zip file</p>
+          </div>
+				  <div *ngSwitchCase="nodeType.Folder">
+            <p>Folder</p>
+          </div>
+				  <div *ngSwitchCase="nodeType.Image">
+            <app-img-region-editor [SelectedNode]="selectedNode">
+            </app-img-region-editor>
+          </div>
+			  </div>
+      </div>
+      <div *ngIf="!selectedNode">
+        <p>No selection</p>
+      </div>
     </main>
   </div>
 </div>
