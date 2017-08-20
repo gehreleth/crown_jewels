@@ -1,7 +1,7 @@
 package org.diamond.aquamarine;
 
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.AbstractResource;
 
 public interface IContent extends IContentInfo {
-    InputStreamResource getData();
+    AbstractResource getData();
 }

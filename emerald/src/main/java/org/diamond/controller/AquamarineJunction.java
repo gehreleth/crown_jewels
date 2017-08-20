@@ -3,6 +3,9 @@ package org.diamond.controller;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.*;
+import mediautil.image.jpeg.LLJTran;
+import mediautil.image.jpeg.LLJTranException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
@@ -13,6 +16,9 @@ import org.diamond.persistence.srcimages.entities.StorageNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +26,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 import java.util.*;
 import java.util.concurrent.Future;
@@ -70,20 +76,92 @@ public class AquamarineJunction {
         return retVal;
     }
 
+    private static final Set<String> KNOWN_IMAGE_FORMATS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("image/jpeg", "image/png")));
+
     @GetMapping(value = "/get-content/{aquamarineId}")
-    public ResponseEntity<InputStreamResource> getContent(@PathVariable UUID aquamarineId) {
-        ResponseEntity<InputStreamResource> retVal;
+    public ResponseEntity<AbstractResource> getContent(@PathVariable UUID aquamarineId,
+                                                       @RequestParam(value="rot", required=false) Rotation rot)
+    {
+        if (rot == null)
+            rot = Rotation.NONE;
+        ResponseEntity<AbstractResource> retVal;
         try {
             IContent content = aquamarineService.retrieveContent(aquamarineId);
+            AbstractResource resource;
+            long length;
+            if (rot == Rotation.NONE) {
+                resource = content.getData();
+                length = content.getLength();
+            } else {
+                Pair<AbstractResource, Long> rotatedContent = performRotation(content, rot);
+                resource = rotatedContent.getLeft();
+                length = rotatedContent.getRight();
+            }
             retVal = ResponseEntity.ok()
-                        .contentLength(content.getLength())
+                        .contentLength(length)
                         .contentType(MediaType.parseMediaType(content.getMimeType()))
-                        .body(content.getData());
+                        .body(resource);
         } catch (Exception e) {
             LOGGER.error("getContent", e);
             retVal = ResponseEntity.notFound().build();
         }
         return retVal;
+    }
+
+    private static Pair<AbstractResource, Long> performRotation(IContent content, Rotation rot) throws IOException, LLJTranException {
+        final String mimeType = content.getMimeType();
+        if (!KNOWN_IMAGE_FORMATS.contains(mimeType))
+            throw new RuntimeException("Rotate isn't applicable for mime type " + mimeType);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (InputStream is = content.getData().getInputStream()) {
+            if ("image/jpeg".equals(mimeType)) {
+                rotateJpeg(is, baos, rot);
+            } else if ("image/png".equals(mimeType)) {
+                rotatePng(is, baos, rot);
+            } else {
+                throw new RuntimeException("Rotate isn't applicable for mime type " + mimeType);
+            }
+        } finally {
+            baos.close();
+        }
+        byte[] byteArray = baos.toByteArray();
+        return Pair.of(new ByteArrayResource(byteArray), Long.valueOf(byteArray.length));
+    }
+
+    private static void rotateJpeg(InputStream is, OutputStream os, Rotation rot) throws LLJTranException, IOException {
+        LLJTran jpegTransform = new LLJTran(is);
+        jpegTransform.read(LLJTran.READ_ALL, true);
+        int tsf;
+        switch (rot) {
+            case CW90:
+                tsf = LLJTran.ROT_90;
+                break;
+            case CW180:
+                tsf = LLJTran.ROT_180;
+                break;
+            case CW270:
+                tsf = LLJTran.ROT_270;
+                break;
+            case CCW90:
+                tsf = LLJTran.ROT_270;
+                break;
+            case CCW180:
+                tsf = LLJTran.ROT_180;
+                break;
+            case CCW270:
+                tsf = LLJTran.ROT_90;
+                break;
+            default:
+                tsf = LLJTran.ROT_90;
+        }
+        jpegTransform.transform(tsf);
+        jpegTransform.save(os, LLJTran.OPT_WRITE_ALL);
+    }
+
+    private static void rotatePng(InputStream is, OutputStream os, Rotation rot) {
+        throw new NotImplementedException();
     }
 
     @GetMapping(value = "/populate-root")
@@ -97,7 +175,6 @@ public class AquamarineJunction {
             retVal = ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).contentType(MediaType.TEXT_PLAIN).body(e.getMessage());
         }
         return retVal;
-
     }
 
     @GetMapping(value = "/populate-children/{parentId}")

@@ -78,6 +78,16 @@ public class AquamarineServiceImpl implements IAquamarineService {
     }
 
     @Override
+    public void updateContent(UUID uuid, IContent content) throws IOException {
+        InputStream is = content.getData().getInputStream();
+        try {
+            aquamarine.updateBlob(uuid, content.getMimeType(), is, content.getLength());
+        } finally {
+            is.close();
+        }
+    }
+
+    @Override
     @Async
     @Transactional
     public Future<SubmitOperationResult> submitNewCollection(String formName, File temporaryFile) {
@@ -189,8 +199,6 @@ public class AquamarineServiceImpl implements IAquamarineService {
         }
         return retVal;
     }
-
-
 
     private static String getSuitableExtension(ZipEntry zipEntry) {
         Matcher m = EXT_PATTERN.matcher(zipEntry.getName());

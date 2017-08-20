@@ -1,2 +1,3 @@
 include 'aquamarine-client'
+include 'mediautil'
 include 'emerald-angular'
