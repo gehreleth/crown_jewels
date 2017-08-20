@@ -18,8 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -127,7 +125,7 @@ public class AquamarineJunction {
             baos.close();
         }
         byte[] byteArray = baos.toByteArray();
-        return Pair.of(new ByteArrayResource(byteArray), Long.valueOf(byteArray.length));
+        return Pair.of(new ByteArrayResource(byteArray), (long) byteArray.length);
     }
 
     private static void rotateJpeg(InputStream is, OutputStream os, Rotation rot) throws LLJTranException, IOException {
