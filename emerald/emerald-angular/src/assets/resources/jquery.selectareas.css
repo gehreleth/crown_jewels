@@ -3,6 +3,16 @@
 	overflow: hidden;
 	position: absolute;
 }
+
+.select-area-field-label {
+	font-size: 11px;
+	background-color: floralwhite;
+	padding: 2px;
+	position: relative;
+	top: -20px;
+	left: -40px;
+}
+
 .blurred {
 	filter: url("/filters.svg#blur3px");
 	-webkit-filter: blur(3px);

@@ -23,7 +23,8 @@
                 y: 0,
                 z: 0,
                 height: 0,
-                width: 0
+                width: 0,
+                text: '(empty)'
             },
             blur = function () {
                 area.z = 0;
@@ -97,6 +98,11 @@
                     top : area.y + 1,
                     "z-index": area.z + 2
                 });
+
+                $text = $($selection).empty().append(
+                  $("<div><span class=\"select-area-field-label "
+                  +area.cssClass+" border-thin name-area-id-"
+                  +area.areaid+"\">"+area.text+"</span></div>"));
             },
             updateResizeHandlers = function (show) {
                 if (! options.allowResize) {
@@ -425,8 +431,8 @@
                     $handler.remove();
                 });
                 if ($btDelete) {
-                    $btDelete.remove();    
-                } 
+                    $btDelete.remove();
+                }
                 parent._remove(id);
                 fireEvent("changed");
             },
