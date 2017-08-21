@@ -24,7 +24,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.*;
 
@@ -159,7 +158,7 @@ public class AquamarineJunction {
     }
 
     private static void rotatePng(InputStream is, OutputStream os, Rotation rot) {
-        throw new NotImplementedException();
+        throw new RuntimeException("PNG rotation not implemented");
     }
 
     @GetMapping(value = "/populate-root")
