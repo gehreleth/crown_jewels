@@ -101,8 +101,8 @@
 
                 $text = $($selection).empty().append(
                   $("<div><span class=\"select-area-field-label "
-                  +area.cssClass+" border-thin name-area-id-"
-                  +area.areaid+"\">"+area.text+"</span></div>"));
+                    +area.cssClass+" border-thin name-area-id-"
+                    +area.areaid+"\">"+area.text+"</span></div>"));
             },
             updateResizeHandlers = function (show) {
                 if (! options.allowResize) {
