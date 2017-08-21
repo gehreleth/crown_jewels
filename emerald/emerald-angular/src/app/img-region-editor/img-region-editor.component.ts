@@ -19,21 +19,29 @@ export class ImgRegionEditorComponent implements AfterViewInit {
   }
 
   rotateCW(event:any): void {
+    $(this.el.nativeElement).selectAreas('destroy');
     this.Rot = ImgRegionEditorComponent.convAngle(++this.angle);
+    setTimeout(() => this.init(), 0);
   }
 
   rotateCCW(event:any): void {
+    $(this.el.nativeElement).selectAreas('destroy');
     this.Rot = ImgRegionEditorComponent.convAngle(--this.angle);
+    setTimeout(() => this.init(), 0);
   }
 
   ngAfterViewInit() {
-       $(this.el.nativeElement).selectAreas({
-          minSize: [30, 30],    // Minimum size of a selection
-          maxSize: [400, 300],  // Maximum size of a selection
-          onChanged: $.noop,    // fired when a selection is released
-          onChanging: $.noop    // fired during the modification of a selection
-        });
-   }
+    this.init();
+  }
+
+  private init() {
+    $(this.el.nativeElement).selectAreas({
+      minSize: [30, 30],    // Minimum size of a selection
+      maxSize: [400, 300],  // Maximum size of a selection
+      onChanged: $.noop,    // fired when a selection is released
+      onChanging: $.noop    // fired during the modification of a selection
+    });
+  }
 
   private static convAngle(arg: number) : string {
     switch (arg % 4) {
