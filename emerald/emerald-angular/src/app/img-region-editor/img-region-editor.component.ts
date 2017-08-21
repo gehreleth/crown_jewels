@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef } from '@angular/core';
 import { ITreeNode, NodeType } from '../emerald-backend-storage.service'
 import { Subject } from 'rxjs/Subject';
 
@@ -8,43 +8,43 @@ declare var $:any;
   templateUrl: './img-region-editor.component.html',
   styleUrls: ['./img-region-editor.component.css']
 })
-export class ImgRegionEditorComponent implements AfterViewInit {
-  @Input() SelectedNode: ITreeNode;
-  @Input() Rot : string;
+export class ImgRegionEditorComponent {
   @ViewChild('regionEditor') el:ElementRef;
-  private angle : number = 0;
+
+  private _angle : number = 0;
+  private _selectedNode: ITreeNode;
 
   constructor() {
-    this.Rot = ImgRegionEditorComponent.convAngle(this.angle);
   }
 
   rotateCW(event:any): void {
     $(this.el.nativeElement).selectAreas('destroy');
-    this.Rot = ImgRegionEditorComponent.convAngle(++this.angle);
-    setTimeout(() => this.init(), 0);
+    ++this._angle;
+    setTimeout(() => this.initJQSelectAreas(), 0);
   }
 
   rotateCCW(event:any): void {
     $(this.el.nativeElement).selectAreas('destroy');
-    this.Rot = ImgRegionEditorComponent.convAngle(--this.angle);
-    setTimeout(() => this.init(), 0);
+    --this._angle;
+    setTimeout(() => this.initJQSelectAreas(), 0);
   }
 
-  ngAfterViewInit() {
-    this.init();
+  get ImageUrl() : string {
+    return `/emerald/storage/get-content/${this.SelectedNode.aquamarineId}?rot=${this.Rot}`;
   }
 
-  private init() {
-    $(this.el.nativeElement).selectAreas({
-      minSize: [30, 30],    // Minimum size of a selection
-      maxSize: [400, 300],  // Maximum size of a selection
-      onChanged: $.noop,    // fired when a selection is released
-      onChanging: $.noop    // fired during the modification of a selection
-    });
+  @Input() set SelectedNode(value: ITreeNode) {
+    $(this.el.nativeElement).selectAreas('destroy');
+    this._selectedNode = value;
+    setTimeout(() => this.initJQSelectAreas(), 0);
   }
 
-  private static convAngle(arg: number) : string {
-    switch (arg % 4) {
+  get SelectedNode(): ITreeNode {
+    return this._selectedNode;
+  }
+
+  get Rot(): string {
+    switch (this._angle % 4) {
       case -1:
         return 'CCW90';
       case -2:
@@ -60,5 +60,14 @@ export class ImgRegionEditorComponent implements AfterViewInit {
       default:
         return 'NONE';
     }
+  }
+
+  private initJQSelectAreas() {
+    $(this.el.nativeElement).selectAreas({
+      minSize: [30, 30],    // Minimum size of a selection
+      maxSize: [400, 300],  // Maximum size of a selection
+      onChanged: $.noop,    // fired when a selection is released
+      onChanging: $.noop    // fired during the modification of a selection
+    });
   }
 }
