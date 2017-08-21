@@ -12,6 +12,4 @@ public interface IStorageNodeRepository  extends JpaRepository<StorageNode, Long
 
     @Query("FROM StorageNode sn WHERE sn.text LIKE lower(?1) AND sn.parent is null")
     List<StorageNode> findAllRootNodesWithTextPattern(String textPattern);
-
-    StorageNode parent(StorageNode child);
 }

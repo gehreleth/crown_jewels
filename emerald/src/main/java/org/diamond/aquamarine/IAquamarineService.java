@@ -1,6 +1,7 @@
 package org.diamond.aquamarine;
 
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,5 +27,6 @@ public interface IAquamarineService {
     void updateContent(UUID uuid, IContent content) throws IOException;
 
     @Async
+    @Transactional
     Future<SubmitOperationResult> submitNewCollection(String formName, File temporaryFile);
 }
