@@ -269,7 +269,7 @@ export class EmeraldBackendStorageService {
   upload(file: any) {
     let formData = new FormData();
     formData.append('file', file);
-    this.http.post('/emerald/storage/submit-content', formData)
+    this.http.post('/emerald/input-content/submit-content', formData)
     .subscribe((rsp: Response) => {
       const dict = rsp.json();
       const submitAccepted = dict['success'] as boolean;
@@ -281,7 +281,7 @@ export class EmeraldBackendStorageService {
   }
 
   private trackBatchExecution(trackingId: number) {
-    this.http.get(`/emerald/storage/submit-status/${trackingId}`)
+    this.http.get(`/emerald/input-content/submit-status/${trackingId}`)
       .subscribe((rsp: Response) =>
     {
       const dict = rsp.json();

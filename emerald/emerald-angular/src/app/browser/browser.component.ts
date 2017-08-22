@@ -12,9 +12,6 @@ import { Subject } from 'rxjs/Subject';
 export class BrowserComponent implements OnInit {
   public nodeType = NodeType;
   id: number | null = null;
-  contentUrl: string = null;
-  page: number = 1;
-  mimeType: string = null;
   contentLength: number = 0;
   selectedNode: ITreeNode = null;
   selectedNodeSubj: Subject<ITreeNode> = new Subject<ITreeNode>();
@@ -28,15 +25,6 @@ export class BrowserComponent implements OnInit {
 
   ngOnInit() {
     this.selectedNodeSubj.subscribe((node: ITreeNode) => {
-      if (node.aquamarineId) {
-        this.mimeType = node.mimeType;
-        this.contentLength = node.contentLength;
-        this.contentUrl = '/emerald/storage/get-content/' + node.aquamarineId;
-      } else {
-        this.mimeType = null;
-        this.contentLength = 0;
-        this.contentUrl = null;
-      }
       this.selectedNode = node;
     })
 
