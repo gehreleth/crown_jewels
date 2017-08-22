@@ -10,7 +10,7 @@ import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguratio
 
 @Configuration
 @Import(RepositoryRestMvcConfiguration.class)
-public class CustomConfigWithBasePath extends RepositoryRestMvcConfiguration
+public class SpringRestConfig extends RepositoryRestMvcConfiguration
 {
     @Bean
     public RepositoryRestConfigurer repositoryRestConfigurer() {
