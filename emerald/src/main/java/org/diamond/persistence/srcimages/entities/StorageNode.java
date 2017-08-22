@@ -14,7 +14,7 @@ public class StorageNode {
     @GeneratedValue
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="parent_id")
     private StorageNode parent;
 

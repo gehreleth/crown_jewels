@@ -12,7 +12,7 @@ public class ImageMetadata {
     @GeneratedValue
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "storage_node_id")
     private StorageNode storageNode;
 
