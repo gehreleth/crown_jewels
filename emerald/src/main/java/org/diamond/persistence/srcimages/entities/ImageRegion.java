@@ -4,7 +4,7 @@ import javax.persistence.*;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "content_region")
+@Table(name = "image_region")
 public class Region {
     @Id
     @Column(name = "id")
@@ -12,22 +12,22 @@ public class Region {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="content_metadata")
-    private ContentMetadata contentMetadata;
+    @JoinColumn(name="image_metadata")
+    private ImageMetadata imageMetadata;
 
     @Column(name = "text")
     private String text;
 
-    @Column(name = "left_edge")
+    @Column(name = "left_bound")
     private int left;
 
-    @Column(name = "top_edge")
+    @Column(name = "top_bound")
     private int top;
 
-    @Column(name = "right_edge")
+    @Column(name = "right_bound")
     private int right;
 
-    @Column(name = "bottom_edge")
+    @Column(name = "bottom_bound")
     private int bottom;
 
     public Long getId() {
@@ -38,12 +38,12 @@ public class Region {
         this.id = id;
     }
 
-    public ContentMetadata getContentMetadata() {
-        return contentMetadata;
+    public ImageMetadata getImageMetadata() {
+        return imageMetadata;
     }
 
-    public void setContentMetadata(ContentMetadata contentMetadata) {
-        this.contentMetadata = contentMetadata;
+    public void setImageMetadata(ImageMetadata imageMetadata) {
+        this.imageMetadata = imageMetadata;
     }
 
     public String getText() {
