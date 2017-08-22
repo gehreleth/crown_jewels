@@ -12,6 +12,7 @@ import org.diamond.aquamarine.IContent;
 import org.diamond.aquamarine.IContentInfo;
 import org.diamond.aquamarine.SubmitOperationResult;
 import org.diamond.persistence.srcimages.IStorageNodeRepository;
+import org.diamond.persistence.srcimages.entities.Rotation;
 import org.diamond.persistence.srcimages.entities.StorageNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

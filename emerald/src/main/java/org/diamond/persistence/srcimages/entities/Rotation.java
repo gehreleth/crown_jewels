@@ -1,4 +1,4 @@
-package org.diamond.controller;
+package org.diamond.persistence.srcimages.entities;
 
 public enum Rotation {
     NONE,
