@@ -1,5 +1,6 @@
 import { Component, Input, ViewChild, ElementRef } from '@angular/core';
 import { ITreeNode, NodeType } from '../emerald-backend-storage.service'
+import { ImgRegionEditorService } from '../img-region-editor.service';
 import { Subject } from 'rxjs/Subject';
 
 declare var $:any;
@@ -10,56 +11,32 @@ declare var $:any;
 })
 export class ImgRegionEditorComponent {
   @ViewChild('regionEditor') el:ElementRef;
+  ImageUrl : string;
 
-  private _angle : number = 0;
-  private _selectedNode: ITreeNode;
-
-  constructor() {
+  constructor(private _service : ImgRegionEditorService) {
+    _service.BlobUrl.subscribe(value => this.updateImageUrl(value));
   }
 
   rotateCW(event:any): void {
-    $(this.el.nativeElement).selectAreas('destroy');
-    ++this._angle;
-    setTimeout(() => this.initJQSelectAreas(), 0);
+    this._service.rotateCW();
   }
 
   rotateCCW(event:any): void {
-    $(this.el.nativeElement).selectAreas('destroy');
-    --this._angle;
-    setTimeout(() => this.initJQSelectAreas(), 0);
+    this._service.rotateCCW();
   }
 
-  get ImageUrl() : string {
-    return `/emerald/blobs/${this.SelectedNode.aquamarineId}?rot=${this.Rot}`;
+  updateImageUrl(val : string) : void {
+    $(this.el.nativeElement).selectAreas('destroy');
+    this.ImageUrl = val;
+    setTimeout(() => this.initJQSelectAreas(), 0);
   }
 
   @Input() set SelectedNode(value: ITreeNode) {
-    $(this.el.nativeElement).selectAreas('destroy');
-    this._selectedNode = value;
-    setTimeout(() => this.initJQSelectAreas(), 0);
+    this._service.Node = value;
   }
 
-  get SelectedNode(): ITreeNode {
-    return this._selectedNode;
-  }
-
-  get Rot(): string {
-    switch (this._angle % 4) {
-      case -1:
-        return 'CCW90';
-      case -2:
-        return 'CCW180';
-      case -3:
-        return 'CCW270';
-      case 1:
-        return 'CW90';
-      case 2:
-        return 'CW180';
-      case 3:
-        return 'CW270';
-      default:
-        return 'NONE';
-    }
+  get SelectedNode() : ITreeNode {
+    return this._service.Node;
   }
 
   private initJQSelectAreas() {
