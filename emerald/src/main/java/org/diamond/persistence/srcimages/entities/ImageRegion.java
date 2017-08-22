@@ -5,7 +5,7 @@ import javax.persistence.*;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "image_region")
-public class Region {
+public class ImageRegion {
     @Id
     @Column(name = "id")
     @GeneratedValue

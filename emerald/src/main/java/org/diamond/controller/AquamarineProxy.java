@@ -1,14 +1,10 @@
 package org.diamond.controller;
 
-import com.google.gson.JsonObject;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
-import org.diamond.aquamarine.IContentInfo;
-import org.diamond.persistence.srcimages.IContentMetadataRepository;
-import org.diamond.persistence.srcimages.IRegionRepository;
 import org.diamond.persistence.srcimages.entities.Rotation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,15 +26,9 @@ import java.io.OutputStream;
 import java.util.*;
 
 @Controller
-@RequestMapping("/region-editor")
-public class SrcImageRegionEditor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SrcImageRegionEditor.class);
-
-    @Autowired
-    private IContentMetadataRepository contentMetadataRepository;
-
-    @Autowired
-    private IRegionRepository regionRepository;
+@RequestMapping("/blobs")
+public class AquamarineProxy {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AquamarineProxy.class);
 
     @Autowired
     private IAquamarineService aquamarineService;
@@ -46,23 +36,7 @@ public class SrcImageRegionEditor {
     private static final Set<String> KNOWN_IMAGE_FORMATS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("image/jpeg", "image/png")));
 
-    @GetMapping(value = "/get-content-info/{aquamarineId}")
-    public ResponseEntity<String> getContentInfo(@PathVariable UUID aquamarineId) {
-        ResponseEntity<String> retVal;
-        try {
-            IContentInfo contentInfo = aquamarineService.retrieveContentInfo(aquamarineId);
-            JsonObject jso = new JsonObject();
-            jso.addProperty("mimeType", contentInfo.getMimeType());
-            jso.addProperty("length", contentInfo.getLength());
-            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(jso.toString());
-        } catch (Exception e) {
-            LOGGER.error("getContentInfo", e);
-            retVal = ResponseEntity.notFound().build();
-        }
-        return retVal;
-    }
-
-    @GetMapping(value = "/get-content/{aquamarineId}")
+    @GetMapping(value = "/get/{aquamarineId}")
     public ResponseEntity<AbstractResource> getContent(@PathVariable UUID aquamarineId,
                                                        @RequestParam(value="rot", required=false) Rotation rot)
     {

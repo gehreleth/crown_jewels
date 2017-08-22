@@ -5,8 +5,8 @@ import java.util.List;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "content_metadata")
-public class ContentMetadata {
+@Table(name = "image_metadata")
+public class ImageMetadata {
     @Id
     @Column(name = "id")
     @GeneratedValue
@@ -19,8 +19,8 @@ public class ContentMetadata {
     @Column(name = "rotation")
     private Rotation rotation;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "contentMetadata")
-    private List<Region> regions;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "imageMetadata")
+    private List<ImageRegion> regions;
 
     public Long getId() {
         return id;
@@ -46,11 +46,11 @@ public class ContentMetadata {
         this.rotation = rotation;
     }
 
-    public List<Region> getRegions() {
+    public List<ImageRegion> getRegions() {
         return regions;
     }
 
-    public void setRegions(List<Region> regions) {
-        this.regions = regions;
+    public void setRegions(List<ImageRegion> imageRegions) {
+        this.regions = imageRegions;
     }
 }
