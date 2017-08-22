@@ -30,7 +30,7 @@ export class ImgRegionEditorComponent {
   }
 
   get ImageUrl() : string {
-    return `/emerald/blobs/get/${this.SelectedNode.aquamarineId}?rot=${this.Rot}`;
+    return `/emerald/blobs/${this.SelectedNode.aquamarineId}?rot=${this.Rot}`;
   }
 
   @Input() set SelectedNode(value: ITreeNode) {

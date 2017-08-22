@@ -36,9 +36,9 @@ public class AquamarineProxy {
     private static final Set<String> KNOWN_IMAGE_FORMATS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("image/jpeg", "image/png")));
 
-    @GetMapping(value = "/get/{aquamarineId}")
-    public ResponseEntity<AbstractResource> getContent(@PathVariable UUID aquamarineId,
-                                                       @RequestParam(value="rot", required=false) Rotation rot)
+    @GetMapping(value = "/{aquamarineId}")
+    public ResponseEntity<AbstractResource> get(@PathVariable UUID aquamarineId,
+                                                @RequestParam(value="rot", required=false) Rotation rot)
     {
         if (rot == null)
             rot = Rotation.NONE;
