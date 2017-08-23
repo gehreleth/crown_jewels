@@ -1,7 +1,7 @@
 import { Component, Input, ViewChild, ElementRef } from '@angular/core';
 import { ITreeNode, NodeType } from '../emerald-backend-storage.service'
 import { ImgRegionEditorService } from '../img-region-editor.service';
-import { Subject } from 'rxjs/Subject';
+import { AfterViewInit } from '@angular/core';
 
 declare var $:any;
 @Component({
@@ -9,26 +9,32 @@ declare var $:any;
   templateUrl: './img-region-editor.component.html',
   styleUrls: ['./img-region-editor.component.css']
 })
-export class ImgRegionEditorComponent {
+export class ImgRegionEditorComponent implements AfterViewInit {
   @ViewChild('regionEditor') el:ElementRef;
-  ImageUrl : string;
+  private _imageUrl : string;
 
-  constructor(private _service : ImgRegionEditorService) {
-    _service.BlobUrl.subscribe(value => this.updateImageUrl(value));
+  constructor(private _service : ImgRegionEditorService) { }
+
+  ngAfterViewInit() {
+    this._service.ImageUrl.subscribe(value => {this.ImageUrl = value });
   }
 
-  rotateCW(event:any): void {
+  onRotateCW(event:any): void {
     this._service.rotateCW();
   }
 
-  rotateCCW(event:any): void {
+  onRotateCCW(event:any): void {
     this._service.rotateCCW();
   }
 
-  updateImageUrl(val : string) : void {
+  set ImageUrl(val : string) {
     $(this.el.nativeElement).selectAreas('destroy');
-    this.ImageUrl = val;
+    this._imageUrl = val;
     setTimeout(() => this.initJQSelectAreas(), 0);
+  }
+
+  get ImageUrl() : string {
+    return this._imageUrl;
   }
 
   @Input() set SelectedNode(value: ITreeNode) {
