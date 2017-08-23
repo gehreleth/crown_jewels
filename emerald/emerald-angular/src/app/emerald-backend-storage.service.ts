@@ -4,20 +4,6 @@ import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/map';
 
 export enum NodeType { Zip, Folder, Image, Other };
-export namespace NodeType {
-  export function parse(arg: string) {
-    switch (arg) {
-      case 'Zip':
-      return NodeType.Zip;
-      case 'Folder':
-      return NodeType.Folder;
-      case 'Image':
-      return NodeType.Image;
-      default:
-      return NodeType.Other;
-    }
-  }
-}
 
 export interface ITreeNode {
   id: number;
@@ -50,7 +36,7 @@ export namespace ITreeNode {
       children: null,
       isExpanded: false,
       parent: parent,
-      type: NodeType.parse(arg['type'] as string),
+      type: NodeType[arg['type'] as string],
       aquamarineId: arg['aquamarineId'] as string,
       mimeType: arg['mimeType'] as string,
       contentLength: arg['contentLength'] as number
@@ -78,18 +64,6 @@ export namespace ITreeNode {
 }
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
-namespace TrackingStatus {
-  export function parse(arg: string): TrackingStatus {
-    switch (arg) {
-      case 'PENDING':
-      return TrackingStatus.PENDING;
-      case 'SUCCESS':
-      return TrackingStatus.SUCCESS;
-      default:
-      return TrackingStatus.FAIL;
-    }
-  }
-}
 
 @Injectable()
 export class EmeraldBackendStorageService {
@@ -285,7 +259,7 @@ export class EmeraldBackendStorageService {
       .subscribe((rsp: Response) =>
     {
       const dict = rsp.json();
-      const status = TrackingStatus.parse(dict['status'] as string);
+      const status = TrackingStatus[dict['status'] as string];
       switch (status) {
         case TrackingStatus.SUCCESS:
           this.onNewRoots.emit();

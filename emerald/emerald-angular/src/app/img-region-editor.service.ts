@@ -1,15 +1,44 @@
 import { Injectable } from '@angular/core';
 import { ITreeNode, NodeType } from './emerald-backend-storage.service'
+import { Http, Response } from '@angular/http';
 import { Subject } from 'rxjs/Subject';
+
+export enum Rotation {
+  NONE = 0,
+  CW90 = 1,
+  CW180 = 2,
+  CW270 = 3,
+  CCW90 = -1,
+  CCW180 = -2,
+  CCW270 = -3
+};
+
+export namespace Rotation {
+  export function toString(arg: Rotation) : string {
+    return Rotation[arg];
+  }
+
+  export function fromNumber(arg: number) : Rotation  {
+    return (arg % 4) as Rotation;
+  }
+
+  export function rotateCW(arg: Rotation) : Rotation  {
+    return fromNumber((arg as number) + 1);
+  }
+
+  export function rotateCCW(arg: Rotation) : Rotation  {
+    return fromNumber((arg as number) - 1);
+  }
+}
 
 @Injectable()
 export class ImgRegionEditorService {
   BlobUrl : Subject<string> = new Subject<string>();
-  private _angle : number = 0;
   private _nodeSubj : Subject<ITreeNode> = new Subject<ITreeNode>();
+  private _angle : Rotation = 0;
   private _node : ITreeNode;
 
-  constructor() {
+  constructor(private http: Http) {
     this._nodeSubj.subscribe(node => this.changeActiveNode(node));
   }
 
@@ -22,40 +51,33 @@ export class ImgRegionEditorService {
   }
 
   rotateCCW() : void {
-    --this._angle;
-    this.broadcastNewUrl();
+    this._angle = Rotation.rotateCW(this._angle);
+    this.reloadBlob();
   }
 
   rotateCW() : void {
-    ++this._angle;
-    this.broadcastNewUrl();
+    this._angle = Rotation.rotateCCW(this._angle);
+    this.reloadBlob();
   }
 
   private changeActiveNode(node: ITreeNode) : void {
     this._node = node;
-    this.broadcastNewUrl();
+    this.reloadBlob();
+    /*this.http.get('/emerald/rest-jpa/image-metadata/search/'
+      + `findOneByStorageNodeId?storage_node_id=${this._node.id}`)
+      .map(rsp => rsp.json())
+      .map(dict => {
+        if (dict) {
+          this.reinit(dict);
+        } else {
+
+        }
+
+      })*/
   }
 
-  private broadcastNewUrl() :void {
-    this.BlobUrl.next(`/emerald/blobs/${this._node.aquamarineId}?rot=${this._rot}`);
-  }
-
-  private get _rot(): string {
-    switch (this._angle % 4) {
-      case -1:
-        return 'CCW90';
-      case -2:
-        return 'CCW180';
-      case -3:
-        return 'CCW270';
-      case 1:
-        return 'CW90';
-      case 2:
-        return 'CW180';
-      case 3:
-        return 'CW270';
-      default:
-        return 'NONE';
-    }
+  private reloadBlob() :void {
+    this.BlobUrl.next(`/emerald/blobs/${this._node.aquamarineId}`
+      + `?rot=${Rotation[this._angle]}`);
   }
 }
