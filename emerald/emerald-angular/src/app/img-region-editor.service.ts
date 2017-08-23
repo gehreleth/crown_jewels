@@ -1,7 +1,16 @@
 import { Injectable } from '@angular/core';
 import { ITreeNode, NodeType } from './emerald-backend-storage.service'
-import { Http, Response } from '@angular/http';
+import { Http, RequestOptions, Headers, Response } from '@angular/http';
 import { Subject } from 'rxjs/Subject';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/interval';
+import 'rxjs/add/observable/throw';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/take'
 
 export enum Rotation {
   NONE = 0,
@@ -31,15 +40,35 @@ export namespace Rotation {
   }
 }
 
+export interface IImageRegion {
+  id: number;
+  text: string;
+  left : number;
+  top : number;
+  right : number;
+  bottom : number;
+}
+
+export interface IImageMeta {
+  id: number;
+  imageNode: ITreeNode;
+  rotation: Rotation;
+  regions: Array<IImageRegion>;
+}
+
 @Injectable()
 export class ImgRegionEditorService {
   BlobUrl : Subject<string> = new Subject<string>();
   private _nodeSubj : Subject<ITreeNode> = new Subject<ITreeNode>();
-  private _angle : Rotation = 0;
-  private _node : ITreeNode;
+  private _imageMetaSubj : Subject<IImageMeta> = new Subject<IImageMeta>();
+  private _imageMeta : IImageMeta;
 
   constructor(private http: Http) {
     this._nodeSubj.subscribe(node => this.changeActiveNode(node));
+    this._imageMetaSubj.subscribe(imageMeta => {
+      this._imageMeta = imageMeta;
+      this.reloadBlob();
+    });
   }
 
   set Node(node: ITreeNode) {
@@ -47,37 +76,79 @@ export class ImgRegionEditorService {
   }
 
   get Node() : ITreeNode {
-    return this._node;
+    return this._imageMeta.imageNode;
   }
 
   rotateCCW() : void {
-    this._angle = Rotation.rotateCW(this._angle);
+    this._imageMeta.rotation = Rotation.rotateCW(this._imageMeta.rotation);
     this.reloadBlob();
   }
 
   rotateCW() : void {
-    this._angle = Rotation.rotateCCW(this._angle);
+    this._imageMeta.rotation  = Rotation.rotateCCW(this._imageMeta.rotation);
     this.reloadBlob();
   }
 
   private changeActiveNode(node: ITreeNode) : void {
-    this._node = node;
-    this.reloadBlob();
-    /*this.http.get('/emerald/rest-jpa/image-metadata/search/'
-      + `findOneByStorageNodeId?storage_node_id=${this._node.id}`)
-      .map(rsp => rsp.json())
-      .map(dict => {
-        if (dict) {
-          this.reinit(dict);
-        } else {
-
+    this.loadImageMetaUrl(node, '/emerald/rest-jpa/image-metadata/search/'
+                      + `findOneByStorageNodeId?storage_node_id=${node.id}`,
+                      true)
+      .subscribe(
+        data => this._imageMetaSubj.next(data),
+        err => {
+          console.log('Something went wrong!');
         }
-
-      })*/
+      );
   }
 
-  private reloadBlob() :void {
-    this.BlobUrl.next(`/emerald/blobs/${this._node.aquamarineId}`
-      + `?rot=${Rotation[this._angle]}`);
+  private loadImageMetaUrl(node: ITreeNode, url: string,
+     createIfNone: boolean) : Observable<IImageMeta>
+  {
+    return this.http.get(url).map(
+      (rsp: Response) => this.loadImageMeta(node, rsp)
+    ).catch((err: Error) => {
+      if (createIfNone) {
+        return this.createImageMeta(node);
+      } else {
+        console.log(err);
+        return Observable.throw(err);
+      }
+    });
+  }
+
+  private createImageMeta(node: ITreeNode) : Observable<IImageMeta> {
+    let headers = new Headers();
+    headers.append('Content-Type', 'application/json;charset=UTF-8');
+    let options = new RequestOptions({ headers: headers });
+    return this.http.post('/emerald/rest-jpa/image-metadata/',
+      JSON.stringify({
+        rotation : Rotation[Rotation.NONE],
+        storageNode: `/emerald/rest-jpa/storage-node/${node.id}`
+      }), options).map(
+        (rsp: Response) => this.loadImageMeta(node, rsp)
+      );
+  }
+
+  private loadImageMeta(node: ITreeNode, rsp: Response) : IImageMeta {
+    const dict = rsp.json();
+    const retVal : IImageMeta = {
+      id: ImgRegionEditorService.extractSelfId(dict),
+      imageNode : node,
+      rotation: Rotation[dict['rotation'] as string],
+      regions: []
+    }
+    return retVal;
+  }
+
+  private reloadBlob() : void {
+    this.BlobUrl.next(`/emerald/blobs/${this._imageMeta.imageNode.aquamarineId}`
+      + `?rot=${Rotation[this._imageMeta.rotation]}`);
+  }
+
+  private static trailingDigits = RegExp("\/(\d+)$").compile();
+
+  private static extractSelfId(dict: any) : number {
+    const href = dict._links.self.href as string;
+    return parseInt(ImgRegionEditorService.trailingDigits.exec(href)[1]);
   }
 }

@@ -1,6 +1,7 @@
 package org.diamond.controller;
 
 import mediautil.image.jpeg.LLJTran;
+import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.diamond.aquamarine.IAquamarineService;
@@ -89,7 +90,7 @@ public class AquamarineProxy {
 
     private static void rotateJpeg(InputStream is, OutputStream os, Rotation rot) throws LLJTranException, IOException {
         LLJTran jpegTransform = new LLJTran(is);
-        jpegTransform.read(LLJTran.READ_ALL, true);
+        jpegTransform.read(mediautil.image.jpeg.LLJTran.READ_ALL, true);
         int tsf;
         switch (rot) {
             case CW90:
