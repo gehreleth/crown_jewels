@@ -106,7 +106,7 @@ export class ImgRegionEditorService {
      createIfNone: boolean) : Observable<IImageMeta>
   {
     return this.http.get(url)
-      .map((rsp: Response) => this.loadImageMeta(node, rsp))
+      .map((rsp: Response) => this.loadImageMeta(node, rsp.json()))
       .catch((err: Error) => {
         return createIfNone
           ? this.createImageMeta(node)
