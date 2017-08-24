@@ -37,12 +37,13 @@ export class ImgRegionEditorComponent implements AfterViewInit {
     return this._imageUrl;
   }
 
-  @Input() set SelectedNode(value: ITreeNode) {
-    this._service.Node = value;
+  @Input()
+  set SelectedImageNode(value: ITreeNode) {
+    this._service.SelectedImageNode = value;
   }
 
-  get SelectedNode() : ITreeNode {
-    return this._service.Node;
+  get SelectedImageNode() : ITreeNode {
+    return this._service.SelectedImageNode;
   }
 
   private initJQSelectAreas() {

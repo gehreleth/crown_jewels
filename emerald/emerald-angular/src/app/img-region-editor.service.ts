@@ -55,6 +55,7 @@ export class ImgRegionEditorService {
   private readonly _nodeSubj = new Subject<ITreeNode>();
   private readonly _imageUrl = new BehaviorSubject<string>(null);
   private readonly _imageMeta = new BehaviorSubject<IImageMeta>(null);
+  private readonly _patchReqQueue = new Subject<() => void>();
 
   constructor(private http: Http) {
     this._nodeSubj.subscribe(node => this.onChangeNode(node));
@@ -64,13 +65,14 @@ export class ImgRegionEditorService {
           + `?rot=${Rotation[im.rotation]}`);
       }
     });
+    this._patchReqQueue.subscribe(arg => arg());
   }
 
-  set Node(node: ITreeNode) {
+  set SelectedImageNode(node: ITreeNode) {
     this._nodeSubj.next(node);
   }
 
-  get Node() : ITreeNode {
+  get SelectedImageNode() : ITreeNode {
     return this._imageMeta.getValue().imageNode;
   }
 
@@ -81,13 +83,26 @@ export class ImgRegionEditorService {
   rotateCW() : void {
     let im = this._imageMeta.getValue();
     im.rotation = Rotation.rotateCW(im.rotation);
-    this._imageMeta.next(im);
+    this._patchReqQueue.next(() => this.updateRotation(im));
   }
 
   rotateCCW() : void {
     let im = this._imageMeta.getValue();
     im.rotation = Rotation.rotateCCW(im.rotation);
-    this._imageMeta.next(im);
+    this._patchReqQueue.next(() => this.updateRotation(im));
+  }
+
+  private updateRotation(imageMeta: IImageMeta) : void {
+    this.http.patch(imageMeta.href.pathname,
+      JSON.stringify({
+        rotation : Rotation[imageMeta.rotation],
+      }), ImgRegionEditorService.jsonUtf8ReqOpts())
+      .subscribe(
+        (rsp : Response) => {
+          this._imageMeta.next(this.loadImageMeta(imageMeta.imageNode, rsp.json()));
+        },
+        (err: Error) => console.log(err)
+      );
   }
 
   private onChangeNode(node: ITreeNode) : void {
