@@ -162,48 +162,6 @@ public class Servlet extends HttpServlet {
     {
         PreparedStatement stmt = null;
         try {
-            stmt = conn.prepareStatement("insert into blob_storage(guid, mime_type, content) values(?,?,?)");
-            String guid = UUID.randomUUID().toString();
-            String contentType = request.getContentType();
-            long oid = createLob(conn, request.getInputStream());
-            stmt.setString(1, guid);
-            stmt.setString(2, contentType);
-            stmt.setLong(3, oid);
-            stmt.executeUpdate();
-            response.setStatus(200);
-            response.setContentType("text/plain");
-            PrintWriter writer = response.getWriter();
-            writer.println(guid);
-            conn.commit();
-        } catch (Exception e) {
-            try { conn.rollback(); } catch (Exception e0)  { }
-            throw new ServletException(e);
-        } finally {
-            if (stmt != null) { try { stmt.close(); } catch (Exception e)  {} }
-        }
-    }
-
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
-    {
-        Connection conn = null;
-        try {
-            conn = getConnection();
-            doPostWithDbConnection(request, response, conn);
-        } catch (SQLException e) {
-            throw new ServletException(e);
-        } finally {
-            if (conn != null) { try { conn.close(); } catch (Exception e) { } }
-        }
-    }
-
-    private void doPostWithDbConnection(HttpServletRequest request, HttpServletResponse response, Connection conn)
-            throws ServletException
-    {
-        PreparedStatement stmt = null;
-        try {
             outer:
             do {
                 String path = request.getServletPath();
@@ -231,6 +189,47 @@ public class Servlet extends HttpServlet {
                 }
                 conn.commit();
             } while (false);
+        } catch (Exception e) {
+            try { conn.rollback(); } catch (Exception e0)  { }
+            throw new ServletException(e);
+        } finally {
+            if (stmt != null) { try { stmt.close(); } catch (Exception e)  {} }
+        }
+    }
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            doPostWithDbConnection(request, response, conn);
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        } finally {
+            if (conn != null) { try { conn.close(); } catch (Exception e) { } }
+        }
+    }
+
+    private void doPostWithDbConnection(HttpServletRequest request, HttpServletResponse response, Connection conn)
+            throws ServletException
+    {
+        PreparedStatement stmt = null;
+        try {
+            stmt = conn.prepareStatement("insert into blob_storage(guid, mime_type, content) values(?,?,?)");
+            String guid = UUID.randomUUID().toString();
+            String contentType = request.getContentType();
+            long oid = createLob(conn, request.getInputStream());
+            stmt.setString(1, guid);
+            stmt.setString(2, contentType);
+            stmt.setLong(3, oid);
+            stmt.executeUpdate();
+            response.setStatus(200);
+            response.setContentType("text/plain");
+            PrintWriter writer = response.getWriter();
+            writer.println(guid);
+            conn.commit();
         } catch (Exception e) {
             try { conn.rollback(); } catch (Exception e0)  { }
             throw new ServletException(e);

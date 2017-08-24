@@ -35,7 +35,7 @@ export namespace Rotation {
 }
 
 export interface IImageRegion {
-  id: number;
+  href: URL;
   text: string;
   left : number;
   top : number;
@@ -44,7 +44,7 @@ export interface IImageRegion {
 }
 
 export interface IImageMeta {
-  id: number;
+  href: URL;
   imageNode: ITreeNode;
   rotation: Rotation;
   regions: Array<IImageRegion>;
@@ -52,16 +52,16 @@ export interface IImageMeta {
 
 @Injectable()
 export class ImgRegionEditorService {
-  private _blobUrl : BehaviorSubject<string> = new BehaviorSubject<string>(null);
-  private _nodeSubj : Subject<ITreeNode> = new Subject<ITreeNode>();
-  private _imageMeta : BehaviorSubject<IImageMeta> = new BehaviorSubject<IImageMeta>(null);
+  private readonly _nodeSubj = new Subject<ITreeNode>();
+  private readonly _imageUrl = new BehaviorSubject<string>(null);
+  private readonly _imageMeta = new BehaviorSubject<IImageMeta>(null);
 
   constructor(private http: Http) {
     this._nodeSubj.subscribe(node => this.onChangeNode(node));
-    this._imageMeta.subscribe(imageMeta => {
-      if (imageMeta) {
-        this._blobUrl.next(`/emerald/blobs/${imageMeta.imageNode.aquamarineId}`
-          + `?rot=${Rotation[imageMeta.rotation]}`);
+    this._imageMeta.subscribe(im => {
+      if (im) {
+        this._imageUrl.next(`/emerald/blobs/${im.imageNode.aquamarineId}`
+          + `?rot=${Rotation[im.rotation]}`);
       }
     });
   }
@@ -75,7 +75,7 @@ export class ImgRegionEditorService {
   }
 
   get ImageUrl() : Observable<string> {
-    return this._blobUrl.asObservable();
+    return this._imageUrl.asObservable();
   }
 
   rotateCW() : void {
@@ -115,22 +115,17 @@ export class ImgRegionEditorService {
   }
 
   private createImageMeta(node: ITreeNode) : Observable<IImageMeta> {
-    let headers = new Headers();
-    headers.append('Content-Type', 'application/json;charset=UTF-8');
-    let options = new RequestOptions({ headers: headers });
     return this.http.post('/emerald/rest-jpa/image-metadata/',
       JSON.stringify({
         rotation : Rotation[Rotation.NONE],
         storageNode: `/emerald/rest-jpa/storage-node/${node.id}`
-      }), options).map(
-        (rsp: Response) => this.loadImageMeta(node, rsp)
-      );
+      }), ImgRegionEditorService.jsonUtf8ReqOpts())
+      .map((rsp: Response) => this.loadImageMeta(node, rsp.json()));
   }
 
-  private loadImageMeta(node: ITreeNode, rsp: Response) : IImageMeta {
-    const dict = rsp.json();
+  private loadImageMeta(node: ITreeNode, dict: any) : IImageMeta {
     const retVal : IImageMeta = {
-      id: ImgRegionEditorService.extractSelfId(dict),
+      href: new URL(dict._links.self.href),
       imageNode : node,
       rotation: Rotation[dict['rotation'] as string],
       regions: []
@@ -138,10 +133,9 @@ export class ImgRegionEditorService {
     return retVal;
   }
 
-  private static trailingDigits = RegExp("\/(\d+)$").compile();
-
-  private static extractSelfId(dict: any) : number {
-    const href = dict._links.self.href as string;
-    return parseInt(ImgRegionEditorService.trailingDigits.exec(href)[1]);
+  private static jsonUtf8ReqOpts() : RequestOptions {
+    let headers = new Headers();
+    headers.append('Content-Type', 'application/json;charset=UTF-8');
+    return new RequestOptions({ headers: headers });
   }
 }

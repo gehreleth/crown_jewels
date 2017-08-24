@@ -34,9 +34,8 @@ public class StorageNode {
     @Column(name = "upload_ts")
     private Instant uploadTs;
 
-    public Long getId() {
-        return id;
-    }
+    @OneToOne(fetch = FetchType.LAZY, mappedBy="storageNode")
+    private ImageMetadata imageMetadata;
 
     public StorageNode() { }
 
@@ -76,6 +75,10 @@ public class StorageNode {
         retVal.setUploadTs(null);
         retVal.setAquamarineId(aquamarineId);
         return retVal;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public void setId(Long id) {
@@ -128,5 +131,13 @@ public class StorageNode {
 
     public void setUploadTs(Instant uploadTs) {
         this.uploadTs = uploadTs;
+    }
+
+    public ImageMetadata getImageMetadata() {
+        return imageMetadata;
+    }
+
+    public void setImageMetadata(ImageMetadata imageMetadata) {
+        this.imageMetadata = imageMetadata;
     }
 }

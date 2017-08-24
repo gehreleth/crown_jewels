@@ -61,9 +61,9 @@ public class AquamarineImpl implements Aquamarine {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             ContentType contentType = ContentType.create(mimeType);
             InputStreamEntity inputEntity = new InputStreamEntity(inputStream, length, contentType);
-            HttpPut httpPut = new HttpPut(endpoint + '/');
-            httpPut.setEntity(inputEntity);
-            try (CloseableHttpResponse response = httpclient.execute(httpPut)) {
+            HttpPost httpPost = new HttpPost(endpoint + '/');
+            httpPost.setEntity(inputEntity);
+            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200) {
                     HttpEntity entity = response.getEntity();
@@ -119,10 +119,10 @@ public class AquamarineImpl implements Aquamarine {
     @Override
     public void updateBlob(UUID id, String mimeType, InputStream inputStream, long length) throws IOException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpPost httpPost = new HttpPost(endpoint + '/' + id.toString());
+            HttpPut httpPut = new HttpPut(endpoint + '/' + id.toString());
             InputStreamEntity inputEntity = new InputStreamEntity(inputStream, length, ContentType.create(mimeType));
-            httpPost.setEntity(inputEntity);
-            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
+            httpPut.setEntity(inputEntity);
+            try (CloseableHttpResponse response = httpclient.execute(httpPut)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode != 200) {
                     throw new HttpResponseException(statusCode, "Http error");
