@@ -105,13 +105,13 @@ export class ImgRegionEditorService {
   private loadImageMetaUrl(node: ITreeNode, url: string,
      createIfNone: boolean) : Observable<IImageMeta>
   {
-    return this.http.get(url).map(
-      (rsp: Response) => this.loadImageMeta(node, rsp)
-    ).catch((err: Error) => {
-      return createIfNone
-        ? this.createImageMeta(node)
-        : Observable.throw(err);
-    });
+    return this.http.get(url)
+      .map((rsp: Response) => this.loadImageMeta(node, rsp))
+      .catch((err: Error) => {
+        return createIfNone
+          ? this.createImageMeta(node)
+          : Observable.throw(err);
+        });
   }
 
   private createImageMeta(node: ITreeNode) : Observable<IImageMeta> {
@@ -120,7 +120,8 @@ export class ImgRegionEditorService {
         rotation : Rotation[Rotation.NONE],
         storageNode: `/emerald/rest-jpa/storage-node/${node.id}`
       }), ImgRegionEditorService.jsonUtf8ReqOpts())
-      .map((rsp: Response) => this.loadImageMeta(node, rsp.json()));
+      .map((rsp: Response) => this.loadImageMeta(node, rsp.json()))
+      .catch((err: Error) => Observable.throw(err));
   }
 
   private loadImageMeta(node: ITreeNode, dict: any) : IImageMeta {
