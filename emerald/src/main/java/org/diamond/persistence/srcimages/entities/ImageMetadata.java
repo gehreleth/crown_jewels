@@ -13,7 +13,7 @@ public class ImageMetadata {
     private Long id;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "storage_node_id")
+    @JoinColumn(name = "storage_node_id", unique = true)
     private StorageNode storageNode;
 
     @Column(name = "rotation")
