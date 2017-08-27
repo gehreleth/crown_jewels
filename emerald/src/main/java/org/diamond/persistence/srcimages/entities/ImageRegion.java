@@ -11,7 +11,7 @@ public class ImageRegion {
     @GeneratedValue
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="image_metadata")
     private ImageMetadata imageMetadata;
 

@@ -35,8 +35,8 @@ export namespace Rotation {
 }
 
 export interface IImageRegion {
-  href: URL;
-  text: string;
+  href? : URL;
+  text? : string;
   left : number;
   top : number;
   right : number;
@@ -44,7 +44,7 @@ export interface IImageRegion {
 }
 
 export interface IImageMeta {
-  href: URL;
+  href?: URL;
   imageNode: ITreeNode;
   rotation: Rotation;
   regions: Array<IImageRegion>;
@@ -56,6 +56,7 @@ export class ImgRegionEditorService {
   private readonly _imageUrl = new BehaviorSubject<string>(null);
   private readonly _imageMeta = new BehaviorSubject<IImageMeta>(null);
   private readonly _patchReqQueue = new Subject<() => void>();
+  private readonly _regAu = new Set<number>();
 
   constructor(private http: Http) {
     this._nodeSubj.subscribe(node => this.onChangeNode(node));
@@ -76,6 +77,18 @@ export class ImgRegionEditorService {
     return this._imageMeta.getValue().imageNode;
   }
 
+  private onChangeNode(node: ITreeNode) : void {
+    this.loadImageMetaUrl(node, '/emerald/rest-jpa/image-metadata/search/'
+                      + `findOneByStorageNodeId?storage_node_id=${node.id}`,
+                      true)
+      .subscribe(
+        data => this._imageMeta.next(data),
+        err => {
+          console.log(err);
+        }
+      );
+  }
+
   get ImageUrl() : Observable<string> {
     return this._imageUrl.asObservable();
   }
@@ -92,28 +105,65 @@ export class ImgRegionEditorService {
     this._patchReqQueue.next(() => this.updateRotation(im));
   }
 
-  private updateRotation(imageMeta: IImageMeta) : void {
+  createNewRegion(newRegion: IImageRegion) : Observable<IImageRegion> {
+    return this.http.post('/emerald/rest-jpa/img-region',
+      JSON.stringify({
+        imageMetadata: this._imageMeta.getValue().href,
+        left: newRegion.left,
+        top: newRegion.top,
+        right: newRegion.right,
+        bottom: newRegion.bottom,
+      }), ImgRegionEditorService.jsonUtf8ReqOpts())
+      .map((rsp: Response) => {
+        let dict = rsp.json();
+        newRegion.href = new URL(dict._links.self.href);
+        return newRegion;
+      })
+      .catch((err: Error) => {
+        console.log(err);
+        return Observable.throw(err);
+      });
+  }
+
+  updateRegion(region: IImageRegion) : void {
+    this._patchReqQueue.next(() =>
+    {
+      this.http.patch(region.href.pathname,
+        JSON.stringify({
+          left: region.left, top: region.top,
+          right: region.right, bottom: region.bottom,
+        }), ImgRegionEditorService.jsonUtf8ReqOpts())
+        .catch((err: Error) => {
+          console.log(err);
+          return Observable.throw(err);
+        })
+        .subscribe();
+    });
+  }
+
+  deleteRegion(regionUrl: URL) : void {
+    this._patchReqQueue.next(() =>
+    {
+      this.http.delete(regionUrl.pathname,
+                       ImgRegionEditorService.jsonUtf8ReqOpts())
+        .catch((err: Error) => {
+          console.log(err);
+          return Observable.throw(err);
+        })
+        .subscribe();
+    });
+  }
+
+  private updateRotation(imageMeta: IImageMeta) : void
+  {
     this.http.patch(imageMeta.href.pathname,
       JSON.stringify({
         rotation : Rotation[imageMeta.rotation],
       }), ImgRegionEditorService.jsonUtf8ReqOpts())
       .subscribe(
-        (rsp : Response) => {
-          this._imageMeta.next(this.loadImageMeta(imageMeta.imageNode, rsp.json()));
-        },
+        (rsp : Response) =>
+          this._imageMeta.next(this.loadImageMeta(imageMeta.imageNode, rsp.json())),
         (err: Error) => console.log(err)
-      );
-  }
-
-  private onChangeNode(node: ITreeNode) : void {
-    this.loadImageMetaUrl(node, '/emerald/rest-jpa/image-metadata/search/'
-                      + `findOneByStorageNodeId?storage_node_id=${node.id}`,
-                      true)
-      .subscribe(
-        data => this._imageMeta.next(data),
-        err => {
-          console.log(err);
-        }
       );
   }
 
