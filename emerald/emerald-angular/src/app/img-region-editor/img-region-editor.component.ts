@@ -53,52 +53,47 @@ export class ImgRegionEditorComponent implements AfterViewInit {
       minSize: [30, 30], // Minimum size of a selection
       maxSize: [400, 300],  // Maximum size of a selection
       onChanged: (event: any, id: any, areas: any) => {
-        this.onSelectionChanged(event, id, areas) // fired when a selection is released
+        this.onSelectionChanged(event, id, areas); // fired when a selection
+                                                   // is released
       },
       onChanging: $.noop    // fired during the modification of a selection
     });
   }
 
   private onSelectionChanged(event: any, id: any, areas: any) : void {
+    let iir : IImageRegion;
+    let area : any;
+    (areas as any[]).filter(q => q.id == id).forEach(q => {area = q});
+    if (area) {
+      iir = {
+        href: null,
+        left: area.x,
+        top: area.y,
+        right: area.x + area.width,
+        bottom: area.y + area.height
+      };
+    }
     if (this._saId2Url.has(id)) {
       // We have this entry on backend
-      if (areas[id]) {
+      let href = this._saId2Url.get(id);
+      if (iir) {
         // Area has been changed
-        let iir : IImageRegion = {
-          href: this._saId2Url.get(id),
-          left: areas[id].x,
-          top: areas[id].y,
-          right: areas[id].x + areas[id].width,
-          bottom: areas[id].y + areas[id].height
-        };
+        iir.href = href;
         this._service.updateRegion(iir);
       } else {
         // Area has been deleted
-        this._service.deleteRegion(this._saId2Url.get(id));
+        this._service.deleteRegion(href);
         this._saId2Url.delete(id);
       }
     } else {
       //  We don't have this entry on backend yet
       if (!this._unassignedSaids.has(id)) {
         this._unassignedSaids.add(id);
-        let iir : IImageRegion = {
-          left: areas[id].x,
-          top: areas[id].y,
-          right: areas[id].x + areas[id].width,
-          bottom: areas[id].y + areas[id].height
-        };
         this._service.createNewRegion(iir)
-        .subscribe(
-          (iir0 : IImageRegion) => {
-            this._saId2Url.set(id, iir0.href);
-          },
-          (err: Error) => {
-            console.log(err)
-          },
-          () => {
-            this._unassignedSaids.delete(id);
-          }
-        )
+          .subscribe(
+            (iir : IImageRegion) => this._saId2Url.set(id, iir.href),
+            (err: Error) => console.log(err),
+            () => this._unassignedSaids.delete(id));
       }
     }
   }
