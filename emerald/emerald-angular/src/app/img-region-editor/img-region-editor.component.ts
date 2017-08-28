@@ -53,17 +53,25 @@ export class ImgRegionEditorComponent implements AfterViewInit {
       minSize: [30, 30], // Minimum size of a selection
       maxSize: [400, 300],  // Maximum size of a selection
       onChanged: (event: any, id: any, areas: any) => {
-        this.onSelectionChanged(event, id, areas); // fired when a selection
+        this.onSelectionChanged(
+          event as string,
+          id as number,
+          areas as Array<any>); // fired when a selection
                                                    // is released
       },
       onChanging: $.noop    // fired during the modification of a selection
     });
   }
 
-  private onSelectionChanged(event: any, id: any, areas: any) : void {
+  private onSelectionChanged(event: string, id: number, areas: Array<any>) : void {
     let iir : IImageRegion;
     let area : any;
-    (areas as any[]).filter(q => q.id == id).forEach(q => {area = q});
+    for (let q of areas) {
+      if (q['id'] === id) {
+        area = q;
+        break;
+      }
+    }
     if (area) {
       iir = {
         href: null,
