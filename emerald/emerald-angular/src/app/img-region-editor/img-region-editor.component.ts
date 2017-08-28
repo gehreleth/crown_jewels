@@ -74,6 +74,7 @@ export class ImgRegionEditorComponent implements AfterViewInit {
     }
     if (area) {
       iir = {
+        cookie: id,
         href: null,
         left: area.x,
         top: area.y,

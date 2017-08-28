@@ -34,20 +34,20 @@ export namespace Rotation {
   }
 }
 
+export interface IImageMeta {
+  href?: URL;
+  imageNode: ITreeNode;
+  rotation: Rotation;
+}
+
 export interface IImageRegion {
+  cookie : any;
   href? : URL;
   text? : string;
   left : number;
   top : number;
   right : number;
   bottom : number;
-}
-
-export interface IImageMeta {
-  href?: URL;
-  imageNode: ITreeNode;
-  rotation: Rotation;
-  regions: Array<IImageRegion>;
 }
 
 @Injectable()
@@ -193,8 +193,7 @@ export class ImgRegionEditorService {
     const retVal : IImageMeta = {
       href: new URL(dict._links.self.href),
       imageNode : node,
-      rotation: Rotation[dict['rotation'] as string],
-      regions: []
+      rotation: Rotation[dict['rotation'] as string]
     }
     return retVal;
   }

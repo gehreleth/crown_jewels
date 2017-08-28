@@ -8,7 +8,7 @@ import javax.persistence.*;
 public class ImageRegion {
     @Id
     @Column(name = "id")
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -19,16 +19,16 @@ public class ImageRegion {
     private String text;
 
     @Column(name = "left_bound")
-    private int left;
+    private double left;
 
     @Column(name = "top_bound")
-    private int top;
+    private double top;
 
     @Column(name = "right_bound")
-    private int right;
+    private double right;
 
     @Column(name = "bottom_bound")
-    private int bottom;
+    private double bottom;
 
     public Long getId() {
         return id;
@@ -54,35 +54,35 @@ public class ImageRegion {
         this.text = text;
     }
 
-    public int getLeft() {
+    public double getLeft() {
         return left;
     }
 
-    public void setLeft(int left) {
+    public void setLeft(double left) {
         this.left = left;
     }
 
-    public int getTop() {
+    public double getTop() {
         return top;
     }
 
-    public void setTop(int top) {
+    public void setTop(double top) {
         this.top = top;
     }
 
-    public int getRight() {
+    public double getRight() {
         return right;
     }
 
-    public void setRight(int right) {
+    public void setRight(double right) {
         this.right = right;
     }
 
-    public int getBottom() {
+    public double getBottom() {
         return bottom;
     }
 
-    public void setBottom(int bottom) {
+    public void setBottom(double bottom) {
         this.bottom = bottom;
     }
 }
