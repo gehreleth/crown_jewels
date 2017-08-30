@@ -50,14 +50,14 @@ export class ImgRegionEditorComponent implements AfterViewInit {
 
   private initJQSelectAreas() {
     $(this.el.nativeElement).selectAreas({
-      minSize: [30, 30], // Minimum size of a selection
-      maxSize: [400, 300],  // Maximum size of a selection
+      minSize: [30, 30],        // Minimum size of a selection
+      maxSize: [400, 300],      // Maximum size of a selection
       onChanged: (event: any, id: any, areas: any) => {
         this.onSelectionChanged(
           event as string,
           id as number,
           areas as Array<any>); // fired when a selection
-                                                   // is released
+                                // is released
       },
       onChanging: $.noop    // fired during the modification of a selection
     });
@@ -76,10 +76,8 @@ export class ImgRegionEditorComponent implements AfterViewInit {
       iir = {
         cookie: id,
         href: null,
-        left: area.x,
-        top: area.y,
-        right: area.x + area.width,
-        bottom: area.y + area.height
+        x: area.x, y: area.y,
+        width: area.width, height: area.height
       };
     }
     if (this._saId2Url.has(id)) {

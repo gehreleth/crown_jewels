@@ -18,17 +18,17 @@ public class ImageRegion {
     @Column(name = "text")
     private String text;
 
-    @Column(name = "left_bound")
-    private double left;
+    @Column(name = "x")
+    private double x;
 
-    @Column(name = "top_bound")
-    private double top;
+    @Column(name = "y")
+    private double y;
 
-    @Column(name = "right_bound")
-    private double right;
+    @Column(name = "width")
+    private double width;
 
-    @Column(name = "bottom_bound")
-    private double bottom;
+    @Column(name = "height")
+    private double height;
 
     public Long getId() {
         return id;
@@ -54,35 +54,35 @@ public class ImageRegion {
         this.text = text;
     }
 
-    public double getLeft() {
-        return left;
+    public double getX() {
+        return x;
     }
 
-    public void setLeft(double left) {
-        this.left = left;
+    public void setX(double x) {
+        this.x = x;
     }
 
-    public double getTop() {
-        return top;
+    public double getY() {
+        return y;
     }
 
-    public void setTop(double top) {
-        this.top = top;
+    public void setY(double y) {
+        this.y = y;
     }
 
-    public double getRight() {
-        return right;
+    public double getWidth() {
+        return width;
     }
 
-    public void setRight(double right) {
-        this.right = right;
+    public void setWidth(double width) {
+        this.width = width;
     }
 
-    public double getBottom() {
-        return bottom;
+    public double getHeight() {
+        return height;
     }
 
-    public void setBottom(double bottom) {
-        this.bottom = bottom;
+    public void setHeight(double height) {
+        this.height = height;
     }
 }

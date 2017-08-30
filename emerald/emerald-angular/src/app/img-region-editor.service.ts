@@ -44,10 +44,10 @@ export interface IImageRegion {
   cookie : any;
   href? : URL;
   text? : string;
-  left : number;
-  top : number;
-  right : number;
-  bottom : number;
+  x : number;
+  y : number;
+  width : number;
+  height : number;
 }
 
 @Injectable()
@@ -109,10 +109,8 @@ export class ImgRegionEditorService {
     return this.http.post('/emerald/rest-jpa/img-region',
       JSON.stringify({
         imageMetadata: this._imageMeta.getValue().href,
-        left: newRegion.left,
-        top: newRegion.top,
-        right: newRegion.right,
-        bottom: newRegion.bottom,
+        x: newRegion.x, y: newRegion.y,
+        width: newRegion.width, height: newRegion.height,
       }), ImgRegionEditorService.jsonUtf8ReqOpts())
       .map((rsp: Response) => {
         let dict = rsp.json();
@@ -130,8 +128,8 @@ export class ImgRegionEditorService {
     {
       this.http.patch(region.href.pathname,
         JSON.stringify({
-          left: region.left, top: region.top,
-          right: region.right, bottom: region.bottom,
+          x: region.x, y: region.y,
+          width: region.width, height: region.height,
         }), ImgRegionEditorService.jsonUtf8ReqOpts())
         .catch((err: Error) => {
           console.log(err);
