@@ -1,33 +1,33 @@
 <div class="container-fluid">
   <div class="row">
-    <div class="col-sm-5 col-md-3 hidden-xs-down bg-faded sidebar">
+    <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
       <div [ngBusy]="busy"></div>
       <div>
         <tree-view [Nodes]="storage.Nodes"
-                   [SelectedNode]="selectedNode"
-                   (onSelectedChanged)="onSelectNode($event)"
-                   (onRequestNodes)="onRequest($event)">
+        [SelectedNode]="selectedNode"
+        (onSelectedChanged)="onSelectNode($event)"
+        (onRequestNodes)="onRequest($event)">
         </tree-view>
       </div>
       <hr>
       <div>
         <app-upload-form></app-upload-form>
       </div>
-    </div>
-    <main class="col-sm-7 offset-sm-5 col-md-9 offset-md-3 pt-3">
+    </nav>
+    <main class="col-sm-9 ml-sm-auto col-md-10 pt-3" role="main">
       <div *ngIf="selectedNode">
         <div [ngSwitch]="selectedNode.type">
-				  <div *ngSwitchCase="nodeType.Zip">
+          <div *ngSwitchCase="nodeType.Zip">
             <p>Zip file</p>
           </div>
-				  <div *ngSwitchCase="nodeType.Folder">
+          <div *ngSwitchCase="nodeType.Folder">
             <p>Folder</p>
           </div>
-				  <div *ngSwitchCase="nodeType.Image">
+          <div *ngSwitchCase="nodeType.Image">
             <app-img-region-editor [SelectedImageNode]="selectedNode">
             </app-img-region-editor>
           </div>
-			  </div>
+        </div>
       </div>
       <div *ngIf="!selectedNode">
         <p>No selection</p>

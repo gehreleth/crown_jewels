@@ -8,7 +8,7 @@ import { EmeraldBackendStorageService } from '../emerald-backend-storage.service
 @Component({
   selector: 'app-upload-form',
   templateUrl: './upload-form.component.html',
-  styleUrls: ['./upload-form.component.css']
+  styleUrls: ['./upload-form.component.scss']
 })
 export class UploadFormComponent implements OnInit {
   constructor(private storage: EmeraldBackendStorageService) { }

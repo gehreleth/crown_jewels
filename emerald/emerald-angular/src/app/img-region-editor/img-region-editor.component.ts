@@ -7,7 +7,7 @@ declare var $:any;
 @Component({
   selector: 'app-img-region-editor',
   templateUrl: './img-region-editor.component.html',
-  styleUrls: ['./img-region-editor.component.css']
+  styleUrls: ['./img-region-editor.component.scss']
 })
 export class ImgRegionEditorComponent implements AfterViewInit {
   @ViewChild('regionEditor') el:ElementRef;

@@ -4,7 +4,7 @@ import {ITreeNode, NodeType} from '../emerald-backend-storage.service'
 @Component({
 	selector: "tree-view",
 	templateUrl: './tree-view.component.html',
-  styleUrls: ['./tree-view.component.css']
+  styleUrls: ['./tree-view.component.scss']
 })
 export class TreeView {
   public nodeType = NodeType;
