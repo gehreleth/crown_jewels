@@ -24,7 +24,8 @@
                 z: 0,
                 height: 0,
                 width: 0,
-                text: '(empty)'
+                text: '(empty)',
+                href: null
             },
             blur = function () {
                 area.z = 0;

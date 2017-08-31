@@ -8,13 +8,13 @@ export enum NodeType { Zip, Folder, Image, Other };
 export interface ITreeNode {
   id: number;
   name: string;
-  children: Array<ITreeNode> | null;
+  children?: Array<ITreeNode>;
   isExpanded: boolean;
-  parent: ITreeNode | null;
+  parent?: ITreeNode;
   type: NodeType;
-  aquamarineId: string | null;
-  mimeType: string | null;
-  contentLength: number | null;
+  aquamarineId?: string;
+  mimeType?: string;
+  contentLength?: number;
 }
 
 export namespace ITreeNode {
@@ -29,7 +29,7 @@ export namespace ITreeNode {
   *
   * @returns new ITreeNode instance with children == null
   */
-  export function fromDict(arg: any, parent: ITreeNode | null) : ITreeNode {
+  export function fromDict(arg: any, parent?: ITreeNode) : ITreeNode {
     const retVal : ITreeNode = {
       id: parseInt(arg['id']),
       name: arg['text'] as string,
@@ -54,7 +54,7 @@ export namespace ITreeNode {
   *
   * @returns new ITreeNode instance
   */
-  export function fromDictRec(arg: any, parent: ITreeNode | null) : ITreeNode {
+  export function fromDictRec(arg: any, parent?: ITreeNode) : ITreeNode {
     let retVal = fromDict(arg, parent);
     const children = arg['children'] as any[] | null;
     if (children)
