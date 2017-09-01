@@ -1,49 +1,13 @@
 import { Component, Input, ViewChild, ElementRef } from '@angular/core';
 import { ITreeNode, NodeType } from '../emerald-backend-storage.service'
-import { ImgRegionEditorService, IImageRegion, RegionStatus } from '../img-region-editor.service';
+import {
+  ImgRegionEditorService,
+  IImageMeta,
+  IImageRegion,
+  RegionStatus
+} from '../img-region-editor.service';
 import { AfterViewInit } from '@angular/core';
-
-namespace IImageRegion {
-  export function modify(src: IImageRegion, dict: any) : IImageRegion {
-    const retVal : IImageRegion = {
-      status: RegionStatus.Modified,
-      cookie : src.cookie,
-      href : src.href,
-      text : dict['text'],
-      x : dict['x'],
-      y : dict['y'],
-      width : dict['width'],
-      height : dict['height']
-    }
-    return retVal
-  }
-
-  export function createNew(dict: any) : IImageRegion {
-    const retVal : IImageRegion = {
-      status: RegionStatus.New,
-      cookie : dict['id'],
-      href : null,
-      text : dict['text'],
-      x : dict['x'],
-      y : dict['y'],
-      width : dict['width'],
-      height : dict['height']
-    }
-    return retVal
-  }
-
-  export function r2newArea(r : IImageRegion) : any {
-    return {
-      x: r.x,
-      y: r.y,
-      z: 0,
-      height: r.height,
-      width: r.width,
-      text: r.text,
-      href: r.href.pathname
-    };
-  }
-}
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 declare var $:any;
 @Component({
@@ -53,14 +17,23 @@ declare var $:any;
 })
 export class ImgRegionEditorComponent implements AfterViewInit {
   @ViewChild('regionEditor') el:ElementRef;
-  private _imageUrl : string;
-  private _enableRegionEditor : boolean = false;
+  private _imageMeta : IImageMeta = null;
+  private _imageHref = new BehaviorSubject<string>(null);
 
   constructor(private _service : ImgRegionEditorService) { }
 
   ngAfterViewInit() {
-    this._service.ImageUrl.subscribe(value => { this.ImageUrl = value });
-    //this._service.Regions.subscribe(value => this.syncRegionsWithBackend(value));
+    this._service.ImageMeta.subscribe(im => {
+      if (im != null) { this.updateImageMeta(im); }
+    });
+  }
+
+  private updateImageMeta(im : IImageMeta) {
+    this._imageMeta = im;
+    let imageHref = this.ImageHref;
+    if (!imageHref || imageHref !== im.imageHref) {
+      this._imageHref.next(im.imageHref);
+    }
   }
 
   onRotateCW(event:any): void {
@@ -71,19 +44,12 @@ export class ImgRegionEditorComponent implements AfterViewInit {
     this._service.rotateCCW();
   }
 
-  set ImageUrl(val : string) {
-    $(this.el.nativeElement).selectAreas('destroy');
-    this._imageUrl = val;
-    setTimeout(() => this.initJQSelectAreas(), 0);
-  }
-
-  get ImageUrl() : string {
-    return this._imageUrl;
+  get ImageHref() : string {
+    return this._imageHref.getValue();
   }
 
   @Input()
   set SelectedImageNode(value: ITreeNode) {
-    this._enableRegionEditor = false;
     this._service.SelectedImageNode = value;
   }
 
@@ -109,7 +75,7 @@ export class ImgRegionEditorComponent implements AfterViewInit {
       minSize: [30, 30],        // Minimum size of a selection
       maxSize: [400, 300],      // Maximum size of a selection
       onChanged: (event: any, id: any, areas: any) => {
-        if (this._enableRegionEditor) {
+        /*if (this._enableRegionEditor) {
           let area : any;
           for (let q of areas) {
             if (q['id'] === id) {
@@ -122,15 +88,15 @@ export class ImgRegionEditorComponent implements AfterViewInit {
           } else {
             this.onSelectionDeleted(event as string, id as number);
           }
-        }
+        }*/
       },
       onChanging: $.noop
     });
-    this._enableRegionEditor = true;
+    //this._enableRegionEditor = true;
   }
 
    private onSelectionChanged(event: string, area: any) : void {
-     let regions = this._service.Regions.getValue();
+     /*let regions = this._service.Regions.getValue();
      let region : IImageRegion;
      for (let q of regions) {
        if (q.cookie === area['id']) {
@@ -145,11 +111,11 @@ export class ImgRegionEditorComponent implements AfterViewInit {
      } else {
        patchedVal = regions.concat([IImageRegion.createNew(area)]);
      }
-     this._service.Regions.next(patchedVal);
+     this._service.Regions.next(patchedVal);*/
    }
 
    private onSelectionDeleted(event: string, id: number) : void {
-     let regions = this._service.Regions.getValue();
+     /*let regions = this._service.Regions.getValue();
      let region : IImageRegion;
      for (let q of regions) {
        if (q.cookie === id) {
@@ -162,6 +128,6 @@ export class ImgRegionEditorComponent implements AfterViewInit {
        region.status = RegionStatus.MarkedForDeletion;
        let patchedVal = regions.map(q => q.cookie !== region.cookie ? q : region);
        this._service.Regions.next(patchedVal);
-     }
+     }*/
    }
 }

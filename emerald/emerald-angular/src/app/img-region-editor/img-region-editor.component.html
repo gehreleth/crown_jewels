@@ -8,7 +8,10 @@
     </button>
   </div>
   <hr>
-  <div style="row">
-    <img #regionEditor src="{{ImageUrl}}" class="img-fluid">
+  <div *ngIf="ImageHref;else loading" style="row">
+    <img #regionEditor src="{{ImageHref}}" class="img-fluid">
   </div>
+  <ng-template #loading>
+    <p>Loading image ...</p>
+  </ng-template>
 </div>
