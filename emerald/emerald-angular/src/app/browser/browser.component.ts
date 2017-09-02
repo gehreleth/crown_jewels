@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { EmeraldBackendStorageService, ITreeNode, NodeType } from '../emerald-backend-storage.service'
+import { EmeraldBackendStorageService } from '../emerald-backend-storage.service'
+import { ITreeNode, NodeType } from '../tree-node'
 import { Subject } from 'rxjs/Subject';
 
 @Component({

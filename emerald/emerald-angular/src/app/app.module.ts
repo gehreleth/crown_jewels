@@ -16,6 +16,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BusyModule } from 'angular2-busy';
 import { ImgRegionEditorComponent } from './img-region-editor/img-region-editor.component';
 import { ImgRegionEditorService } from './img-region-editor.service';
+import { IreMainAreaComponent } from './ire-main-area/ire-main-area.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -29,6 +30,7 @@ const routes: Routes = [
     BrowserComponent,
     MenuComponent,
     ImgRegionEditorComponent,
+    IreMainAreaComponent,
   ],
   imports: [
     BrowserModule,

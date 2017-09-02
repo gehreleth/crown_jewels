@@ -1,6 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserComponent } from './browser.component';
-import { EmeraldBackendStorageService, ITreeNode, NodeType } from '../emerald-backend-storage.service'
+import { EmeraldBackendStorageService } from '../emerald-backend-storage.service'
+import { ITreeNode, NodeType } from '../tree-node'
 //import { MockComponent } from 'ng2-mock-component'
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { ActivatedRoute } from '@angular/router';

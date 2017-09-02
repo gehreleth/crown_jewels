@@ -1,5 +1,5 @@
 import {Component, Input, Output, EventEmitter} from "@angular/core";
-import {ITreeNode, NodeType} from '../emerald-backend-storage.service'
+import {ITreeNode, NodeType} from '../tree-node'
 
 @Component({
 	selector: "tree-view",

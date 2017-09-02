@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ITreeNode, NodeType } from './emerald-backend-storage.service'
+import { ITreeNode, NodeType } from './tree-node'
+import { Rotation, IImageMeta } from './image-meta'
+import { IImageRegion } from './image-region'
 import { Http, RequestOptions, Headers, Response } from '@angular/http';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
@@ -8,53 +10,6 @@ import 'rxjs/add/operator/catch';
 import "rxjs/add/observable/of";
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/operator/mergeMap';
-
-export enum Rotation {
-  NONE = 0,
-  CW90 = 1,
-  CW180 = 2,
-  CW270 = 3,
-  CCW90 = -1,
-  CCW180 = -2,
-  CCW270 = -3
-};
-
-export namespace Rotation {
-  export function toString(arg: Rotation) : string {
-    return Rotation[arg];
-  }
-
-  export function fromNumber(arg: number) : Rotation  {
-    return (arg % 4) as Rotation;
-  }
-
-  export function rotateCW(arg: Rotation) : Rotation  {
-    return fromNumber((arg as number) + 1);
-  }
-
-  export function rotateCCW(arg: Rotation) : Rotation  {
-    return fromNumber((arg as number) - 1);
-  }
-}
-
-export enum RegionStatus {
-  New, UpToDate, Modified,
-  MarkedForDeletion, DeletedFromBackend
-};
-
-export interface IImageMeta {
-  readonly imageHref : string;
-  readonly rotation: Rotation;
-  readonly regions: ReadonlyArray<IImageRegion>;
-}
-
-export interface IImageRegion {
-  readonly text : string;
-  readonly x : number;
-  readonly y : number;
-  readonly width : number;
-  readonly height : number;
-}
 
 class Private {
   static jsonUtf8ReqOpts() : RequestOptions {

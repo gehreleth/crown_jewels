@@ -9,9 +9,9 @@
   </div>
   <hr>
   <div *ngIf="ImageHref;else loading" style="row">
-    <img #regionEditor src="{{ImageHref}}" class="img-fluid">
+    <app-ire-main-area [ImageHref]="ImageHref"></app-ire-main-area>
   </div>
   <ng-template #loading>
-    <p>Loading image ...</p>
+    <p>Initializing component ...</p>
   </ng-template>
 </div>

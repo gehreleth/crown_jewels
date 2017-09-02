@@ -1,6 +1,7 @@
 import { TestBed, inject } from '@angular/core/testing';
-import {Injectable, ReflectiveInjector} from '@angular/core';
-import { EmeraldBackendStorageService, ITreeNode, NodeType } from './emerald-backend-storage.service';
+import { Injectable, ReflectiveInjector } from '@angular/core';
+import { EmeraldBackendStorageService } from './emerald-backend-storage.service';
+import { ITreeNode, NodeType } from './tree-node';
 import { fakeAsync, tick } from '@angular/core/testing';
 import {
   BaseRequestOptions,
