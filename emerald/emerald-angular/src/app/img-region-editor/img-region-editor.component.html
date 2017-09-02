@@ -9,7 +9,10 @@
   </div>
   <hr>
   <div *ngIf="ImageHref;else loading" style="row">
-    <app-ire-main-area [ImageHref]="ImageHref"></app-ire-main-area>
+    <app-ire-main-area
+      [ImageHref]="ImageHref"
+      [(Regions)]="Regions">
+    </app-ire-main-area>
   </div>
   <ng-template #loading>
     <p>Initializing component ...</p>

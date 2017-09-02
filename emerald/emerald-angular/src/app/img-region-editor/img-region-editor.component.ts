@@ -14,6 +14,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 export class ImgRegionEditorComponent implements OnInit {
   private _imageMeta : IImageMeta = null;
   private _imageHref : string = null;
+  Regions = new Array<IImageRegion>();
 
   constructor(private _service : ImgRegionEditorService) { }
 
@@ -28,6 +29,15 @@ export class ImgRegionEditorComponent implements OnInit {
     const imageHref = this.ImageHref;
     if (!imageHref || imageHref !== im.imageHref) {
       this._imageHref = im.imageHref;
+      let newRegions = new Array<IImageRegion>();
+      for (const q of im.regions) {
+        const w : IImageRegion = {
+          text: q.text, x: q.x, y: q.y,
+          width: q.width, height: q.height
+        };
+        newRegions.push(w);
+      }
+      this.Regions = newRegions;
     }
   }
 
