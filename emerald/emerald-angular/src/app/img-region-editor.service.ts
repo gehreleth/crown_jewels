@@ -65,7 +65,7 @@ class ImageMetaImpl implements IImageMeta {
     }
   }
 
-  static createImageMeta(http: Http, node: ITreeNode)
+  private static createImageMeta(http: Http, node: ITreeNode)
     : Observable<ImageMetaImpl>
   {
     return http.post('/emerald/rest-jpa/image-metadata/',
@@ -82,7 +82,7 @@ class ImageMetaImpl implements IImageMeta {
       })
   }
 
-  static loadImageMetaUrl(http: Http, node: ITreeNode,
+  private static loadImageMetaUrl(http: Http, node: ITreeNode,
     url: string, createIfNone: boolean) : Observable<ImageMetaImpl>
   {
     return http.get(url)
@@ -104,7 +104,7 @@ class ImageMetaImpl implements IImageMeta {
       });
   }
 
-  static loadRegions(http: Http, regionsHref: URL)
+  private static loadRegions(http: Http, regionsHref: URL)
     : Observable< Array<ImageRegionImpl> >
   {
     return http.get(regionsHref.pathname)
@@ -113,6 +113,86 @@ class ImageMetaImpl implements IImageMeta {
         return (dict._embedded.imageRegions as any[])
           .map(r => ImageRegionImpl.fromDict(r));
         })
+  }
+
+  saveRegions(http: Http, updatedRegions: Array<IImageRegion>)
+      : Observable<Array<ImageRegionImpl>>
+  {
+    return ImageMetaImpl.loadRegions(http, this.regionsHref)
+      .flatMap(regions => {
+        const delta = updatedRegions.length - regions.length;
+        if (delta > 0) {
+          return this.saveRegions_upd(http, regions,
+            updatedRegions.slice(0, updatedRegions.length))
+          .flatMap(base => {
+              return this.saveRegions_grow(http, base,
+                updatedRegions.slice(updatedRegions.length));
+          });
+        } else if (delta < 0) {
+
+        } else {
+          return this.saveRegions_upd(http, regions, updatedRegions);
+        }
+      })
+  }
+
+  private saveRegions_grow(http: Http, base: Array<ImageRegionImpl>,
+    updatedRegions: Array<IImageRegion>)
+      : Observable<Array<ImageRegionImpl>>
+  {
+    let observables = new Array<Observable<ImageRegionImpl>>();
+    for (let ur of base)
+      observables.push(Observable.of(ur));
+    for (let ur of updatedRegions) {
+      observables.push(this.addRegion(http,
+        new ImageRegionImpl(null, ur.text, ur.x, ur.y, ur.width, ur.height)));
+    }
+    return Observable.forkJoin(observables);
+  }
+
+  private saveRegions_upd(http: Http, srcRegions: Array<ImageRegionImpl>,
+    updatedRegions: Array<IImageRegion>): Observable<Array<ImageRegionImpl>>
+  {
+    let observables = new Array<Observable<ImageRegionImpl>>();
+    for (let i in srcRegions) {
+      let r1 = srcRegions[i];
+      let r2 = updatedRegions[i];
+      observables.push(this.updateRegion(http, new ImageRegionImpl(r1.href,
+         r2.text, r2.x, r2.y, r2.width, r2.height)));
+    }
+    return Observable.forkJoin(observables);
+  }
+
+  private updateRegion(http: Http, region: ImageRegionImpl)
+    : Observable<ImageRegionImpl>
+  {
+    return http.patch(region.href.pathname, JSON.stringify({
+      text: region.text, x: region.x, y: region.y,
+      width: region.width, height: region.height
+    }), Private.jsonUtf8ReqOpts())
+    .map((rsp : Response) => {
+      return ImageRegionImpl.fromDict(rsp.json());
+    });
+  }
+
+  private addRegion(http: Http, region: ImageRegionImpl)
+    : Observable<ImageRegionImpl>
+  {
+    return http.post('/emerald/rest-jpa/img-region',
+      JSON.stringify({
+        imageMetadata: this.href, x: region.x, y: region.y,
+        width: region.width, height: region.height,
+      }), Private.jsonUtf8ReqOpts())
+      .map((rsp: Response) => {
+        return ImageRegionImpl.fromDict(rsp.json());
+      })
+  }
+
+  private static deleteRegion(http: Http, regionHref: URL)
+    : Observable<number>
+  {
+    return http.delete(regionHref.pathname, Private.jsonUtf8ReqOpts())
+      .map((rsp: Response) => rsp.status);
   }
 }
 
@@ -187,6 +267,15 @@ export class ImgRegionEditorService {
       let newImageMeta = new ImageMetaImpl(oim.href,
         oim.regionsHref, oim.imageNode,
         Rotation.rotateCCW(oim.rotation), oim.regions);
+      return ImageMetaImpl.save(this.http, oim.imageNode, newImageMeta);
+    });
+  }
+
+  saveRegions(regions: Array<IImageRegion>) : void {
+    this._actionQueue.next(oim => {
+      let newImageMeta = new ImageMetaImpl(oim.href,
+        oim.regionsHref, oim.imageNode,
+        oim.rotation, oim.regions);
       return ImageMetaImpl.save(this.http, oim.imageNode, newImageMeta);
     });
   }

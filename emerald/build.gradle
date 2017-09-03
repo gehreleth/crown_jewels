@@ -25,6 +25,7 @@ dependencies {
     compile group: 'org.springframework', name: 'spring-webmvc', version: '4.3.4.RELEASE'
     compile group: 'org.springframework.data', name: 'spring-data-rest-webmvc', version: '2.6.6.RELEASE'
     compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '1.11.4.RELEASE'
+    compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version: '0.23.0.RELEASE'
     compile group: 'org.hibernate', name: 'hibernate-core', version: '5.2.10.Final'
     compile group: 'com.zaxxer', name: 'HikariCP', version: '2.6.3'
     compile group: 'org.postgresql', name: 'postgresql', version: '42.1.3'
