@@ -22,6 +22,7 @@ class Private {
 class ImageMetaImpl implements IImageMeta {
   readonly href: URL;
   readonly regionsHref: URL;
+  readonly putRegionsHref: URL;
   readonly imageNode: ITreeNode;
   get imageHref() : string {
     return `/emerald/blobs/${this.imageNode.aquamarineId}`
@@ -29,11 +30,12 @@ class ImageMetaImpl implements IImageMeta {
   }
   rotation: Rotation;
   regions: Array<ImageRegionImpl>;
-  constructor (href: URL, regionsHref: URL,
+  constructor (href: URL, regionsHref: URL, putRegionsHref: URL,
     imageNode: ITreeNode, rotation: Rotation, regions: Array<ImageRegionImpl>)
   {
     this.href = href;
     this.regionsHref = regionsHref;
+    this.putRegionsHref = putRegionsHref;
     this.imageNode = imageNode;
     this.rotation = rotation;
     this.regions = regions;
@@ -49,7 +51,7 @@ class ImageMetaImpl implements IImageMeta {
        .map((rsp : Response) => {
          let dict = rsp.json();
          return new ImageMetaImpl(imageMeta.href, imageMeta.regionsHref,
-           node, Rotation[dict['rotation'] as string],
+           imageMeta.putRegionsHref, node, Rotation[dict['rotation'] as string],
            imageMeta.regions);
        })
        .catch((err: Error) => Observable.throw(err))
@@ -78,7 +80,9 @@ class ImageMetaImpl implements IImageMeta {
         const selfHref = new URL(dict._links.self.href);
         const rotation = Rotation[dict['rotation'] as string];
         const regionsHref = new URL(dict._links.regions.href);
-        return new ImageMetaImpl(selfHref, regionsHref, node, rotation, []);
+        const putRegionsHref = new URL(dict._links.putRegions.href);
+        return new ImageMetaImpl(selfHref, regionsHref, putRegionsHref, node,
+          rotation, []);
       })
   }
 
@@ -91,10 +95,11 @@ class ImageMetaImpl implements IImageMeta {
         const rotation = Rotation[dict['rotation'] as string];
         const imageMetaHref = new URL(dict._links.self.href);
         const regionsHref = new URL(dict._links.regions.href);
+        const putRegionsHref = new URL(dict._links.putRegions.href);
         return ImageMetaImpl.loadRegions(http, regionsHref)
           .map(regions => {
-            return new ImageMetaImpl(imageMetaHref, regionsHref, node,
-              rotation, regions);
+            return new ImageMetaImpl(imageMetaHref, regionsHref, putRegionsHref,
+              node, rotation, regions);
           })
       })
       .catch((err: Error) => {
@@ -113,86 +118,6 @@ class ImageMetaImpl implements IImageMeta {
         return (dict._embedded.imageRegions as any[])
           .map(r => ImageRegionImpl.fromDict(r));
         })
-  }
-
-  saveRegions(http: Http, updatedRegions: Array<IImageRegion>)
-      : Observable<Array<ImageRegionImpl>>
-  {
-    return ImageMetaImpl.loadRegions(http, this.regionsHref)
-      .flatMap(regions => {
-        const delta = updatedRegions.length - regions.length;
-        if (delta > 0) {
-          return this.saveRegions_upd(http, regions,
-            updatedRegions.slice(0, updatedRegions.length))
-          .flatMap(base => {
-              return this.saveRegions_grow(http, base,
-                updatedRegions.slice(updatedRegions.length));
-          });
-        } else if (delta < 0) {
-
-        } else {
-          return this.saveRegions_upd(http, regions, updatedRegions);
-        }
-      })
-  }
-
-  private saveRegions_grow(http: Http, base: Array<ImageRegionImpl>,
-    updatedRegions: Array<IImageRegion>)
-      : Observable<Array<ImageRegionImpl>>
-  {
-    let observables = new Array<Observable<ImageRegionImpl>>();
-    for (let ur of base)
-      observables.push(Observable.of(ur));
-    for (let ur of updatedRegions) {
-      observables.push(this.addRegion(http,
-        new ImageRegionImpl(null, ur.text, ur.x, ur.y, ur.width, ur.height)));
-    }
-    return Observable.forkJoin(observables);
-  }
-
-  private saveRegions_upd(http: Http, srcRegions: Array<ImageRegionImpl>,
-    updatedRegions: Array<IImageRegion>): Observable<Array<ImageRegionImpl>>
-  {
-    let observables = new Array<Observable<ImageRegionImpl>>();
-    for (let i in srcRegions) {
-      let r1 = srcRegions[i];
-      let r2 = updatedRegions[i];
-      observables.push(this.updateRegion(http, new ImageRegionImpl(r1.href,
-         r2.text, r2.x, r2.y, r2.width, r2.height)));
-    }
-    return Observable.forkJoin(observables);
-  }
-
-  private updateRegion(http: Http, region: ImageRegionImpl)
-    : Observable<ImageRegionImpl>
-  {
-    return http.patch(region.href.pathname, JSON.stringify({
-      text: region.text, x: region.x, y: region.y,
-      width: region.width, height: region.height
-    }), Private.jsonUtf8ReqOpts())
-    .map((rsp : Response) => {
-      return ImageRegionImpl.fromDict(rsp.json());
-    });
-  }
-
-  private addRegion(http: Http, region: ImageRegionImpl)
-    : Observable<ImageRegionImpl>
-  {
-    return http.post('/emerald/rest-jpa/img-region',
-      JSON.stringify({
-        imageMetadata: this.href, x: region.x, y: region.y,
-        width: region.width, height: region.height,
-      }), Private.jsonUtf8ReqOpts())
-      .map((rsp: Response) => {
-        return ImageRegionImpl.fromDict(rsp.json());
-      })
-  }
-
-  private static deleteRegion(http: Http, regionHref: URL)
-    : Observable<number>
-  {
-    return http.delete(regionHref.pathname, Private.jsonUtf8ReqOpts())
-      .map((rsp: Response) => rsp.status);
   }
 }
 
@@ -256,7 +181,7 @@ export class ImgRegionEditorService {
   rotateCW() : void {
     this._actionQueue.next(oim => {
       let newImageMeta = new ImageMetaImpl(oim.href,
-        oim.regionsHref, oim.imageNode,
+        oim.regionsHref, oim.putRegionsHref, oim.imageNode,
         Rotation.rotateCW(oim.rotation), oim.regions);
       return ImageMetaImpl.save(this.http, oim.imageNode, newImageMeta);
     });
@@ -265,7 +190,7 @@ export class ImgRegionEditorService {
   rotateCCW() : void {
     this._actionQueue.next(oim => {
       let newImageMeta = new ImageMetaImpl(oim.href,
-        oim.regionsHref, oim.imageNode,
+        oim.regionsHref, oim.putRegionsHref, oim.imageNode,
         Rotation.rotateCCW(oim.rotation), oim.regions);
       return ImageMetaImpl.save(this.http, oim.imageNode, newImageMeta);
     });
@@ -274,7 +199,7 @@ export class ImgRegionEditorService {
   saveRegions(regions: Array<IImageRegion>) : void {
     this._actionQueue.next(oim => {
       let newImageMeta = new ImageMetaImpl(oim.href,
-        oim.regionsHref, oim.imageNode,
+        oim.regionsHref, oim.putRegionsHref, oim.imageNode,
         oim.rotation, oim.regions);
       return ImageMetaImpl.save(this.http, oim.imageNode, newImageMeta);
     });

@@ -16,7 +16,7 @@ public class HateoasConfig {
         return new ResourceProcessor<Resource<ImageMetadata>>() {
             @Override
             public Resource<ImageMetadata> process(Resource<ImageMetadata> resource) {
-                resource.add(linkTo(methodOn(ImgRegionEditorSave.class).save(resource.getContent().getId(), null)).withRel("put-regions"));
+                resource.add(linkTo(methodOn(ImgRegionEditorSave.class).save(resource.getContent().getId(), null)).withRel("putRegions"));
                 return resource;
             }
         };
