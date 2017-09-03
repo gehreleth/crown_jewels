@@ -26,6 +26,8 @@ import java.util.Iterator;
 public class ImgRegionEditorSave {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImgRegionEditorSave.class);
 
+    private final Gson gson = new Gson();
+
     @Autowired
     private IRegionRepository regionRepository;
 
@@ -39,9 +41,9 @@ public class ImgRegionEditorSave {
     {
         ResponseEntity<String> retVal;
         try {
-            JsonObject root = new Gson().fromJson(requestEntity.getBody(), JsonObject.class);
+            JsonObject reqRoot = gson.fromJson(requestEntity.getBody(), JsonObject.class);
 
-            JsonObject embedded = root.getAsJsonObject("_embedded");
+            JsonObject embedded = reqRoot.getAsJsonObject("_embedded");
             if (embedded == null)
                 throw new RuntimeException("Malformed request");
 
@@ -66,6 +68,9 @@ public class ImgRegionEditorSave {
                 pool.add(new ImageRegion());
             }
 
+            URI url = requestEntity.getUrl();
+            String ourServer = url.toString();                                               // XXX: I haven't found better approach
+            ourServer = ourServer.substring(0, ourServer.length() - url.getPath().length()); // Hateoas helper methods throws cryptic assertions
             JsonArray savedRegions = new JsonArray();
             for (int i = 0; i < parsedRegions.size(); ++i) {
                 ImageRegion q = pool.get(i);
@@ -75,16 +80,18 @@ public class ImgRegionEditorSave {
                 q.setX(w.x);
                 q.setY(w.y);
                 q.setWidth(w.width);
-                URI url = requestEntity.getUrl(); // XXX: I haven't found better approach
-                String link = url.toString();
-                link = link.substring(0, link.length() - url.getPath().length());
-                link += "/emerald/rest-jpa/img-region/" + q.getId(); // XXX: I haven't found better approach
+                String link = ourServer + "/emerald/rest-jpa/img-region/" + q.getId();        // XXX: I haven't found better approach
                 savedRegions.add(rwl(regionRepository.save(q), link));
             }
             regionRepository.flush();
-            JsonObject outRoot = new JsonObject();
-            outRoot.add("_embedded", savedRegions);
-            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(new Gson().toJson(outRoot));
+            JsonObject rspRoot = new JsonObject();
+            rspRoot.add("_embedded", savedRegions);
+            JsonObject rel = new JsonObject();
+            rel.addProperty("href", ourServer + "/emerald/rest-jpa/image-metadata/" + imageMetadataId);
+            JsonObject links = new JsonObject();
+            links.add("imageMetadata", rel);
+            rspRoot.add("_links", links);
+            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(gson.toJson(rspRoot));
         } catch (Exception e) {
             LOGGER.error("save", e);
             retVal = ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON_UTF8).body("{}");
