@@ -71,7 +71,7 @@ public class ImgRegionEditorSave {
             URI url = requestEntity.getUrl();
             String ourServer = url.toString();                                               // XXX: I haven't found better approach
             ourServer = ourServer.substring(0, ourServer.length() - url.getPath().length()); // Hateoas helper methods throws cryptic assertions
-            JsonArray savedRegions = new JsonArray();
+            JsonArray rspRegions = new JsonArray();
             for (int i = 0; i < parsedRegions.size(); ++i) {
                 ImageRegion q = pool.get(i);
                 Region w = parsedRegions.get(i);
@@ -81,17 +81,20 @@ public class ImgRegionEditorSave {
                 q.setY(w.y);
                 q.setWidth(w.width);
                 q.setHeight(w.height);
+                q = regionRepository.save(q);
                 String link = ourServer + "/emerald/rest-jpa/img-region/" + q.getId();        // XXX: I haven't found better approach
-                savedRegions.add(rwl(regionRepository.save(q), link));
+                rspRegions.add(rwl(q, link));
             }
             regionRepository.flush();
             JsonObject rspRoot = new JsonObject();
-            rspRoot.add("_embedded", savedRegions);
-            JsonObject rel = new JsonObject();
-            rel.addProperty("href", ourServer + "/emerald/rest-jpa/image-metadata/" + imageMetadataId);
-            JsonObject links = new JsonObject();
-            links.add("imageMetadata", rel);
-            rspRoot.add("_links", links);
+            JsonObject rspImageRegions = new JsonObject();
+            rspImageRegions.add("imageRegions", rspRegions);
+            rspRoot.add("_embedded", rspImageRegions);
+            JsonObject rspRel = new JsonObject();
+            rspRel.addProperty("href", ourServer + "/emerald/rest-jpa/image-metadata/" + imageMetadataId);
+            JsonObject rspLinks = new JsonObject();
+            rspLinks.add("imageMetadata", rspRel);
+            rspRoot.add("_links", rspLinks);
             retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(gson.toJson(rspRoot));
         } catch (Exception e) {
             LOGGER.error("save", e);

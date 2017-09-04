@@ -52,7 +52,7 @@ class ImageMetaImpl implements IImageMeta {
        });
   }
 
-  assignRegionsAndUpdateDeep(http: Http, newRegions: Array<IImageRegion>):
+  assignRegionsAndUpdateDeep(http: Http, newRegions: ReadonlyArray<IImageRegion>):
     Observable<ImageMetaImpl>
   {
     return http.patch(this.href.pathname,
@@ -135,7 +135,7 @@ class ImageMetaImpl implements IImageMeta {
       });
   }
 
-  private static regionsToJson(regions: Array<IImageRegion>): string {
+  private static regionsToJson(regions: ReadonlyArray<IImageRegion>): string {
     return JSON.stringify({
         _embedded: {
           imageRegions: regions.map(r => {
@@ -198,7 +198,7 @@ export class ImageMetadataService {
     return newImageMeta.updateShallow(this.http);
   }
 
-  saveRegions(arg: IImageMeta, regions: Array<IImageRegion>)
+  saveRegions(arg: IImageMeta, regions: ReadonlyArray<IImageRegion>)
     : Observable<IImageMeta>
   {
     let oim = arg as ImageMetaImpl;

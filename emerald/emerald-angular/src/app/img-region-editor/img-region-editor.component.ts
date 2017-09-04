@@ -23,7 +23,7 @@ export class ImgRegionEditorComponent implements OnInit {
   @Input() ImageMeta : IImageMeta = null;
   @Output() ImageMetaChange = new EventEmitter<IImageMeta>();
   private readonly _actionQueue = new Subject<IImgRegionEditorAction>();
-  private Regions = new Array<IImageRegion>();
+  private Regions: ReadonlyArray<IImageRegion> = new Array<IImageRegion>();
 
   constructor(private _service: ImageMetadataService,
               private _router: Router)
@@ -32,12 +32,15 @@ export class ImgRegionEditorComponent implements OnInit {
   ngOnInit() {
     this._actionQueue.subscribe(
       action => action(this.ImageMeta).subscribe(
-        newImgMeta => {
-          this.ImageMeta = newImgMeta;
+        im => {
+          this.ImageMeta = im;
           this.ImageMetaChange.emit(this.ImageMeta);
         },
       err => { console.log(err); }
     ));
+    this.ImageMetaChange.subscribe(
+      im => { this.Regions = im.regions }
+    )
   }
 
   onRotateCW(event:any): void {

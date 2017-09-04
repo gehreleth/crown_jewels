@@ -12,7 +12,7 @@ declare var $:any;
 export class IreMainAreaComponent implements AfterViewInit, OnChanges {
   @Input() ImageHref: string;
   @ViewChild('regionEditor') el: ElementRef;
-  @Input() Regions: ReadonlyArray<IImageRegion> = new Array<IImageRegion>();
+  @Input() Regions: ReadonlyArray<IImageRegion>;
   @Output() RegionsChange = new EventEmitter<ReadonlyArray<IImageRegion>>();
   private _jqsaId2RegIndex : Map<number, number>;
 
