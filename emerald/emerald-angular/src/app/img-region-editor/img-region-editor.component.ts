@@ -49,6 +49,10 @@ export class ImgRegionEditorComponent implements OnInit {
     this._service.rotateCCW();
   }
 
+  onSaveRegions(event: any) : void {
+    this._service.saveRegions(this.Regions);
+  }
+
   get ImageHref() : string {
     return this._imageHref;
   }

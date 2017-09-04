@@ -80,6 +80,7 @@ public class ImgRegionEditorSave {
                 q.setX(w.x);
                 q.setY(w.y);
                 q.setWidth(w.width);
+                q.setHeight(w.height);
                 String link = ourServer + "/emerald/rest-jpa/img-region/" + q.getId();        // XXX: I haven't found better approach
                 savedRegions.add(rwl(regionRepository.save(q), link));
             }
