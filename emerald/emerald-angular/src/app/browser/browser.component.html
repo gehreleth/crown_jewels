@@ -3,10 +3,9 @@
     <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
       <div [ngBusy]="busy"></div>
       <div>
-        <tree-view [Nodes]="storage.Nodes"
-        [SelectedNode]="selectedNode"
-        (onSelectedChanged)="onSelectNode($event)"
-        (onRequestNodes)="onRequest($event)">
+        <tree-view [Nodes]="_storageService.Nodes"
+                   [SelectedNode]="SelectedNode"
+                   (onRequestNodes)="onRequest($event)">
         </tree-view>
       </div>
       <hr>
@@ -15,8 +14,8 @@
       </div>
     </nav>
     <main class="col-sm-9 ml-sm-auto col-md-10 pt-3" role="main">
-      <div *ngIf="selectedNode">
-        <div [ngSwitch]="selectedNode.type">
+      <div *ngIf="SelectedNode;else noselection">
+        <div [ngSwitch]="SelectedNode.type">
           <div *ngSwitchCase="nodeType.Zip">
             <p>Zip file</p>
           </div>
@@ -24,14 +23,19 @@
             <p>Folder</p>
           </div>
           <div *ngSwitchCase="nodeType.Image">
-            <app-img-region-editor [SelectedImageNode]="selectedNode">
-            </app-img-region-editor>
+            <div *ngIf="ImageMeta;else nometadata">
+              <app-img-region-editor [(ImageMeta)]="ImageMeta">
+              </app-img-region-editor>
+            </div>
+            <ng-template #nometadata>
+              <p>Loading metadata ...</p>
+            </ng-template>
           </div>
         </div>
       </div>
-      <div *ngIf="!selectedNode">
+      <ng-template #noselection>
         <p>No selection</p>
-      </div>
+      </ng-template>
     </main>
   </div>
 </div>

@@ -174,58 +174,36 @@ class ImageRegionImpl implements IImageRegion {
   }
 }
 
-interface IImgRegionEditorAction {
-  (arg: ImageMetaImpl): Observable<ImageMetaImpl>;
-}
 
 @Injectable()
-export class ImgRegionEditorService {
-  private readonly _imageMeta = new BehaviorSubject<ImageMetaImpl>(null);
-  private readonly _actionQueue = new Subject<IImgRegionEditorAction>();
-
+export class ImageMetadataService {
   constructor(private http: Http) {
-    this._actionQueue.subscribe(
-      a => a(this._imageMeta.getValue()).subscribe(
-        newImgMeta => this._imageMeta.next(newImgMeta),
-        err => { console.log(err); }
-      ));
   }
 
-  set SelectedImageNode(node: ITreeNode) {
-    this._actionQueue.next(() => {
-      return ImageMetaImpl.fromNode(this.http, node);
-    });
+  getMeta(arg: ITreeNode): Observable<IImageMeta> {
+    return ImageMetaImpl.fromNode(this.http, arg);
   }
 
-  get SelectedImageNode() : ITreeNode {
-    return this._imageMeta.getValue().imageNode;
+  rotateCW(arg: IImageMeta) : Observable<IImageMeta> {
+    let oim = arg as ImageMetaImpl;
+    let newImageMeta = new ImageMetaImpl(oim.href, oim.regionsHref,
+      oim.imageNode, Rotation.rotateCW(oim.rotation), oim.regions);
+    return newImageMeta.updateShallow(this.http);
   }
 
-  get ImageMeta() : Observable<IImageMeta> {
-    return this._imageMeta;
+  rotateCCW(arg: IImageMeta) : Observable<IImageMeta> {
+    let oim = arg as ImageMetaImpl;
+    let newImageMeta = new ImageMetaImpl(oim.href, oim.regionsHref,
+      oim.imageNode, Rotation.rotateCCW(oim.rotation), oim.regions);
+    return newImageMeta.updateShallow(this.http);
   }
 
-  rotateCW() : void {
-    this._actionQueue.next(oim => {
-      let newImageMeta = new ImageMetaImpl(oim.href, oim.regionsHref,
-        oim.imageNode, Rotation.rotateCW(oim.rotation), oim.regions);
-      return newImageMeta.updateShallow(this.http);
-    });
-  }
-
-  rotateCCW() : void {
-    this._actionQueue.next(oim => {
-      let newImageMeta = new ImageMetaImpl(oim.href, oim.regionsHref,
-        oim.imageNode, Rotation.rotateCCW(oim.rotation), oim.regions);
-      return newImageMeta.updateShallow(this.http);
-    });
-  }
-
-  saveRegions(regions: Array<IImageRegion>) : void {
-    this._actionQueue.next(oim => {
-      let newImageMeta = new ImageMetaImpl(oim.href,
-        oim.regionsHref, oim.imageNode, oim.rotation, []);
-      return newImageMeta.assignRegionsAndUpdateDeep(this.http, regions);
-    });
+  saveRegions(arg: IImageMeta, regions: Array<IImageRegion>)
+    : Observable<IImageMeta>
+  {
+    let oim = arg as ImageMetaImpl;
+    let newImageMeta = new ImageMetaImpl(oim.href,
+      oim.regionsHref, oim.imageNode, oim.rotation, []);
+    return newImageMeta.assignRegionsAndUpdateDeep(this.http, regions);
   }
 }

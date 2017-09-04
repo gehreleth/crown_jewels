@@ -1,10 +1,18 @@
-import { Component, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter,
+  ViewChild, ElementRef } from '@angular/core';
 import { ITreeNode, NodeType } from '../tree-node'
-import { ImgRegionEditorService } from '../img-region-editor.service';
+import { ImageMetadataService } from '../image-metadata.service';
 import { IImageMeta } from '../image-meta';
 import { IImageRegion } from '../image-region';
 import { OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
+import { Router } from '@angular/router';
+
+interface IImgRegionEditorAction {
+  (arg: IImageMeta): Observable<IImageMeta>;
+}
 
 @Component({
   selector: 'app-img-region-editor',
@@ -12,57 +20,35 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
   styleUrls: ['./img-region-editor.component.scss']
 })
 export class ImgRegionEditorComponent implements OnInit {
-  private _imageMeta : IImageMeta = null;
-  private _imageHref : string = null;
-  Regions = new Array<IImageRegion>();
+  @Input() ImageMeta : IImageMeta = null;
+  @Output() ImageMetaChange = new EventEmitter<IImageMeta>();
+  private readonly _actionQueue = new Subject<IImgRegionEditorAction>();
+  private Regions = new Array<IImageRegion>();
 
-  constructor(private _service : ImgRegionEditorService) { }
+  constructor(private _service: ImageMetadataService,
+              private _router: Router)
+  { }
 
   ngOnInit() {
-    this._service.ImageMeta.subscribe(im => {
-      if (im != null) { this.updateImageMeta(im); }
-    });
-  }
-
-  private updateImageMeta(im : IImageMeta) {
-    this._imageMeta = im;
-    const imageHref = this.ImageHref;
-    if (!imageHref || imageHref !== im.imageHref) {
-      this._imageHref = im.imageHref;
-      let newRegions = new Array<IImageRegion>();
-      for (const q of im.regions) {
-        const w : IImageRegion = {
-          text: q.text, x: q.x, y: q.y,
-          width: q.width, height: q.height
-        };
-        newRegions.push(w);
-      }
-      this.Regions = newRegions;
-    }
+    this._actionQueue.subscribe(
+      action => action(this.ImageMeta).subscribe(
+        newImgMeta => {
+          this.ImageMeta = newImgMeta;
+          this.ImageMetaChange.emit(this.ImageMeta);
+        },
+      err => { console.log(err); }
+    ));
   }
 
   onRotateCW(event:any): void {
-    this._service.rotateCW();
+    this._actionQueue.next(im => this._service.rotateCW(im));
   }
 
   onRotateCCW(event:any): void {
-    this._service.rotateCCW();
+    this._actionQueue.next(im => this._service.rotateCCW(im));
   }
 
   onSaveRegions(event: any) : void {
-    this._service.saveRegions(this.Regions);
-  }
-
-  get ImageHref() : string {
-    return this._imageHref;
-  }
-
-  @Input()
-  set SelectedImageNode(value: ITreeNode) {
-    this._service.SelectedImageNode = value;
-  }
-
-  get SelectedImageNode() : ITreeNode {
-    return this._service.SelectedImageNode;
+    this._actionQueue.next(im => this._service.saveRegions(im, this.Regions));
   }
 }

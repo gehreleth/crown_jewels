@@ -15,7 +15,7 @@ import { MenuComponent } from './menu/menu.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BusyModule } from 'angular2-busy';
 import { ImgRegionEditorComponent } from './img-region-editor/img-region-editor.component';
-import { ImgRegionEditorService } from './img-region-editor.service';
+import { ImageMetadataService } from './image-metadata.service';
 import { IreMainAreaComponent } from './ire-main-area/ire-main-area.component';
 
 const routes: Routes = [
@@ -41,7 +41,7 @@ const routes: Routes = [
     RouterModule.forRoot(routes)
   ],
   providers: [ EmeraldBackendStorageService,
-               ImgRegionEditorService,
+               ImageMetadataService,
              { provide: LocationStrategy, useClass: HashLocationStrategy },
              { provide: APP_BASE_HREF, useValue: '/' }],
   bootstrap: [ AppComponent ]

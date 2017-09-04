@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter,
    ViewChild, ElementRef } from '@angular/core';
-import { AfterViewInit } from '@angular/core';
+import { OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { IImageRegion } from '../image-region';
 
 declare var $:any;
@@ -9,33 +9,18 @@ declare var $:any;
   templateUrl: './ire-main-area.component.html',
   styleUrls: ['./ire-main-area.component.scss']
 })
-export class IreMainAreaComponent implements AfterViewInit {
-  private _imageHref: string;
-
-  @ViewChild('regionEditor')
-  el: ElementRef;
-
-  @Input() Regions = new Array<IImageRegion>();
-  @Output() RegionsChange = new EventEmitter<Array<IImageRegion>>();
+export class IreMainAreaComponent implements OnInit {
+  @Input() ImageHref: string;
+  @ViewChild('regionEditor') el: ElementRef;
+  @Input() Regions: ReadonlyArray<IImageRegion> = new Array<IImageRegion>();
+  @Output() RegionsChange = new EventEmitter<ReadonlyArray<IImageRegion>>();
 
   private _jqsaId2RegIndex : Map<number, number>;
 
   constructor() { }
 
-  ngAfterViewInit() {
+  ngOnInit() {
     this.initJQSelectAreas();
-  }
-
-  @Input()
-  set ImageHref(value: string) {
-    $(this.el.nativeElement).selectAreas('destroy');
-    this._jqsaId2RegIndex = new Map<number, number>();
-    this._imageHref = value;
-    setTimeout(() => this.initJQSelectAreas());
-  }
-
-  get ImageHref() : string {
-    return this._imageHref;
   }
 
   private initJQSelectAreas() {

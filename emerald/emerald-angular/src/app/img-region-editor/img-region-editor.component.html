@@ -11,13 +11,6 @@
     </button>
   </div>
   <hr>
-  <div *ngIf="ImageHref;else loading" style="row">
-    <app-ire-main-area
-      [ImageHref]="ImageHref"
-      [(Regions)]="Regions">
-    </app-ire-main-area>
-  </div>
-  <ng-template #loading>
-    <p>Initializing component ...</p>
-  </ng-template>
+  <app-ire-main-area [ImageHref]="ImageMeta.imageHref" [(Regions)]="Regions">
+  </app-ire-main-area>
 </div>
