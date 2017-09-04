@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter,
    ViewChild, ElementRef } from '@angular/core';
-import { OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
 import { IImageRegion } from '../image-region';
 
 declare var $:any;
@@ -9,21 +9,31 @@ declare var $:any;
   templateUrl: './ire-main-area.component.html',
   styleUrls: ['./ire-main-area.component.scss']
 })
-export class IreMainAreaComponent implements OnInit {
+export class IreMainAreaComponent implements AfterViewInit, OnChanges {
   @Input() ImageHref: string;
   @ViewChild('regionEditor') el: ElementRef;
   @Input() Regions: ReadonlyArray<IImageRegion> = new Array<IImageRegion>();
   @Output() RegionsChange = new EventEmitter<ReadonlyArray<IImageRegion>>();
-
   private _jqsaId2RegIndex : Map<number, number>;
 
   constructor() { }
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.initJQSelectAreas();
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    const hc = changes['ImageHref'];
+    if (hc && hc.currentValue !== hc.previousValue) {
+      if (!hc.isFirstChange()) {
+        $(this.el.nativeElement).selectAreas('destroy');
+      }
+      setTimeout(() => this.initJQSelectAreas());
+    }
+  }
+
   private initJQSelectAreas() {
+    this._jqsaId2RegIndex = new Map<number, number>();
     $(this.el.nativeElement).selectAreas({
       minSize: [30, 30],        // Minimum size of a selection
       maxSize: [400, 300],      // Maximum size of a selection
