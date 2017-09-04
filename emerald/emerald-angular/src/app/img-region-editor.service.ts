@@ -49,7 +49,7 @@ class ImageMetaImpl implements IImageMeta {
          return new ImageMetaImpl(this.href, this.regionsHref,
            this.imageNode, Rotation[dict['rotation'] as string],
            this.regions);
-       })
+       });
   }
 
   assignRegionsAndUpdateDeep(http: Http, newRegions: Array<IImageRegion>):
@@ -70,8 +70,8 @@ class ImageMetaImpl implements IImageMeta {
                .map(r => ImageRegionImpl.fromDict(r));
              return new ImageMetaImpl(this.href, this.regionsHref,
                this.imageNode, Rotation[dict['rotation'] as string], regions);
-           })
-       })
+           });
+       });
   }
 
   static fromNode(http: Http, node: ITreeNode) : Observable<ImageMetaImpl> {
@@ -98,7 +98,7 @@ class ImageMetaImpl implements IImageMeta {
         const rotation = Rotation[dict['rotation'] as string];
         const regionsHref = new URL(dict._links.regions.href);
         return new ImageMetaImpl(selfHref, regionsHref, node, rotation, []);
-      })
+      });
   }
 
   private static loadImageMeta(http: Http, node: ITreeNode,
@@ -115,7 +115,7 @@ class ImageMetaImpl implements IImageMeta {
           .map(regions => {
             return new ImageMetaImpl(imageMetaHref, regionsHref, node,
                 rotation, regions);
-          })
+          });
       })
       .catch((err: Error) => {
         return createIfNone
@@ -132,7 +132,7 @@ class ImageMetaImpl implements IImageMeta {
         const dict = rsp.json();
         return (dict._embedded.imageRegions as any[])
           .map(r => ImageRegionImpl.fromDict(r));
-      })
+      });
   }
 
   private static regionsToJson(regions: Array<IImageRegion>): string {
