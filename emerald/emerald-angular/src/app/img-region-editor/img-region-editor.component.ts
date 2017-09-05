@@ -8,11 +8,6 @@ import { OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { Router } from '@angular/router';
-
-interface IImgRegionEditorAction {
-  (arg: IImageMeta): Observable<IImageMeta>;
-}
 
 @Component({
   selector: 'app-img-region-editor',
@@ -22,36 +17,27 @@ interface IImgRegionEditorAction {
 export class ImgRegionEditorComponent implements OnInit {
   @Input() ImageMeta : IImageMeta = null;
   @Output() ImageMetaChange = new EventEmitter<IImageMeta>();
-  private readonly _actionQueue = new Subject<IImgRegionEditorAction>();
-  private Regions: ReadonlyArray<IImageRegion> = new Array<IImageRegion>();
 
-  constructor(private _service: ImageMetadataService,
-              private _router: Router)
+  constructor(private _service: ImageMetadataService)
   { }
 
-  ngOnInit() {
-    this._actionQueue.subscribe(
-      action => action(this.ImageMeta).subscribe(
-        im => {
-          this.ImageMeta = im;
-          this.ImageMetaChange.emit(this.ImageMeta);
-        },
-      err => { console.log(err); }
-    ));
-    this.ImageMetaChange.subscribe(
-      im => { this.Regions = im.regions }
-    )
-  }
+  ngOnInit() { }
 
   onRotateCW(event:any): void {
-    this._actionQueue.next(im => this._service.rotateCW(im));
+    this._service.rotateCW(this.ImageMeta).subscribe(im => this.update(im));
   }
 
   onRotateCCW(event:any): void {
-    this._actionQueue.next(im => this._service.rotateCCW(im));
+    this._service.rotateCCW(this.ImageMeta).subscribe(im => this.update(im));
   }
 
   onSaveRegions(event: any) : void {
-    this._actionQueue.next(im => this._service.saveRegions(im, this.Regions));
+    this._service.updateWithRegions(this.ImageMeta)
+      .subscribe(im => this.update(im));
+  }
+
+  private update(arg: IImageMeta) :void {
+    this.ImageMeta = arg;
+    this.ImageMetaChange.emit(this.ImageMeta);
   }
 }

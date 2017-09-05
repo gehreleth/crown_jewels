@@ -25,7 +25,11 @@ export namespace Rotation {
 }
 
 export interface IImageMeta {
-  readonly imageHref : string;
+  readonly href? : string;
+  readonly aquamarineId: string;
+  readonly mimeType: string;
+  readonly contentLength: number;
+  readonly imageHref? : string;
   readonly rotation: Rotation;
-  readonly regions: ReadonlyArray<IImageRegion>;
+  readonly regions: Array<IImageRegion>;
 }

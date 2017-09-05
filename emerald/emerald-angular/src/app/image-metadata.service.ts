@@ -9,7 +9,7 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
 import "rxjs/add/observable/of";
 import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/concatMap';
 
 class Private {
   static jsonUtf8ReqOpts() : RequestOptions {
@@ -17,163 +17,11 @@ class Private {
     headers.append('Content-Type', 'application/json;charset=UTF-8');
     return new RequestOptions({ headers: headers });
   }
-}
 
-class ImageMetaImpl implements IImageMeta {
-  readonly href: URL;
-  readonly regionsHref: URL;
-  readonly imageNode: ITreeNode;
-  get imageHref() : string {
-    return `/emerald/blobs/${this.imageNode.aquamarineId}`
-      +`?rot=${Rotation[this.rotation]}`;
-  }
-  rotation: Rotation;
-  regions: Array<ImageRegionImpl>;
-  constructor (href: URL, regionsHref: URL,
-    imageNode: ITreeNode, rotation: Rotation, regions: Array<ImageRegionImpl>)
-  {
-    this.href = href;
-    this.regionsHref = regionsHref;
-    this.imageNode = imageNode;
-    this.rotation = rotation;
-    this.regions = regions;
-  }
-
-  updateShallow(http: Http) : Observable<ImageMetaImpl> {
-    return http.patch(this.href.pathname,
-       JSON.stringify({
-         rotation : Rotation[this.rotation],
-       }), Private.jsonUtf8ReqOpts())
-       .map((rsp : Response) => {
-         const dict = rsp.json();
-         return new ImageMetaImpl(this.href, this.regionsHref,
-           this.imageNode, Rotation[dict['rotation'] as string],
-           this.regions);
-       });
-  }
-
-  assignRegionsAndUpdateDeep(http: Http, newRegions: ReadonlyArray<IImageRegion>):
-    Observable<ImageMetaImpl>
-  {
-    return http.patch(this.href.pathname,
-       JSON.stringify({
-         rotation : Rotation[this.rotation],
-       }), Private.jsonUtf8ReqOpts())
-       .flatMap((rsp : Response) => {
-         const dict = rsp.json();
-         const putRegionsHref = new URL(dict._links.putRegions.href);
-         return http.put(putRegionsHref.pathname,
-           ImageMetaImpl.regionsToJson(newRegions))
-           .map((rsp : Response) => {
-             const dict = rsp.json();
-             const regions = (dict._embedded.imageRegions as any[])
-               .map(r => ImageRegionImpl.fromDict(r));
-             return new ImageMetaImpl(this.href, this.regionsHref,
-               this.imageNode, Rotation[dict['rotation'] as string], regions);
-           });
-       });
-  }
-
-  static fromNode(http: Http, node: ITreeNode) : Observable<ImageMetaImpl> {
-    if (node.type === NodeType.Image) {
-      return ImageMetaImpl.loadImageMeta(http, node,
-         '/emerald/rest-jpa/image-metadata/search/'
-         + `findOneByStorageNodeId?storage_node_id=${node.id}`, true);
-    } else {
-      return Observable.throw("Only images are supposed to have metadata");
-    }
-  }
-
-  private static createImageMeta(http: Http, node: ITreeNode)
-    : Observable<ImageMetaImpl>
-  {
-    return http.post('/emerald/rest-jpa/image-metadata/',
-      JSON.stringify({
-        rotation : Rotation[Rotation.NONE],
-        storageNode: `/emerald/rest-jpa/storage-node/${node.id}`
-      }), Private.jsonUtf8ReqOpts())
-      .map((rsp: Response) => {
-        const dict = rsp.json();
-        const selfHref = new URL(dict._links.self.href);
-        const rotation = Rotation[dict['rotation'] as string];
-        const regionsHref = new URL(dict._links.regions.href);
-        return new ImageMetaImpl(selfHref, regionsHref, node, rotation, []);
-      });
-  }
-
-  private static loadImageMeta(http: Http, node: ITreeNode,
-    url: string, createIfNone: boolean) : Observable<ImageMetaImpl>
-  {
-    return http.get(url)
-      .map((rsp: Response) => rsp.json())
-      .flatMap(dict => {
-        const rotation = Rotation[dict['rotation'] as string];
-        const imageMetaHref = new URL(dict._links.self.href);
-        const regionsHref = new URL(dict._links.regions.href);
-        const putRegionsHref = new URL(dict._links.putRegions.href);
-        return ImageMetaImpl.loadRegions(http, regionsHref)
-          .map(regions => {
-            return new ImageMetaImpl(imageMetaHref, regionsHref, node,
-                rotation, regions);
-          });
-      })
-      .catch((err: Error) => {
-        return createIfNone
-          ? this.createImageMeta(http, node)
-          : Observable.throw(err);
-      });
-  }
-
-  private static loadRegions(http: Http, regionsHref: URL)
-    : Observable< Array<ImageRegionImpl> >
-  {
-    return http.get(regionsHref.pathname)
-      .map((rsp: Response) => {
-        const dict = rsp.json();
-        return (dict._embedded.imageRegions as any[])
-          .map(r => ImageRegionImpl.fromDict(r));
-      });
-  }
-
-  private static regionsToJson(regions: ReadonlyArray<IImageRegion>): string {
-    return JSON.stringify({
-        _embedded: {
-          imageRegions: regions.map(r => {
-            return {
-              text: r.text, x: r.x, y: r.y, width: r.width, height: r.height
-            }
-          })
-        }
-      });
+  static imageHref(aquamarineId: string, rotation: Rotation): string {
+    return `/emerald/blobs/${aquamarineId}?rot=${Rotation[rotation]}`;
   }
 }
-
-class ImageRegionImpl implements IImageRegion {
-  readonly href : URL;
-  text : string;
-  x : number;
-  y : number;
-  width : number;
-  height : number;
-
-  constructor(href: URL, text: string, x: number, y: number,
-    width: number, height: number)
-  {
-    this.href = href;
-    this.text = text;
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-  }
-
-  static fromDict(dict: any) : ImageRegionImpl {
-    return new ImageRegionImpl(new URL(dict._links.self.href),
-      dict.text as string, dict.x as number, dict.y as number,
-      dict.width as number, dict.height as number);
-  }
-}
-
 
 @Injectable()
 export class ImageMetadataService {
@@ -181,29 +29,151 @@ export class ImageMetadataService {
   }
 
   getMeta(arg: ITreeNode): Observable<IImageMeta> {
-    return ImageMetaImpl.fromNode(this.http, arg);
+    return this.metaFromNode(arg, true);
   }
 
   rotateCW(arg: IImageMeta) : Observable<IImageMeta> {
-    let oim = arg as ImageMetaImpl;
-    let newImageMeta = new ImageMetaImpl(oim.href, oim.regionsHref,
-      oim.imageNode, Rotation.rotateCW(oim.rotation), oim.regions);
-    return newImageMeta.updateShallow(this.http);
+    const updRotation = Rotation.rotateCW(arg.rotation)
+    const im: IImageMeta = {
+      href : arg.href,
+      aquamarineId: arg.aquamarineId,
+      mimeType: arg.mimeType,
+      contentLength: arg.contentLength,
+      rotation: updRotation,
+      regions: arg.regions
+    }
+    return this.updateWithoutRegions(im);
   }
 
   rotateCCW(arg: IImageMeta) : Observable<IImageMeta> {
-    let oim = arg as ImageMetaImpl;
-    let newImageMeta = new ImageMetaImpl(oim.href, oim.regionsHref,
-      oim.imageNode, Rotation.rotateCCW(oim.rotation), oim.regions);
-    return newImageMeta.updateShallow(this.http);
+    const updRotation = Rotation.rotateCCW(arg.rotation)
+    const im: IImageMeta = {
+      href : arg.href,
+      aquamarineId: arg.aquamarineId,
+      mimeType: arg.mimeType,
+      contentLength: arg.contentLength,
+      rotation: updRotation,
+      regions: arg.regions
+    }
+    return this.updateWithoutRegions(im);
   }
 
-  saveRegions(arg: IImageMeta, regions: ReadonlyArray<IImageRegion>)
+  updateWithoutRegions(arg: IImageMeta) : Observable<IImageMeta> {
+    if (arg && arg.href) {
+      return this.http.patch(arg.href,
+       JSON.stringify({
+         rotation : Rotation[arg.rotation],
+       }), Private.jsonUtf8ReqOpts())
+       .map((rsp : Response) => {
+         const dict = rsp.json();
+         const rotation = Rotation[dict['rotation'] as string];
+         const selfHref = new URL(dict._links.self.href).pathname;
+         const regionsHref = new URL(dict._links.regions.href).pathname;
+         const retVal: IImageMeta = {
+           href : selfHref,
+           aquamarineId: arg.aquamarineId,
+           mimeType: arg.mimeType,
+           contentLength: arg.contentLength,
+           imageHref : Private.imageHref(arg.aquamarineId, rotation),
+           rotation: rotation,
+           regions: arg.regions
+         }
+         return retVal;
+       });
+     } else {
+       return Observable.throw("Provided IImageMeta instance lacks href parameter");
+     }
+  }
+
+  updateWithRegions(arg: IImageMeta): Observable<IImageMeta> {
+    if (arg && arg.href) {
+      return this.http.patch(arg.href,
+       JSON.stringify({
+         rotation : Rotation[arg.rotation],
+       }), Private.jsonUtf8ReqOpts())
+       .concatMap((rsp : Response) => {
+         const dict = rsp.json();
+         const rotation = Rotation[dict['rotation'] as string];
+         const selfHref = new URL(dict._links.self.href).pathname;
+         const regionsHref = new URL(dict._links.regions.href).pathname;
+         const putRegionsHref = new URL(dict._links.putRegions.href).pathname;
+         return this.http.put(putRegionsHref, IImageRegion.regionArrayToJson(arg.regions))
+           .map((rsp : Response) => {
+              const dict = rsp.json();
+              const regions = IImageRegion.jsonToRegionArray(dict);
+              const retVal: IImageMeta = {
+                href : selfHref,
+                aquamarineId: arg.aquamarineId,
+                mimeType: arg.mimeType,
+                contentLength: arg.contentLength,
+                imageHref : Private.imageHref(arg.aquamarineId, rotation),
+                rotation: rotation,
+                regions: regions
+              }
+              return retVal;
+           });
+         });
+     } else {
+       return Observable.throw("Provided IImageMeta instance lacks href parameter");
+     }
+  }
+
+  private metaFromNode(imageNode: ITreeNode, createIfNone: boolean)
     : Observable<IImageMeta>
   {
-    let oim = arg as ImageMetaImpl;
-    let newImageMeta = new ImageMetaImpl(oim.href,
-      oim.regionsHref, oim.imageNode, oim.rotation, []);
-    return newImageMeta.assignRegionsAndUpdateDeep(this.http, regions);
+    if (imageNode.type === NodeType.Image) {
+      return this.http.get('/emerald/rest-jpa/image-metadata/search/'
+                    + `findOneByStorageNodeId?storage_node_id=${imageNode.id}`)
+        .concatMap((rsp: Response) => {
+          const dict = rsp.json()
+          const rotation = Rotation[dict['rotation'] as string];
+          const selfHref = new URL(dict._links.self.href).pathname;
+          const regionsHref = new URL(dict._links.regions.href).pathname;
+          return this.http.get(regionsHref).map((rsp: Response) => {
+            const regions = IImageRegion.jsonToRegionArray(rsp.json());
+            const retVal: IImageMeta = {
+              href : selfHref,
+              aquamarineId: imageNode.aquamarineId,
+              mimeType: imageNode.mimeType,
+              contentLength: imageNode.contentLength,
+              imageHref : Private.imageHref(imageNode.aquamarineId, rotation),
+              rotation: rotation,
+              regions: regions
+            }
+            return retVal;
+          });
+        })
+        .catch((err: Error) => {
+          return createIfNone
+            ? this.createImageMeta(imageNode)
+            : Observable.throw(err);
+        });
+    } else {
+      return Observable.throw("Only images are supposed to have metadata");
+    }
+  }
+
+  private createImageMeta(imageNode: ITreeNode): Observable<IImageMeta> {
+    return this.http.post('/emerald/rest-jpa/image-metadata/',
+      JSON.stringify({
+        rotation : Rotation[Rotation.NONE],
+        storageNode: `/emerald/rest-jpa/storage-node/${imageNode.id}`
+      }), Private.jsonUtf8ReqOpts())
+      .map((rsp: Response) => {
+        const dict = rsp.json();
+        const selfHref = new URL(dict._links.self.href).pathname;
+        const rotation = Rotation[dict['rotation'] as string];
+        const regionsHref = new URL(dict._links.regions.href);
+        const retVal: IImageMeta = {
+          href: selfHref,
+          aquamarineId: imageNode.aquamarineId,
+          mimeType: imageNode.mimeType,
+          contentLength: imageNode.contentLength,
+          imageHref: Private.imageHref(imageNode.aquamarineId, rotation),
+          rotation: rotation,
+          regions: []
+        }
+        return retVal;
+      });
   }
 }

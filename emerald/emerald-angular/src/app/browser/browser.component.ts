@@ -32,9 +32,10 @@ export class BrowserComponent implements OnInit {
         this.onSelectId(parseInt(idParam));
       }
     });
+    const ims = this._imageMetadataService;
     this.SelectedNodeChanged.subscribe(node => {
       if (node && node.type === NodeType.Image) {
-        this._imageMetadataService.getMeta(node).subscribe(
+        ims.getMeta(node).subscribe(
           (im : IImageMeta) => { this.ImageMeta = im; }
         )
       }
