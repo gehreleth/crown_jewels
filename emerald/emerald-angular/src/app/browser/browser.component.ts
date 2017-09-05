@@ -35,9 +35,9 @@ export class BrowserComponent implements OnInit {
     const ims = this._imageMetadataService;
     this.SelectedNodeChanged.subscribe(node => {
       if (node && node.type === NodeType.Image) {
-        ims.getMeta(node).subscribe(
-          (im : IImageMeta) => { this.ImageMeta = im; }
-        )
+        let pr = ims.getMeta(node).toPromise();
+        this.busy = pr;
+        pr.then((im : IImageMeta) => { this.ImageMeta = im; });
       }
     });
   }
