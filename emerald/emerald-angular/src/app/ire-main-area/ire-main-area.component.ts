@@ -7,62 +7,6 @@ const HandlerSize: number = 8;
 enum PrincipialWind { NW, N, NE, W, E, SW, S, SE };
 interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
 
-function rhc(show: PrincipialWind, area: any): HandlerStyles {
-  let top: number;
-  let left: number;
-  let pw: string;
-  let semiwidth = Math.round(HandlerSize / 2);
-  let semiheight = Math.round(HandlerSize / 2);
-  switch(show) {
-    case PrincipialWind.NW:
-      top = -semiheight;
-      left = -semiwidth;
-      pw = 'nw-resize';
-      break;
-    case PrincipialWind.N:
-      top = -semiheight;
-      left = Math.round(area.width / 2) - semiwidth - 1;
-      pw = 'n-resize';
-      break;
-    case PrincipialWind.NE:
-      top = -semiheight;
-      left = area.width - semiwidth - 1;
-      pw = 'ne-resize';
-      break;
-    case PrincipialWind.W:
-      top = Math.round(area.height / 2) - semiheight - 1;
-      left = -semiwidth;
-      pw = 'w-resize';
-      break;
-    case PrincipialWind.E:
-      top = Math.round(area.height / 2) - semiheight - 1;
-      left = area.width - semiwidth - 1;
-      pw = 'e-resize';
-      break;
-    case PrincipialWind.SW:
-      top = area.height - semiheight - 1;
-      left = -semiwidth;
-      pw = 'sw-resize';
-      break;
-    case PrincipialWind.S:
-      top = area.height - semiheight - 1;
-      left = Math.round(area.width / 2) - semiwidth - 1;
-      pw = 's-resize';
-      break;
-    case PrincipialWind.SE:
-      top = area.height - semiheight - 1;
-      left = area.width - semiwidth - 1;
-      pw = 'se-resize';
-      break;
-    default:
-      throw "Bad case";
-  }
-  const retVal: HandlerStyles = { 'left': area.x + left,
-  'top': area.y + top,
-  'cursor': pw }
-  return retVal;
-}
-
 @Component({
   selector: 'app-ire-main-area',
   templateUrl: './ire-main-area.component.html',
@@ -104,7 +48,7 @@ export class IreMainAreaComponent {
     return {   'background-color': 'rgb(0, 0, 0)',
                'opacity': 0,
                'position': 'absolute',
-               'width': `${this.Width}}px`,
+               'width': `${this.Width}px`,
                'height': `${this.Height}px`,
                'cursor': 'crosshair' };
   }
@@ -139,7 +83,7 @@ export class IreMainAreaComponent {
   }
 
   private areaResizeHandlerStyles(area: any, pw: PrincipialWind): any {
-    const hs = rhc(pw, area);
+    const hs = IreMainAreaComponent.rhc(pw, area);
     return {   'opacity': 0.5,
                'position': 'absolute',
                'cursor': hs.cursor,
@@ -149,10 +93,66 @@ export class IreMainAreaComponent {
   }
 
   private areaDeleteStyles(area: any): any {
-    const hs = rhc(PrincipialWind.NE, area);
+    const hs = IreMainAreaComponent.rhc(PrincipialWind.NE, area);
     return {   'left': `${hs.left + 4}px`,
                'top': `${hs.top - 22}px`,
                'position': 'absolute',
                'z-index': 1 };
+  }
+
+  private static rhc(show: PrincipialWind, area: any): HandlerStyles {
+    let top: number;
+    let left: number;
+    let pw: string;
+    let semiwidth = Math.round(HandlerSize / 2);
+    let semiheight = Math.round(HandlerSize / 2);
+    switch(show) {
+      case PrincipialWind.NW:
+        top = -semiheight;
+        left = -semiwidth;
+        pw = 'nw-resize';
+        break;
+      case PrincipialWind.N:
+        top = -semiheight;
+        left = Math.round(area.width / 2) - semiwidth - 1;
+        pw = 'n-resize';
+        break;
+      case PrincipialWind.NE:
+        top = -semiheight;
+        left = area.width - semiwidth - 1;
+        pw = 'ne-resize';
+        break;
+      case PrincipialWind.W:
+        top = Math.round(area.height / 2) - semiheight - 1;
+        left = -semiwidth;
+        pw = 'w-resize';
+        break;
+      case PrincipialWind.E:
+        top = Math.round(area.height / 2) - semiheight - 1;
+        left = area.width - semiwidth - 1;
+        pw = 'e-resize';
+        break;
+      case PrincipialWind.SW:
+        top = area.height - semiheight - 1;
+        left = -semiwidth;
+        pw = 'sw-resize';
+        break;
+      case PrincipialWind.S:
+        top = area.height - semiheight - 1;
+        left = Math.round(area.width / 2) - semiwidth - 1;
+        pw = 's-resize';
+        break;
+      case PrincipialWind.SE:
+        top = area.height - semiheight - 1;
+        left = area.width - semiwidth - 1;
+        pw = 'se-resize';
+        break;
+      default:
+        throw "Bad case";
+    }
+    const retVal: HandlerStyles = { 'left': area.x + left,
+    'top': area.y + top,
+    'cursor': pw }
+    return retVal;
   }
 }
