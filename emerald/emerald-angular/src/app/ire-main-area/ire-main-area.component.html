@@ -1,44 +1,44 @@
-<div [ngStyle]="topLevelStyle()">
+<div [ngStyle]="topLevelStyles()">
   <img class="blurred"
        [src]="ImageHref"
-       [ngStyle]="imgStyle()"
+       [ngStyle]="imgStyles()"
        [width]="Width"
        [height]="Height">
-  <div class="select-areas-overlay" [ngStyle]="overlayStyle()"></div>
-  <div [ngStyle]="backgroundStyle()"></div>
+  <div class="select-areas-overlay" [ngStyle]="overlayStyles()"></div>
+  <div [ngStyle]="backgroundStyles()"></div>
   <div *ngFor="let area of Areas; let i = index">
-    <div class="select-areas-outline" [ngStyle]="outlineStyle(area)"></div>
+    <div class="select-areas-outline" [ngStyle]="outlineStyles(area)"></div>
     <div class="select-areas-background-area"
-         [style.background]="sanitizedAreaBackground(area)"
-         [ngStyle]="areaBackgroundOther(area)">
+         [style.background]="sanitizedAreaBackgroundStyles(area)"
+         [ngStyle]="areaBackgroundOtherStyles(area)">
     </div>
     <div *ngIf="SelectedArea==i">
-      <div class="delete-area" [ngStyle]="areaDelete(area)">
+      <div class="delete-area" [ngStyle]="areaDeleteStyles(area)">
         <div class="select-areas-delete-area"></div>
       </div>
       <div class="select-areas-resize-handler w"
-           [ngStyle]="areaResizeHandlerW(area)">
+           [ngStyle]="areaResizeHandlerStyles(area, principialWind.W)">
       </div>
       <div class="select-areas-resize-handler sw"
-           [ngStyle]="areaResizeHandlerSW(area)">
+           [ngStyle]="areaResizeHandlerStyles(area, principialWind.SW)">
       </div>
       <div class="select-areas-resize-handler s"
-           [ngStyle]="areaResizeHandlerS(area)">
+           [ngStyle]="areaResizeHandlerStyles(area, principialWind.S)">
       </div>
       <div class="select-areas-resize-handler se"
-           [ngStyle]="areaResizeHandlerSE(area)">
+           [ngStyle]="areaResizeHandlerStyles(area, principialWind.SE)">
       </div>
       <div class="select-areas-resize-handler e"
-           [ngStyle]="areaResizeHandlerE(area)">
+           [ngStyle]="areaResizeHandlerStyles(area, principialWind.E)">
       </div>
       <div class="select-areas-resize-handler ne"
-           [ngStyle]="areaResizeHandlerNE(area)">
+           [ngStyle]="areaResizeHandlerStyles(area, principialWind.NE)">
       </div>
       <div class="select-areas-resize-handler n"
-           [ngStyle]="areaResizeHandlerN(area)">
+           [ngStyle]="areaResizeHandlerStyles(area, principialWind.N)">
       </div>
       <div class="select-areas-resize-handler nw"
-           [ngStyle]="areaResizeHandlerNW(area)">
+           [ngStyle]="areaResizeHandlerStyles(area, principialWind.NW)">
       </div>
     </div>
   </div>
