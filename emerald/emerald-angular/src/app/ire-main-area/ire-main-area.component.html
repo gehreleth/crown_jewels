@@ -1,1 +1,45 @@
-<img #regionEditor src="{{ImageHref}}" class="img-fluid">
+<div [ngStyle]="topLevelStyle()">
+  <img class="blurred"
+       [src]="ImageHrefSanitized"
+       [ngStyle]="imgStyle()"
+       [width]="Width"
+       [height]="Height">
+  <div class="select-areas-overlay" [ngStyle]="overlayStyle()"></div>
+  <div [ngStyle]="backgroundStyle()"></div>
+  <div *ngFor="let area of Areas; let i = index">
+    <div class="select-areas-outline" [ngStyle]="outlineStyle(area)"></div>
+    <div class="select-areas-background-area"
+         [style.background]="sanitizedAreaBackground(area)"
+         [ngStyle]="areaBackgroundOther(area)">
+    </div>
+    <div *ngIf="SelectedArea==i">
+      <div class="delete-area" [ngStyle]="areaDelete(area)">
+        <div class="select-areas-delete-area"></div>
+      </div>
+      <div class="select-areas-resize-handler w"
+           [ngStyle]="areaResizeHandlerW(area)">
+      </div>
+      <div class="select-areas-resize-handler sw"
+           [ngStyle]="areaResizeHandlerSW(area)">
+      </div>
+      <div class="select-areas-resize-handler s"
+           [ngStyle]="areaResizeHandlerS(area)">
+      </div>
+      <div class="select-areas-resize-handler se"
+           [ngStyle]="areaResizeHandlerSE(area)">
+      </div>
+      <div class="select-areas-resize-handler e"
+           [ngStyle]="areaResizeHandlerE(area)">
+      </div>
+      <div class="select-areas-resize-handler ne"
+           [ngStyle]="areaResizeHandlerNE(area)">
+      </div>
+      <div class="select-areas-resize-handler n"
+           [ngStyle]="areaResizeHandlerN(area)">
+      </div>
+      <div class="select-areas-resize-handler nw"
+           [ngStyle]="areaResizeHandlerNW(area)">
+      </div>
+    </div>
+  </div>
+</div>

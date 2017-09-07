@@ -2,9 +2,9 @@ import { Component, Input, Output, EventEmitter,
   ViewChild, ElementRef } from '@angular/core';
 import { ITreeNode, NodeType } from '../tree-node'
 import { ImageMetadataService } from '../image-metadata.service';
-import { IImageMeta } from '../image-meta';
+import { IImageMeta, Rotation } from '../image-meta';
 import { IImageRegion } from '../image-region';
-import { OnInit } from '@angular/core';
+import { OnInit, AfterViewInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -14,14 +14,23 @@ import { Subject } from 'rxjs/Subject';
   templateUrl: './img-region-editor.component.html',
   styleUrls: ['./img-region-editor.component.scss']
 })
-export class ImgRegionEditorComponent implements OnInit {
+export class ImgRegionEditorComponent implements AfterViewInit {
   @Input() ImageMeta : IImageMeta = null;
   @Output() ImageMetaChange = new EventEmitter<IImageMeta>();
+
+  private Width: number = 1400;
+  private Height: number = 990;
 
   constructor(private _service: ImageMetadataService)
   { }
 
-  ngOnInit() { }
+  get AquamarineBlobHref(): string {
+    return '/emerald/blobs/'
+      +`${this.ImageMeta.aquamarineId}?rot=${Rotation[this.ImageMeta.rotation]}`
+  }
+
+  ngAfterViewInit() {
+  }
 
   onRotateCW(event:any): void {
     this._service.rotateCW(this.ImageMeta).subscribe(im => this.update(im));

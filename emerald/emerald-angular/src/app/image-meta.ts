@@ -1,4 +1,4 @@
-import { IImageRegion } from './image-region'
+import { IImageRegion } from './image-region';
 
 export enum Rotation {
   NONE = 0, CW90 = 1, CW180 = 2,
@@ -29,7 +29,6 @@ export interface IImageMeta {
   readonly aquamarineId: string;
   readonly mimeType: string;
   readonly contentLength: number;
-  readonly imageHref? : string;
   readonly rotation: Rotation;
   readonly regions: Array<IImageRegion>;
 }

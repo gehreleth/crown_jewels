@@ -74,7 +74,6 @@ export class ImageMetadataService {
            aquamarineId: arg.aquamarineId,
            mimeType: arg.mimeType,
            contentLength: arg.contentLength,
-           imageHref : Private.imageHref(arg.aquamarineId, rotation),
            rotation: rotation,
            regions: arg.regions
          }
@@ -106,7 +105,6 @@ export class ImageMetadataService {
                 aquamarineId: arg.aquamarineId,
                 mimeType: arg.mimeType,
                 contentLength: arg.contentLength,
-                imageHref : Private.imageHref(arg.aquamarineId, rotation),
                 rotation: rotation,
                 regions: regions
               }
@@ -136,7 +134,6 @@ export class ImageMetadataService {
               aquamarineId: imageNode.aquamarineId,
               mimeType: imageNode.mimeType,
               contentLength: imageNode.contentLength,
-              imageHref : Private.imageHref(imageNode.aquamarineId, rotation),
               rotation: rotation,
               regions: regions
             }
@@ -169,7 +166,6 @@ export class ImageMetadataService {
           aquamarineId: imageNode.aquamarineId,
           mimeType: imageNode.mimeType,
           contentLength: imageNode.contentLength,
-          imageHref: Private.imageHref(imageNode.aquamarineId, rotation),
           rotation: rotation,
           regions: []
         }

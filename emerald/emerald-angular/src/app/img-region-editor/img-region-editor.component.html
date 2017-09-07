@@ -1,4 +1,4 @@
-<div>
+<div #mainarea>
   <div style="row">
     <div class="btn-group" data-toggle="buttons">
       <button type="button" class="btn btn-primary" (click)="onRotateCCW($event)">
@@ -13,6 +13,9 @@
     </button>
   </div>
   <hr>
-  <app-ire-main-area [ImageHref]="ImageMeta.imageHref" [(Regions)]="ImageMeta.regions">
+  <app-ire-main-area [ImageHref]="AquamarineBlobHref"
+                     [(Areas)] = "ImageMeta.regions"
+                     [Width]="Width"
+                     [Height]="Height">
   </app-ire-main-area>
 </div>
