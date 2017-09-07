@@ -1,4 +1,4 @@
-<div [ngStyle]="topLevelStyles()">
+<div *ngIf="Areas.length !== 0; else noselection" [ngStyle]="topLevelStyles()">
   <img class="blurred"
        [src]="ImageHref"
        [ngStyle]="imgStyles()"
@@ -43,3 +43,9 @@
     </div>
   </div>
 </div>
+<ng-template #noselection>
+  <img [src]="ImageHref"
+       [width]="Width"
+       [height]="Height"
+       [ngStyle]="imgNoSelectionStyles()">
+</ng-template>

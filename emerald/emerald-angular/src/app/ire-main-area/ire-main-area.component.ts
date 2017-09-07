@@ -36,6 +36,10 @@ export class IreMainAreaComponent {
     return {   'position': 'absolute' };
   }
 
+  private imgNoSelectionStyles() {
+    return {   'cursor': 'crosshair' };
+  }
+
   private overlayStyles(): any {
     return {   'opacity': 0.5,
                'position': 'absolute',
@@ -150,9 +154,11 @@ export class IreMainAreaComponent {
       default:
         throw "Bad case";
     }
-    const retVal: HandlerStyles = { 'left': area.x + left,
-    'top': area.y + top,
-    'cursor': pw }
+    const retVal: HandlerStyles = {
+      'left': area.x + left,
+      'top': area.y + top,
+      'cursor': pw
+    }
     return retVal;
   }
 }
