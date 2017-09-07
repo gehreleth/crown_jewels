@@ -8,6 +8,7 @@ import { OnInit, AfterViewInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
+import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-img-region-editor',
@@ -21,12 +22,14 @@ export class ImgRegionEditorComponent implements AfterViewInit {
   private Width: number = 1400;
   private Height: number = 990;
 
-  constructor(private _service: ImageMetadataService)
+  constructor(private _service: ImageMetadataService,
+              private _sanitizer: DomSanitizer)
   { }
 
-  get AquamarineBlobHref(): string {
-    return '/emerald/blobs/'
-      +`${this.ImageMeta.aquamarineId}?rot=${Rotation[this.ImageMeta.rotation]}`
+  get AquamarineBlobHref(): SafeUrl {
+    return this._sanitizer.bypassSecurityTrustUrl('/emerald/blobs/'
+      + `${this.ImageMeta.aquamarineId}`
+      + `?rot=${Rotation[this.ImageMeta.rotation]}`);
   }
 
   ngAfterViewInit() {

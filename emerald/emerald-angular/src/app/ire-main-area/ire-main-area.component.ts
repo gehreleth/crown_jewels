@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
+import { SecurityContext } from '@angular/core';
+import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 import { IImageMeta, Rotation } from '../image-meta';
 
 const HandlerSize: number = 8;
@@ -63,15 +64,11 @@ export class IreMainAreaComponent {
   @Input() SelectedArea: number = 0;
   @Output() SelectedAreaChanged: EventEmitter<number> = new EventEmitter<number>();
 
-  @Input() ImageHref: string;
+  @Input() ImageHref: SafeUrl;
   @Input() Width: number;
   @Input() Height: number;
 
-  constructor(private sanitizer: DomSanitizer) { }
-
-  get ImageHrefSanitized(): SafeUrl {
-    return this.sanitizer.bypassSecurityTrustUrl(this.ImageHref);
-  }
+  constructor(private _sanitizer: DomSanitizer) { }
 
   topLevelStyle(): any {
     return {   'position': 'relative',
@@ -112,8 +109,9 @@ export class IreMainAreaComponent {
   }
 
   sanitizedAreaBackground(area: any) : SafeStyle {
-    return this.sanitizer.bypassSecurityTrustStyle('rgb(255, 255, 255)'
-      + ` url("${this.ImageHref}")`
+    let url = this._sanitizer.sanitize(SecurityContext.URL, this.ImageHref);
+    return this._sanitizer.bypassSecurityTrustStyle('rgb(255, 255, 255)'
+      + ` url("${url}")`
       + ` no-repeat scroll -${area.x + 1}px -${area.y + 1}px `
       + `/ ${this.Width}px ${this.Height}px`);
   }
