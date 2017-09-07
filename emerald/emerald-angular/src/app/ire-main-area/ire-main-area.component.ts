@@ -13,7 +13,15 @@ interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
   styleUrls: ['./ire-main-area.component.scss']
 })
 export class IreMainAreaComponent {
-  public principialWind = PrincipialWind;
+  private readonly NW = PrincipialWind.NW;
+  private readonly N = PrincipialWind.N;
+  private readonly NE = PrincipialWind.NE;
+  private readonly W = PrincipialWind.W;
+  private readonly E = PrincipialWind.E;
+  private readonly SW = PrincipialWind.SW;
+  private readonly S = PrincipialWind.S;
+  private readonly SE = PrincipialWind.SE;
+
   @Input() Areas: Array<any>;
   @Output() AreasChanged: EventEmitter<Array<any>> = new EventEmitter<Array<any>>();
 
@@ -25,6 +33,10 @@ export class IreMainAreaComponent {
   @Input() Height: number;
 
   constructor(private _sanitizer: DomSanitizer) { }
+
+  private isSelectionsPresent() : boolean {
+    return this.Areas && this.Areas.length > 0;
+  }
 
   private topLevelStyles(): any {
     return {   'position': 'relative',
@@ -69,7 +81,7 @@ export class IreMainAreaComponent {
   }
 
   private sanitizedAreaBackgroundStyles(area: any) : SafeStyle {
-    let url = this._sanitizer.sanitize(SecurityContext.URL, this.ImageHref);
+    const url = this._sanitizer.sanitize(SecurityContext.URL, this.ImageHref);
     return this._sanitizer.bypassSecurityTrustStyle('rgb(255, 255, 255)'
       + ` url("${url}")`
       + ` no-repeat scroll -${area.x + 1}px -${area.y + 1}px `

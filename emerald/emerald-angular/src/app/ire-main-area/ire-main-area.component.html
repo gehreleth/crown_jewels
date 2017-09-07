@@ -1,4 +1,5 @@
-<div *ngIf="Areas.length !== 0; else noselection" [ngStyle]="topLevelStyles()">
+<div *ngIf="isSelectionsPresent(); else noselection"
+     [ngStyle]="topLevelStyles()">
   <img class="blurred"
        [src]="ImageHref"
        [ngStyle]="imgStyles()"
@@ -12,33 +13,33 @@
          [style.background]="sanitizedAreaBackgroundStyles(area)"
          [ngStyle]="areaBackgroundOtherStyles(area)">
     </div>
-    <div *ngIf="SelectedArea==i">
+    <div *ngIf="i === SelectedArea">
       <div class="delete-area" [ngStyle]="areaDeleteStyles(area)">
         <div class="select-areas-delete-area"></div>
       </div>
       <div class="select-areas-resize-handler w"
-           [ngStyle]="areaResizeHandlerStyles(area, principialWind.W)">
+           [ngStyle]="areaResizeHandlerStyles(area, W)">
       </div>
       <div class="select-areas-resize-handler sw"
-           [ngStyle]="areaResizeHandlerStyles(area, principialWind.SW)">
+           [ngStyle]="areaResizeHandlerStyles(area, SW)">
       </div>
       <div class="select-areas-resize-handler s"
-           [ngStyle]="areaResizeHandlerStyles(area, principialWind.S)">
+           [ngStyle]="areaResizeHandlerStyles(area, S)">
       </div>
       <div class="select-areas-resize-handler se"
-           [ngStyle]="areaResizeHandlerStyles(area, principialWind.SE)">
+           [ngStyle]="areaResizeHandlerStyles(area, SE)">
       </div>
       <div class="select-areas-resize-handler e"
-           [ngStyle]="areaResizeHandlerStyles(area, principialWind.E)">
+           [ngStyle]="areaResizeHandlerStyles(area, E)">
       </div>
       <div class="select-areas-resize-handler ne"
-           [ngStyle]="areaResizeHandlerStyles(area, principialWind.NE)">
+           [ngStyle]="areaResizeHandlerStyles(area, NE)">
       </div>
       <div class="select-areas-resize-handler n"
-           [ngStyle]="areaResizeHandlerStyles(area, principialWind.N)">
+           [ngStyle]="areaResizeHandlerStyles(area, N)">
       </div>
       <div class="select-areas-resize-handler nw"
-           [ngStyle]="areaResizeHandlerStyles(area, principialWind.NW)">
+           [ngStyle]="areaResizeHandlerStyles(area, NW)">
       </div>
     </div>
   </div>
