@@ -29,6 +29,10 @@ export class IreMainAreaComponent {
     this.selectedAreaChanged.emit(this.selectedArea);
   }
 
+  private onHandlerMouseDown(event: any, ix: number): void {
+    console.log('Handler mouse down');
+  }
+
   private get isSelectionsPresent() : boolean {
     return this.areas && this.areas.length > 0;
   }

@@ -7,7 +7,7 @@
        [height]="height">
   <div class="select-areas-overlay" [ngStyle]="overlayStyles"></div>
   <div [ngStyle]="backgroundStyles"
-       (mousedown) = "onOutsideSelectionMouseDown($event)">
+       (mousedown)="onOutsideSelectionMouseDown($event)">
   </div>
   <i *ngFor="let area of areas; let ix = index">
     <app-ire-main-area-sel
@@ -16,7 +16,10 @@
        (mousedown) = "onSelectionMouseDown($event, ix)">
     </app-ire-main-area-sel>
     <i *ngIf="ix===selectedArea">
-      <app-ire-main-area-handlers [area]="area" [show]="true">
+      <app-ire-main-area-handlers
+       [area]="area"
+       [show]="true"
+       (mousedown) = "onHandlerMouseDown($event, ix)">
       </app-ire-main-area-handlers>
     </i>
   </i>
@@ -26,5 +29,5 @@
        [width]="width"
        [height]="height"
        [ngStyle]="imgNoSelectionStyles"
-       (mousedown) = "onOutsideSelectionMouseDown($event)">
+       (mousedown)="onOutsideSelectionMouseDown($event)">
 </ng-template>
