@@ -1,52 +1,61 @@
-<div *ngIf="isSelectionsPresent(); else noselection"
-     [ngStyle]="topLevelStyles()">
+<div *ngIf="isSelectionsPresent; else noselection"
+     [ngStyle]="topLevelStyles">
   <img class="blurred"
-       [src]="ImageHref"
-       [ngStyle]="imgStyles()"
-       [width]="Width"
-       [height]="Height">
-  <div class="select-areas-overlay" [ngStyle]="overlayStyles()"></div>
-  <div [ngStyle]="backgroundStyles()"></div>
-  <div *ngFor="let area of Areas; let i = index">
-    <div class="select-areas-outline" [ngStyle]="outlineStyles(area)"></div>
-    <div class="select-areas-background-area"
-         [style.background]="sanitizedAreaBackgroundStyles(area)"
-         [ngStyle]="areaBackgroundOtherStyles(area)">
-    </div>
-    <div *ngIf="i === SelectedArea">
-      <div class="delete-area" [ngStyle]="areaDeleteStyles(area)">
-        <div class="select-areas-delete-area"></div>
-      </div>
-      <div class="select-areas-resize-handler w"
-           [ngStyle]="areaResizeHandlerStyles(area, W)">
-      </div>
-      <div class="select-areas-resize-handler sw"
-           [ngStyle]="areaResizeHandlerStyles(area, SW)">
-      </div>
-      <div class="select-areas-resize-handler s"
-           [ngStyle]="areaResizeHandlerStyles(area, S)">
-      </div>
-      <div class="select-areas-resize-handler se"
-           [ngStyle]="areaResizeHandlerStyles(area, SE)">
-      </div>
-      <div class="select-areas-resize-handler e"
-           [ngStyle]="areaResizeHandlerStyles(area, E)">
-      </div>
-      <div class="select-areas-resize-handler ne"
-           [ngStyle]="areaResizeHandlerStyles(area, NE)">
-      </div>
-      <div class="select-areas-resize-handler n"
-           [ngStyle]="areaResizeHandlerStyles(area, N)">
-      </div>
-      <div class="select-areas-resize-handler nw"
-           [ngStyle]="areaResizeHandlerStyles(area, NW)">
-      </div>
+       [src]="imageHref"
+       [ngStyle]="imgStyles"
+       [width]="width"
+       [height]="height">
+  <div class="select-areas-overlay" [ngStyle]="overlayStyles"></div>
+  <div [ngStyle]="backgroundStyles"></div>
+  <div *ngFor="let area of areas; let ix = index">
+    <app-ire-main-area-sel
+       [imageHref] ="imageHref"
+       [area] = "area"
+       [outerWidth] = "width"
+       [outerHeight] = "height"
+       (mousedown) = "onSelectionMouseDown($event, ix)"
+       (mousemove) = "onSelectionMouseMove($event, ix)"
+       (mouseup) = "onSelectionMouseUp($event, ix)">
+    </app-ire-main-area-sel>
+    <div *ngIf="ix===selectedArea">
+      <app-ire-main-area-handle
+        [area] = "area"
+        [position] = "NW">
+      </app-ire-main-area-handle>
+      <app-ire-main-area-handle
+        [area] = "area"
+        [position] = "N">
+      </app-ire-main-area-handle>
+      <app-ire-main-area-handle
+        [area] = "area"
+        [position] = "NE">
+      </app-ire-main-area-handle>
+      <app-ire-main-area-handle
+        [area] = "area"
+        [position] = "W">
+      </app-ire-main-area-handle>
+      <app-ire-main-area-handle
+        [area] = "area"
+        [position] = "E">
+      </app-ire-main-area-handle>
+      <app-ire-main-area-handle
+        [area] = "area"
+        [position] = "SW">
+      </app-ire-main-area-handle>
+      <app-ire-main-area-handle
+        [area] = "area"
+        [position] = "S">
+      </app-ire-main-area-handle>
+      <app-ire-main-area-handle
+        [area] = "area"
+        [position] = "SE">
+      </app-ire-main-area-handle>
     </div>
   </div>
 </div>
 <ng-template #noselection>
-  <img [src]="ImageHref"
-       [width]="Width"
-       [height]="Height"
-       [ngStyle]="imgNoSelectionStyles()">
+  <img [src]="imageHref"
+       [width]="width"
+       [height]="height"
+       [ngStyle]="imgNoSelectionStyles">
 </ng-template>

@@ -3,8 +3,6 @@ import { ITreeNode, NodeType } from './tree-node'
 import { Rotation, IImageMeta } from './image-meta'
 import { IImageRegion } from './image-region'
 import { Http, RequestOptions, Headers, Response } from '@angular/http';
-import { Subject } from 'rxjs/Subject';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
 import "rxjs/add/observable/of";
