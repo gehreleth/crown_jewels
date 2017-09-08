@@ -19,6 +19,8 @@ import { ImageMetadataService } from './image-metadata.service';
 import { IreMainAreaComponent } from './ire-main-area/ire-main-area.component';
 import { IreMainAreaSelComponent } from './ire-main-area-sel/ire-main-area-sel.component';
 import { IreMainAreaHandleComponent } from './ire-main-area-handle/ire-main-area-handle.component';
+import { IreMainAreaActionLayerComponent } from './ire-main-area-action-layer/ire-main-area-action-layer.component';
+import { IreMainAreaHandlersComponent } from './ire-main-area-handlers/ire-main-area-handlers.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -34,7 +36,9 @@ const routes: Routes = [
     ImgRegionEditorComponent,
     IreMainAreaComponent,
     IreMainAreaSelComponent,
-    IreMainAreaHandleComponent
+    IreMainAreaHandleComponent,
+    IreMainAreaActionLayerComponent,
+    IreMainAreaHandlersComponent
   ],
   imports: [
     BrowserModule,

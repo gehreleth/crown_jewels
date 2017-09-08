@@ -6,56 +6,25 @@
        [width]="width"
        [height]="height">
   <div class="select-areas-overlay" [ngStyle]="overlayStyles"></div>
-  <div [ngStyle]="backgroundStyles"></div>
-  <div *ngFor="let area of areas; let ix = index">
-    <app-ire-main-area-sel
-       [imageHref] ="imageHref"
-       [area] = "area"
-       [outerWidth] = "width"
-       [outerHeight] = "height"
-       (mousedown) = "onSelectionMouseDown($event, ix)"
-       (mousemove) = "onSelectionMouseMove($event, ix)"
-       (mouseup) = "onSelectionMouseUp($event, ix)">
-    </app-ire-main-area-sel>
-    <div *ngIf="ix===selectedArea">
-      <app-ire-main-area-handle
-        [area] = "area"
-        [position] = "NW">
-      </app-ire-main-area-handle>
-      <app-ire-main-area-handle
-        [area] = "area"
-        [position] = "N">
-      </app-ire-main-area-handle>
-      <app-ire-main-area-handle
-        [area] = "area"
-        [position] = "NE">
-      </app-ire-main-area-handle>
-      <app-ire-main-area-handle
-        [area] = "area"
-        [position] = "W">
-      </app-ire-main-area-handle>
-      <app-ire-main-area-handle
-        [area] = "area"
-        [position] = "E">
-      </app-ire-main-area-handle>
-      <app-ire-main-area-handle
-        [area] = "area"
-        [position] = "SW">
-      </app-ire-main-area-handle>
-      <app-ire-main-area-handle
-        [area] = "area"
-        [position] = "S">
-      </app-ire-main-area-handle>
-      <app-ire-main-area-handle
-        [area] = "area"
-        [position] = "SE">
-      </app-ire-main-area-handle>
-    </div>
+  <div [ngStyle]="backgroundStyles"
+       (mousedown) = "onOutsideSelectionMouseDown($event)">
   </div>
+  <i *ngFor="let area of areas; let ix = index">
+    <app-ire-main-area-sel
+       [imageHref] ="imageHref" [area] = "area"
+       [outerWidth] = "width" [outerHeight] = "height"
+       (mousedown) = "onSelectionMouseDown($event, ix)">
+    </app-ire-main-area-sel>
+    <i *ngIf="ix===selectedArea">
+      <app-ire-main-area-handlers [area]="area" [show]="true">
+      </app-ire-main-area-handlers>
+    </i>
+  </i>
 </div>
 <ng-template #noselection>
   <img [src]="imageHref"
        [width]="width"
        [height]="height"
-       [ngStyle]="imgNoSelectionStyles">
+       [ngStyle]="imgNoSelectionStyles"
+       (mousedown) = "onOutsideSelectionMouseDown($event)">
 </ng-template>

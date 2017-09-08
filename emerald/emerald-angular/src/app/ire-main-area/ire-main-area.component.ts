@@ -1,7 +1,6 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { SecurityContext } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { PrincipialWind } from '../ire-main-area-handle/ire-main-area-handle.component';
 import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
-import { PrincipialWind } from '../ire-main-area-handle/ire-main-area-handle.component'
 import { IImageMeta, Rotation } from '../image-meta';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
@@ -10,16 +9,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
   templateUrl: './ire-main-area.component.html',
   styleUrls: ['./ire-main-area.component.scss'],
 })
-export class IreMainAreaComponent implements OnInit {
-  private readonly NW = PrincipialWind.NW;
-  private readonly N = PrincipialWind.N;
-  private readonly NE = PrincipialWind.NE;
-  private readonly W = PrincipialWind.W;
-  private readonly E = PrincipialWind.E;
-  private readonly SW = PrincipialWind.SW;
-  private readonly S = PrincipialWind.S;
-  private readonly SE = PrincipialWind.SE;
-
+export class IreMainAreaComponent {
   @Input() areas: Array<any>;
   @Output() areasChanged: EventEmitter<Array<any>> = new EventEmitter<Array<any>>();
 
@@ -30,18 +20,11 @@ export class IreMainAreaComponent implements OnInit {
   @Input() width: number;
   @Input() height: number;
 
-  constructor(private _sanitizer: DomSanitizer) { }
-
-  ngOnInit() {
+  private onOutsideSelectionMouseDown(event: any): void{
+    console.log('Outside selection mouse down');
   }
 
   private onSelectionMouseDown(event: any, ix: number): void {
-  }
-
-  private onSelectionMouseMove(event: any, ix: number): void {
-  }
-
-  private onSelectionMouseUp(event: any, ix: number): void {
     this.selectedArea = ix;
     this.selectedAreaChanged.emit(this.selectedArea);
   }

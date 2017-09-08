@@ -7,13 +7,20 @@ interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
 @Component({
   selector: 'app-ire-main-area-handle',
   styles : [],
-  template: `<div class="{{handlerClass}}" [ngStyle]="areaResizeHandlerStyles"></div>`
+  template: `
+<div class="{{handlerClass}}"
+     [ngStyle]="areaResizeHandlerStyles"
+     (mousedown)="onMouseDown($event)">
+</div>`
 })
 export class IreMainAreaHandleComponent {
   @Input() position: PrincipialWind;
   @Input() area: any;
+  @Output() mousedown: EventEmitter<any> = new EventEmitter<any>();
 
-  constructor() { }
+  private onMouseDown(event: any) {
+    this.mousedown.emit(event);
+  }
 
   private get handlerClass(): string {
     return `select-areas-resize-handler ${PrincipialWind[this.position].toLowerCase()}`;

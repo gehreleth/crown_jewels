@@ -13,9 +13,7 @@ import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
     <div class="select-areas-background-area"
          [style.background]="sanitizedAreaBackgroundStyles"
          [ngStyle]="areaBackgroundOtherStyles"
-         (mousedown)="onMouseDown($event)"
-         (mouseup)="onMouseUp($event)"
-         (mousemove)="onMouseMove($event)">
+         (mousedown)="onMouseDown($event)">
     </div>
   </div>`
 })
@@ -25,21 +23,11 @@ export class IreMainAreaSelComponent {
   @Input() outerWidth: number;
   @Input() outerHeight: number;
   @Output() mousedown: EventEmitter<any> = new EventEmitter<any>();
-  @Output() mouseup: EventEmitter<any> = new EventEmitter<any>();
-  @Output() mousemove: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(private _sanitizer: DomSanitizer) { }
 
   private onMouseDown(event: any) {
     this.mousedown.emit(event);
-  }
-
-  private onMouseUp(event: any) {
-    this.mouseup.emit(event);
-  }
-
-  private onMouseMove(event: any) {
-    this.mousemove.emit(event);
   }
 
   private get outlineStyles(): any {
