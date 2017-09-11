@@ -125,7 +125,7 @@ export class IreMainAreaComponent {
   private updateActionContext(oldContext: IActionContext, event: any): IActionContext {
     switch (oldContext.action) {
       case Action.Add:
-        return this.updateAddSCtx(oldContext, event);
+        return this.updateScaleSCtx(Action.Add, oldContext, event);
       case Action.Select: // fall through
       case Action.Move:
         return this.updateMoveSCtx(oldContext, event);
@@ -141,10 +141,6 @@ export class IreMainAreaComponent {
       default:
         return IActionContext.initial();
     }
-  }
-
-  private updateAddSCtx(oldContext: IActionContext, event: any): IActionContext {
-    return this.updateScaleSCtx(Action.Add, oldContext, event);
   }
 
   private updateMoveSCtx(oldContext: IActionContext, event: any): IActionContext {
