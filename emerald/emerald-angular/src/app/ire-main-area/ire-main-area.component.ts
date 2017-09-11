@@ -55,7 +55,7 @@ export class IreMainAreaComponent {
 
   private onOutsideSelectionMouseDown(event: any): void {
     let newArea = {
-      x: event.layerX, y: event.layerY, width: 100, height: 100
+      x: event.layerX, y: event.layerY, width: 30, height: 30
     }
     this.areas = this.areas.concat([newArea]);
     this.areasChanged.emit(this.areas);
@@ -142,21 +142,8 @@ export class IreMainAreaComponent {
   }
 
   private updateAddSCtx(oldContext: IActionContext, event: any): IActionContext {
-    const deltaX = oldContext.originatingEvent.x - event.x;
-    const deltaY = oldContext.originatingEvent.y - event.y;
-    const left = Math.min(oldContext.area.x, oldContext.area.x - deltaX);
-    const right = Math.max(oldContext.area.x, oldContext.area.x - deltaX);
-    const top = Math.min(oldContext.area.y, oldContext.area.y - deltaY);
-    const bottom = Math.max(oldContext.area.y, oldContext.area.y - deltaY);
-    this.areas[oldContext.selection] = {x: left,
-      y: top, width: right - left, height: bottom - top};
-    this.areasChanged.emit(this.areas);
-    const retVal: IActionContext = {
-      action: Action.Add,
-      selection: oldContext.selection,
-      area: oldContext.area,
-      originatingEvent: oldContext.originatingEvent
-    }
+    let retVal = this.updateScaleSCtx(Action.ScaleSE, oldContext, event);
+    retVal.action = Action.Add;
     return retVal;
   }
 
