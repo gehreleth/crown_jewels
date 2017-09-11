@@ -5,6 +5,9 @@ import { Action } from './action';
 import { IHandleMouseDown } from '../ire-main-area-handlers/ire-main-area-handlers.component';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
+const MinSelectionWidth = 30;
+const MinSelectionHeight = 30;
+
 interface IActionContext {
   action: Action, selection: number, area?: any, originatingEvent?: any
 }
@@ -55,7 +58,7 @@ export class IreMainAreaComponent {
 
   private onOutsideSelectionMouseDown(event: any): void {
     let newArea = {
-      x: event.layerX, y: event.layerY, width: 30, height: 30
+      x: event.layerX, y: event.layerY, width: 0, height: 0
     }
     this.areas = this.areas.concat([newArea]);
     this.areasChanged.emit(this.areas);
@@ -116,8 +119,7 @@ export class IreMainAreaComponent {
   private onActionLayerMouseUp(event: any): void {
     const actionContext =
       this.updateActionContext(this.currentActionSubj.getValue(), event);
-    this.completeAction(actionContext);
-    this.currentActionSubj.next(IActionContext.initial());
+    this.currentActionSubj.next(this.completeAction(actionContext));
   }
 
   private updateActionContext(oldContext: IActionContext, event: any): IActionContext {
@@ -142,9 +144,7 @@ export class IreMainAreaComponent {
   }
 
   private updateAddSCtx(oldContext: IActionContext, event: any): IActionContext {
-    let retVal = this.updateScaleSCtx(Action.ScaleSE, oldContext, event);
-    retVal.action = Action.Add;
-    return retVal;
+    return this.updateScaleSCtx(Action.Add, oldContext, event);
   }
 
   private updateMoveSCtx(oldContext: IActionContext, event: any): IActionContext {
@@ -198,6 +198,7 @@ export class IreMainAreaComponent {
       case Action.ScaleS:
         bottom += deltaY;
         break;
+      case Action.Add: // fall through
       case Action.ScaleSE:
         bottom += deltaY;
         right += deltaX;
@@ -207,6 +208,8 @@ export class IreMainAreaComponent {
     if (top > bottom) { [top, bottom] = [bottom, top]; }
     left = Math.max(0, left);
     top = Math.max(0, top);
+    if (right - left < MinSelectionWidth) { right = left + MinSelectionWidth };
+    if (bottom - top < MinSelectionHeight) { bottom = top + MinSelectionHeight };
     right = Math.min(this.width, right);
     bottom = Math.min(this.height, bottom);
     this.areas[oldContext.selection] = {x: left, y: top,
@@ -219,7 +222,8 @@ export class IreMainAreaComponent {
     return retVal;
   }
 
-  private completeAction(context: IActionContext): void {
+  private completeAction(context: IActionContext): IActionContext {
+    return IActionContext.initial();
   }
 
   private get actionLayerState(): boolean {
