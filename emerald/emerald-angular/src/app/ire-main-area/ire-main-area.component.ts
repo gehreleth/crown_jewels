@@ -156,6 +156,15 @@ export class IreMainAreaComponent {
       case Action.Select: // fall through
       case Action.Move:
         return this.updateMoveSCtx(oldContext, event);
+      case Action.ScaleNW:  // fall through
+      case Action.ScaleN:
+      case Action.ScaleNE:
+      case Action.ScaleW:
+      case Action.ScaleE:
+      case Action.ScaleSW:
+      case Action.ScaleS:
+      case Action.ScaleSE:
+        return this.updateScaleSCtx(oldContext.action, oldContext, event);
       default:
         return IActionContext.initial();
     }
@@ -195,6 +204,59 @@ export class IreMainAreaComponent {
       selection: oldContext.selection,
       area: oldContext.area,
       originatingEvent: oldContext.originatingEvent
+    }
+    return retVal;
+  }
+
+  private updateScaleSCtx(action: Action, oldContext: IActionContext, event: any): IActionContext {
+    const deltaX = event.x - oldContext.originatingEvent.x;
+    const deltaY = event.y - oldContext.originatingEvent.y;
+    let left = oldContext.area.x;
+    let top = oldContext.area.y;
+    let right = oldContext.area.x + oldContext.area.width;
+    let bottom = oldContext.area.y + oldContext.area.height;
+    switch(action) {
+      case Action.ScaleNW:  // fall through
+        left += deltaX;
+        top += deltaY;
+        break;
+      case Action.ScaleN:
+        top += deltaY;
+        break;
+      case Action.ScaleNE:
+        right += deltaX;
+        top += deltaY;
+        break;
+      case Action.ScaleW:
+        left += deltaX;
+        break;
+      case Action.ScaleE:
+        right += deltaX;
+        break;
+      case Action.ScaleSW:
+        left += deltaX;
+        bottom += deltaY;
+        break;
+      case Action.ScaleS:
+        bottom += deltaY;
+        break;
+      case Action.ScaleSE:
+        bottom += deltaY;
+        right += deltaX;
+        break;
+    }
+    if (left > right) { [left, right] = [right, left]; }
+    if (top > bottom) { [top, bottom] = [bottom, top]; }
+    left = Math.max(0, left);
+    top = Math.max(0, top);
+    right = Math.min(this.width, right);
+    bottom = Math.min(this.height, bottom);
+    this.areas[oldContext.selection] = {x: left, y: top,
+      width: right - left, height: bottom - top};
+    this.areasChanged.emit(this.areas);
+    const retVal: IActionContext = {
+      action: action, selection: oldContext.selection,
+      area: oldContext.area, originatingEvent: oldContext.originatingEvent
     }
     return retVal;
   }
