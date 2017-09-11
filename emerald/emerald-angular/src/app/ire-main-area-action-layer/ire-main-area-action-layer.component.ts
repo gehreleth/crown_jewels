@@ -1,8 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { PrincipialWind } from '../ire-main-area-handle/ire-main-area-handle.component';
-
-export enum Action {NoAction, Add, Select, Move,
-  ScaleNW, ScaleN, ScaleNE, ScaleW, ScaleE, ScaleSW, ScaleS, ScaleSE};
+import { Action } from '../ire-main-area/action';
 
 @Component({
   selector: 'app-ire-main-area-action-layer',

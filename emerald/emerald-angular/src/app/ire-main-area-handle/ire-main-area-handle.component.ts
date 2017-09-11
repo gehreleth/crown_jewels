@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Action } from '../ire-main-area/action'
 
 const HandlerSize: number = 8;
-export enum PrincipialWind { NW, N, NE, W, E, SW, S, SE };
 interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
 
 @Component({
@@ -14,7 +14,7 @@ interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
 </div>`
 })
 export class IreMainAreaHandleComponent {
-  @Input() position: PrincipialWind;
+  @Input() position: Action;
   @Input() area: any;
   @Output() mousedown: EventEmitter<any> = new EventEmitter<any>();
 
@@ -23,7 +23,36 @@ export class IreMainAreaHandleComponent {
   }
 
   private get handlerClass(): string {
-    return `select-areas-resize-handler ${PrincipialWind[this.position].toLowerCase()}`;
+    let str: string;
+    switch(this.position) {
+      case Action.ScaleNW:
+        str = 'nw';
+        break;
+      case Action.ScaleN:
+        str = 'n';
+        break;
+      case Action.ScaleNE:
+        str = 'ne';
+        break;
+      case Action.ScaleW:
+        str = 'w';
+        break;
+      case Action.ScaleE:
+        str = 'e';
+        break;
+      case Action.ScaleSW:
+        str = 'sw';
+        break;
+      case Action.ScaleS:
+        str = 's';
+        break;
+      case Action.ScaleSE:
+        str = 'se';
+        break;
+      default:
+        throw 'Bad case';
+    }
+    return `select-areas-resize-handler ${str}`;
   }
 
   private get areaResizeHandlerStyles(): any {
@@ -36,49 +65,49 @@ export class IreMainAreaHandleComponent {
                'z-index': 101 };
   }
 
-  private static rhc(show: PrincipialWind, area: any): HandlerStyles {
+  private static rhc(show: Action, area: any): HandlerStyles {
     let top: number;
     let left: number;
     let pw: string;
     let semiwidth = Math.round(HandlerSize / 2);
     let semiheight = Math.round(HandlerSize / 2);
     switch(show) {
-      case PrincipialWind.NW:
+      case Action.ScaleNW:
         top = -semiheight;
         left = -semiwidth;
         pw = 'nw-resize';
         break;
-      case PrincipialWind.N:
+      case Action.ScaleN:
         top = -semiheight;
         left = Math.round(area.width / 2) - semiwidth - 1;
         pw = 'n-resize';
         break;
-      case PrincipialWind.NE:
+      case Action.ScaleNE:
         top = -semiheight;
         left = area.width - semiwidth - 1;
         pw = 'ne-resize';
         break;
-      case PrincipialWind.W:
+      case Action.ScaleW:
         top = Math.round(area.height / 2) - semiheight - 1;
         left = -semiwidth;
         pw = 'w-resize';
         break;
-      case PrincipialWind.E:
+      case Action.ScaleE:
         top = Math.round(area.height / 2) - semiheight - 1;
         left = area.width - semiwidth - 1;
         pw = 'e-resize';
         break;
-      case PrincipialWind.SW:
+      case Action.ScaleSW:
         top = area.height - semiheight - 1;
         left = -semiwidth;
         pw = 'sw-resize';
         break;
-      case PrincipialWind.S:
+      case Action.ScaleS:
         top = area.height - semiheight - 1;
         left = Math.round(area.width / 2) - semiwidth - 1;
         pw = 's-resize';
         break;
-      case PrincipialWind.SE:
+      case Action.ScaleSE:
         top = area.height - semiheight - 1;
         left = area.width - semiwidth - 1;
         pw = 'se-resize';

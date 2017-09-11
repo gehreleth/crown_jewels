@@ -1,8 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { PrincipialWind } from '../ire-main-area-handle/ire-main-area-handle.component';
 import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 import { IImageMeta, Rotation } from '../image-meta';
-import { Action } from '../ire-main-area-action-layer/ire-main-area-action-layer.component';
+import { Action } from './action';
 import { IHandleMouseDown } from '../ire-main-area-handlers/ire-main-area-handlers.component';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
@@ -87,35 +86,7 @@ export class IreMainAreaComponent {
 
   private onHandlerMouseDown(event: any, ix: number): void {
     const handleMouseDown = event as IHandleMouseDown;
-    let action: Action;
-    switch (handleMouseDown.handle) {
-      case PrincipialWind.NW:
-        action = Action.ScaleNW;
-        break;
-      case PrincipialWind.N:
-        action = Action.ScaleN;
-        break;
-      case PrincipialWind.NE:
-        action = Action.ScaleNE;
-        break;
-      case PrincipialWind.W:
-        action = Action.ScaleW;
-        break;
-      case PrincipialWind.E:
-        action = Action.ScaleE;
-        break;
-      case PrincipialWind.SW:
-        action = Action.ScaleSW;
-        break;
-      case PrincipialWind.S:
-        action = Action.ScaleS;
-        break;
-      case PrincipialWind.SE:
-        action = Action.ScaleSE;
-        break;
-      default:
-        this.currentActionSubj.next(IActionContext.initial());
-    }
+    const action = handleMouseDown.action;
     this.selectedArea = ix;
     this.selectedAreaChanged.emit(this.selectedArea);
     const area = this.areas[this.selectedArea];

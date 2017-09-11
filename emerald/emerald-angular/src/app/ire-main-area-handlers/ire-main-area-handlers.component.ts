@@ -1,8 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { PrincipialWind } from '../ire-main-area-handle/ire-main-area-handle.component'
+import { Action } from '../ire-main-area/action'
 
 export interface IHandleMouseDown {
-  handle: PrincipialWind, attachment: any
+  action: Action, attachment: any
 }
 
 @Component({
@@ -12,64 +12,64 @@ export interface IHandleMouseDown {
 <i *ngIf="show">
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "NW"
-    (mousedown) = "onHandleMouseDown($event, NW)">
+    [position] = "ScaleNW"
+    (mousedown) = "onHandleMouseDown($event, ScaleNW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "N"
-    (mousedown) = "onHandleMouseDown($event, N)">
+    [position] = "ScaleN"
+    (mousedown) = "onHandleMouseDown($event, ScaleN)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "NE"
-    (mousedown) = "onHandleMouseDown($event, NE)">
+    [position] = "ScaleNE"
+    (mousedown) = "onHandleMouseDown($event, ScaleNE)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "W"
-    (mousedown) = "onHandleMouseDown($event, W)">
+    [position] = "ScaleW"
+    (mousedown) = "onHandleMouseDown($event, ScaleW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "E"
-    (mousedown) = "onHandleMouseDown($event, E)">
+    [position] = "ScaleE"
+    (mousedown) = "onHandleMouseDown($event, ScaleE)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "SW"
-    (mousedown) = "onHandleMouseDown($event, SW)">
+    [position] = "ScaleSW"
+    (mousedown) = "onHandleMouseDown($event, ScaleSW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "S"
-    (mousedown) = "onHandleMouseDown($event, S)">
+    [position] = "ScaleS"
+    (mousedown) = "onHandleMouseDown($event, ScaleS)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "SE"
-    (mousedown) = "onHandleMouseDown($event, SE)">
+    [position] = "ScaleSE"
+    (mousedown) = "onHandleMouseDown($event, ScaleSE)">
   </app-ire-main-area-handle>
 </i>`
 })
 export class IreMainAreaHandlersComponent {
-  private readonly NW = PrincipialWind.NW;
-  private readonly N = PrincipialWind.N;
-  private readonly NE = PrincipialWind.NE;
-  private readonly W = PrincipialWind.W;
-  private readonly E = PrincipialWind.E;
-  private readonly SW = PrincipialWind.SW;
-  private readonly S = PrincipialWind.S;
-  private readonly SE = PrincipialWind.SE;
+  private readonly ScaleNW = Action.ScaleNW;
+  private readonly ScaleN = Action.ScaleN;
+  private readonly ScaleNE = Action.ScaleNE;
+  private readonly ScaleW = Action.ScaleW;
+  private readonly ScaleE = Action.ScaleE;
+  private readonly ScaleSW = Action.ScaleSW;
+  private readonly ScaleS = Action.ScaleS;
+  private readonly ScaleSE = Action.ScaleSE;
 
   @Input() area: any;
   @Input() show: boolean;
   @Output() mousedown: EventEmitter<IHandleMouseDown> =
     new EventEmitter<IHandleMouseDown >();
 
-  private onHandleMouseDown(event: any, handle: PrincipialWind) {
+  private onHandleMouseDown(event: any, action: Action) {
     const e : IHandleMouseDown = {
-      handle: handle, attachment: event
+      action: action, attachment: event
     }
     this.mousedown.emit(e);
   }
