@@ -42,13 +42,11 @@ interface IActionContext {
          [outerHeight] = "height"
          (mousedown) = "onSelectionMouseDown($event, ix)">
     </app-ire-main-area-sel>
-    <div *ngIf="showHandles(ix)">
-      <app-ire-main-area-handlers
-         [area]="area"
-         [show]="true"
-         (mousedown) = "onHandlerMouseDown($event, ix)">
-      </app-ire-main-area-handlers>
-    </div>
+    <app-ire-main-area-handlers
+       [area]="area"
+       [show]="showHandles(ix)"
+       (mousedown) = "onHandlerMouseDown($event, ix)">
+    </app-ire-main-area-handlers>
   </div>
   <app-ire-main-area-action-layer
          [outerWidth]="width"
