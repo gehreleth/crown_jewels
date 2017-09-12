@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { SafeUrl } from '@angular/platform-browser';
 import { Action } from './action';
-import { IHandleMouseDown } from '../ire-main-area-handlers/ire-main-area-handlers.component';
+import { IScaleEvent } from '../ire-main-area-handlers/ire-main-area-handlers.component';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 const MinSelectionWidth = 30;
@@ -45,7 +45,7 @@ interface IActionContext {
     <app-ire-main-area-handlers
          [area]="area"
          [show]="showHandles(ix)"
-         (mousedown) = "onHandlerMouseDown($event, ix)">
+         (scale) = "onScale($event, ix)">
     </app-ire-main-area-handlers>
     <app-ire-main-area-delete
          [area]="area"
@@ -124,23 +124,21 @@ export class IreMainAreaComponent {
     this.currentActionSubj.next(actionContext);
   }
 
-  private onHandlerMouseDown(event: any, selection: number): void {
-    const handleMouseDown = event as IHandleMouseDown;
-    const action = handleMouseDown.action;
+  private onScale(event: IScaleEvent, selection: number): void {
     this.selectedArea = selection;
     this.selectedAreaChanged.emit(this.selectedArea);
     const area = this.areas[this.selectedArea];
     const actionContext: IActionContext = {
-      action: action,
+      action: event.action,
       selection: this.selectedArea,
       area: { ...area },
-      originatingEvent: handleMouseDown.attachment
+      originatingEvent: event.nestedEvent
     }
     this.currentActionSubj.next(actionContext);
   }
 
   private onDeleteClick(event: any, selection: number): void {
-    
+
   }
 
   private onActionLayerMouseDown(event: any): void {
@@ -173,7 +171,8 @@ export class IreMainAreaComponent {
   }
 
   private updateActionContext(oldContext: IActionContext, event: any): IActionContext {
-    switch (oldContext.action) {
+    const oldContextAction = oldContext ? oldContext.action : Action.NoAction;
+    switch (oldContextAction) {
       case Action.Add:
         return this.updateScaleSCtx(Action.Add, oldContext, event);
       case Action.Select:   // fall through

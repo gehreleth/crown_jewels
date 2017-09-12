@@ -7,12 +7,8 @@ const VertOffset: number = -29;
   selector: 'app-ire-main-area-delete',
   styles : [],
   template: `
-<div *ngIf="show">
-  <div class="delete-area" [ngStyle]="style">
-    <div class="select-areas-delete-area"
-         (click)="onClick($event)">
-    </div>
-  </div>
+<div *ngIf="show" class="delete-area" [ngStyle]="style">
+  <div class="select-areas-delete-area"></div>
 </div>
 `
 })
@@ -22,10 +18,6 @@ export class IreMainAreaDeleteComponent {
   @Output() click: EventEmitter<any> = new EventEmitter<any>();
 
   constructor() { }
-
-  private onClick(event: any): void {
-    this.click.emit(event);
-  }
 
   private get style(): any {
     return  {  'position': 'absolute',

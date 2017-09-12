@@ -1,15 +1,15 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Action } from '../ire-main-area/action'
 
-export interface IHandleMouseDown {
-  action: Action, attachment: any
+export interface IScaleEvent {
+  action: Action, nestedEvent: any
 }
 
 @Component({
   selector: 'app-ire-main-area-handlers',
   styles : [],
   template: `
-<div *ngIf="show">
+<i *ngIf="show">
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleNW"
@@ -50,7 +50,7 @@ export interface IHandleMouseDown {
     [action] = "ScaleSE"
     (mousedown) = "onHandleMouseDown($event, ScaleSE)">
   </app-ire-main-area-handle>
-</div>`
+</i>`
 })
 export class IreMainAreaHandlersComponent {
   private readonly ScaleNW = Action.ScaleNW;
@@ -64,13 +64,13 @@ export class IreMainAreaHandlersComponent {
 
   @Input() area: any;
   @Input() show: boolean;
-  @Output() mousedown: EventEmitter<IHandleMouseDown> =
-    new EventEmitter<IHandleMouseDown >();
+  @Output() scale: EventEmitter<IScaleEvent> =
+    new EventEmitter<IScaleEvent>();
 
   private onHandleMouseDown(event: any, action: Action) {
-    const e : IHandleMouseDown = {
-      action: action, attachment: event
+    const scaleEvent : IScaleEvent = {
+      action: action, nestedEvent: event
     }
-    this.mousedown.emit(e);
+    this.scale.emit(scaleEvent);
   }
 }

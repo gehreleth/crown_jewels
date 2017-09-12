@@ -8,27 +8,20 @@ import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
   selector: 'app-ire-main-area-sel',
   styles : [],
   template: `
-  <div>
-    <div class="select-areas-outline" [ngStyle]="outlineStyles"></div>
-    <div class="select-areas-background-area"
-         [style.background]="sanitizedAreaBackgroundStyles"
-         [ngStyle]="areaBackgroundOtherStyles"
-         (mousedown)="onMouseDown($event)">
-    </div>
-  </div>`
+<div class="select-areas-outline" [ngStyle]="outlineStyles"></div>
+<div class="select-areas-background-area"
+     [style.background]="sanitizedAreaBackgroundStyles"
+     [ngStyle]="areaBackgroundOtherStyles">
+</div>
+`
 })
 export class IreMainAreaSelComponent {
   @Input() imageHref: SafeUrl;
   @Input() area: any;
   @Input() outerWidth: number;
   @Input() outerHeight: number;
-  @Output() mousedown: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(private _sanitizer: DomSanitizer) { }
-
-  private onMouseDown(event: any) {
-    this.mousedown.emit(event);
-  }
 
   private get outlineStyles(): any {
     return {   'opacity': 0.5,

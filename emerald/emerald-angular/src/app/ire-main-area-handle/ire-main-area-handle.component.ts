@@ -9,18 +9,12 @@ interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
   styles : [],
   template: `
 <div class="{{handlerClass}}"
-     [ngStyle]="areaResizeHandlerStyles"
-     (mousedown)="onMouseDown($event)">
+     [ngStyle]="areaResizeHandlerStyles">
 </div>`
 })
 export class IreMainAreaHandleComponent {
   @Input() action: Action;
   @Input() area: any;
-  @Output() mousedown: EventEmitter<any> = new EventEmitter<any>();
-
-  private onMouseDown(event: any) {
-    this.mousedown.emit(event);
-  }
 
   private get handlerClass(): string {
     let str: string;

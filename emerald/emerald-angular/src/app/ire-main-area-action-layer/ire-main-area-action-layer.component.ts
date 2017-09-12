@@ -5,13 +5,8 @@ import { Action } from '../ire-main-area/action';
   selector: 'app-ire-main-area-action-layer',
   styles : [],
   template: `
-<div *ngIf="layerActive">
-  <div [ngStyle]="style"
-       (mousedown)="onMouseDown($event)"
-       (mouseout)="onMouseOut($event)"
-       (mousemove)="onMouseMove($event)"
-       (mouseup)="onMouseUp($event)">
-  </div>
+<div *ngIf="layerActive"
+     [ngStyle]="style">
 </div>`
 })
 export class IreMainAreaActionLayerComponent {
@@ -19,29 +14,8 @@ export class IreMainAreaActionLayerComponent {
   @Input() outerHeight: number;
   @Input() action: Action;
 
-  @Output() mousedown: EventEmitter<any> = new EventEmitter<any>();
-  @Output() mouseout: EventEmitter<any> = new EventEmitter<any>();
-  @Output() mousemove: EventEmitter<any> = new EventEmitter<any>();
-  @Output() mouseup: EventEmitter<any> = new EventEmitter<any>();
-
   private get layerActive() : boolean {
     return this.action !== Action.NoAction;
-  }
-
-  private onMouseDown(event: any): void {
-    this.mousedown.emit(event);
-  }
-
-  private onMouseOut(event: any): void {
-    this.mouseout.emit(event);
-  }
-
-  private onMouseMove(event: any): void {
-    this.mousemove.emit(event);
-  }
-
-  private onMouseUp(event: any): void {
-    this.mouseup.emit(event);
   }
 
   private get style(): any {
