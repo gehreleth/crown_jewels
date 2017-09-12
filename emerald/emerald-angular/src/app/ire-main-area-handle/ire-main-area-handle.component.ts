@@ -14,7 +14,7 @@ interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
 </div>`
 })
 export class IreMainAreaHandleComponent {
-  @Input() position: Action;
+  @Input() action: Action;
   @Input() area: any;
   @Output() mousedown: EventEmitter<any> = new EventEmitter<any>();
 
@@ -24,7 +24,7 @@ export class IreMainAreaHandleComponent {
 
   private get handlerClass(): string {
     let str: string;
-    switch(this.position) {
+    switch(this.action) {
       case Action.ScaleNW:
         str = 'nw';
         break;
@@ -56,7 +56,7 @@ export class IreMainAreaHandleComponent {
   }
 
   private get areaResizeHandlerStyles(): any {
-    const hs = IreMainAreaHandleComponent.rhc(this.position, this.area);
+    const hs = IreMainAreaHandleComponent.rhc(this.action, this.area);
     return {   'opacity': 0.5,
                'position': 'absolute',
                'cursor': hs.cursor,
@@ -65,13 +65,13 @@ export class IreMainAreaHandleComponent {
                'z-index': 101 };
   }
 
-  private static rhc(show: Action, area: any): HandlerStyles {
+  private static rhc(action: Action, area: any): HandlerStyles {
     let top: number;
     let left: number;
     let pw: string;
     let semiwidth = Math.round(HandlerSize / 2);
     let semiheight = Math.round(HandlerSize / 2);
-    switch(show) {
+    switch(action) {
       case Action.ScaleNW:
         top = -semiheight;
         left = -semiwidth;

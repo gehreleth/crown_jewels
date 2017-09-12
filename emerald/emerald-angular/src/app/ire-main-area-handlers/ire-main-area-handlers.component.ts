@@ -12,42 +12,42 @@ export interface IHandleMouseDown {
 <i *ngIf="show">
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "ScaleNW"
+    [action] = "ScaleNW"
     (mousedown) = "onHandleMouseDown($event, ScaleNW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "ScaleN"
+    [action] = "ScaleN"
     (mousedown) = "onHandleMouseDown($event, ScaleN)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "ScaleNE"
+    [action] = "ScaleNE"
     (mousedown) = "onHandleMouseDown($event, ScaleNE)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "ScaleW"
+    [action] = "ScaleW"
     (mousedown) = "onHandleMouseDown($event, ScaleW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "ScaleE"
+    [action] = "ScaleE"
     (mousedown) = "onHandleMouseDown($event, ScaleE)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "ScaleSW"
+    [action] = "ScaleSW"
     (mousedown) = "onHandleMouseDown($event, ScaleSW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "ScaleS"
+    [action] = "ScaleS"
     (mousedown) = "onHandleMouseDown($event, ScaleS)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
-    [position] = "ScaleSE"
+    [action] = "ScaleSE"
     (mousedown) = "onHandleMouseDown($event, ScaleSE)">
   </app-ire-main-area-handle>
 </i>`
