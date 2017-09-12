@@ -1,6 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
-import { IImageMeta, Rotation } from '../image-meta';
+import { SafeUrl } from '@angular/platform-browser';
 import { Action } from './action';
 import { IHandleMouseDown } from '../ire-main-area-handlers/ire-main-area-handlers.component';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
