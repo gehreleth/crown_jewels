@@ -102,10 +102,10 @@ export class IreMainAreaComponent {
     new BehaviorSubject<IActionContext>(IActionContext.initial());
 
   private onOutsideSelectionMouseDown(event: any): void {
-    let newArea = {
+    const area = {
       x: event.layerX, y: event.layerY, width: 0, height: 0
     }
-    this.areas = this.areas.concat([newArea]);
+    this.areas = this.areas.concat([area]);
     this.areasChanged.emit(this.areas);
     const selection = this.areas.length - 1;
     this.selectedArea = selection;
@@ -113,29 +113,29 @@ export class IreMainAreaComponent {
     const actionContext: IActionContext = {
       action: Action.Add,
       selection: selection,
-      area: { ...newArea },
-      originatingEvent: event
-    }
-    this.currentActionSubj.next(actionContext);
-  }
-
-  private onSelectionMouseDown(event: any, ix: number): void {
-    this.selectedArea = ix;
-    this.selectedAreaChanged.emit(this.selectedArea);
-    const area = this.areas[this.selectedArea];
-    const actionContext: IActionContext = {
-      action: Action.Select,
-      selection: this.selectedArea,
       area: { ...area },
       originatingEvent: event
     }
     this.currentActionSubj.next(actionContext);
   }
 
-  private onHandlerMouseDown(event: any, ix: number): void {
+  private onSelectionMouseDown(event: any, selection: number): void {
+    this.selectedArea = selection;
+    this.selectedAreaChanged.emit(this.selectedArea);
+    const area = this.areas[this.selectedArea];
+    const actionContext: IActionContext = {
+      action: Action.Select,
+      selection: selection,
+      area: { ...area },
+      originatingEvent: event
+    }
+    this.currentActionSubj.next(actionContext);
+  }
+
+  private onHandlerMouseDown(event: any, selection: number): void {
     const handleMouseDown = event as IHandleMouseDown;
     const action = handleMouseDown.action;
-    this.selectedArea = ix;
+    this.selectedArea = selection;
     this.selectedAreaChanged.emit(this.selectedArea);
     const area = this.areas[this.selectedArea];
     const actionContext: IActionContext = {
