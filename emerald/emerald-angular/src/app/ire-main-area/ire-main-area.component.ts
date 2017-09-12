@@ -43,10 +43,15 @@ interface IActionContext {
          (mousedown) = "onSelectionMouseDown($event, ix)">
     </app-ire-main-area-sel>
     <app-ire-main-area-handlers
-       [area]="area"
-       [show]="showHandles(ix)"
-       (mousedown) = "onHandlerMouseDown($event, ix)">
+         [area]="area"
+         [show]="showHandles(ix)"
+         (mousedown) = "onHandlerMouseDown($event, ix)">
     </app-ire-main-area-handlers>
+    <app-ire-main-area-delete
+         [area]="area"
+         [show]="showHandles(ix)"
+         (click) = "onDeleteClick($event, ix)">
+    </app-ire-main-area-delete>
   </div>
   <app-ire-main-area-action-layer
          [outerWidth]="width"
@@ -132,6 +137,10 @@ export class IreMainAreaComponent {
       originatingEvent: handleMouseDown.attachment
     }
     this.currentActionSubj.next(actionContext);
+  }
+
+  private onDeleteClick(event: any, selection: number): void {
+    
   }
 
   private onActionLayerMouseDown(event: any): void {

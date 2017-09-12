@@ -21,6 +21,7 @@ import { IreMainAreaSelComponent } from './ire-main-area-sel/ire-main-area-sel.c
 import { IreMainAreaHandleComponent } from './ire-main-area-handle/ire-main-area-handle.component';
 import { IreMainAreaActionLayerComponent } from './ire-main-area-action-layer/ire-main-area-action-layer.component';
 import { IreMainAreaHandlersComponent } from './ire-main-area-handlers/ire-main-area-handlers.component';
+import { IreMainAreaDeleteComponent } from './ire-main-area-delete/ire-main-area-delete.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -38,7 +39,8 @@ const routes: Routes = [
     IreMainAreaSelComponent,
     IreMainAreaHandleComponent,
     IreMainAreaActionLayerComponent,
-    IreMainAreaHandlersComponent
+    IreMainAreaHandlersComponent,
+    IreMainAreaDeleteComponent
   ],
   imports: [
     BrowserModule,
