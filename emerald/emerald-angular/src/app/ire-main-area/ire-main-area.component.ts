@@ -64,7 +64,7 @@ namespace IActionContext {
   <app-ire-main-area-action-layer
          [outerWidth]="width"
          [outerHeight]="height"
-         [active]="actionLayerState"
+         [action]="currentAction"
          (mousedown)="onActionLayerMouseDown($event)"
          (mouseout)="onActionLayerMouseOut($event)"
          (mousemove)="onActionLayerMouseMove($event)"
@@ -207,7 +207,9 @@ export class IreMainAreaComponent {
     return retVal;
   }
 
-  private updateScaleSCtx(action: Action, oldContext: IActionContext, event: any): IActionContext {
+  private updateScaleSCtx(action: Action, oldContext: IActionContext,
+    event: any): IActionContext
+  {
     const deltaX = event.x - oldContext.originatingEvent.x;
     const deltaY = event.y - oldContext.originatingEvent.y;
     let left = oldContext.area.x;
@@ -267,12 +269,14 @@ export class IreMainAreaComponent {
     return IActionContext.initial();
   }
 
-  private get actionLayerState(): boolean {
-    return this.currentActionSubj.getValue().action !== Action.NoAction;
+  private get currentAction(): Action {
+    const val = this.currentActionSubj.getValue();
+    return val ? val.action : Action.NoAction;
   }
 
-  private showHandles(ix: number) : boolean {
-    return !this.actionLayerState && ix === this.selectedArea;
+  private showHandles(selection: number) : boolean {
+    return Action.NoAction === this.currentAction &&
+           selection === this.selectedArea;
   }
 
   private get isSelectionsPresent() : boolean {
