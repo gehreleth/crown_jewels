@@ -5,14 +5,14 @@ import { Action } from '../ire-main-area/action';
   selector: 'app-ire-main-area-action-layer',
   styles : [],
   template: `
-<i *ngIf="layerActive">
+<div *ngIf="layerActive">
   <div [ngStyle]="style"
        (mousedown)="onMouseDown($event)"
        (mouseout)="onMouseOut($event)"
        (mousemove)="onMouseMove($event)"
        (mouseup)="onMouseUp($event)">
   </div>
-</i>`
+</div>`
 })
 export class IreMainAreaActionLayerComponent {
   @Input() outerWidth: number;

@@ -9,7 +9,7 @@ export interface IHandleMouseDown {
   selector: 'app-ire-main-area-handlers',
   styles : [],
   template: `
-<i *ngIf="show">
+<div *ngIf="show">
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleNW"
@@ -50,7 +50,7 @@ export interface IHandleMouseDown {
     [action] = "ScaleSE"
     (mousedown) = "onHandleMouseDown($event, ScaleSE)">
   </app-ire-main-area-handle>
-</i>`
+</div>`
 })
 export class IreMainAreaHandlersComponent {
   private readonly ScaleNW = Action.ScaleNW;

@@ -16,7 +16,7 @@ interface IActionContext {
   styles : [],
   template: `
 <div [ngStyle]="topLevelStyles">
-  <i *ngIf="isSelectionsPresent; else noselection">
+  <div *ngIf="isSelectionsPresent; else noselection">
     <img class="blurred"
          [src]="imageHref"
          [ngStyle]="imgStyles"
@@ -26,7 +26,7 @@ interface IActionContext {
     <div [ngStyle]="backgroundStyles"
          (mousedown) = "onOutsideSelectionMouseDown($event)">
     </div>
-  </i>
+  </div>
   <ng-template #noselection>
     <img [src]="imageHref"
          [width]="width"
@@ -34,7 +34,7 @@ interface IActionContext {
          [ngStyle]="imgNoSelectionStyles"
          (mousedown) = "onOutsideSelectionMouseDown($event)">
   </ng-template>
-  <i *ngFor="let area of areas; let ix = index">
+  <div *ngFor="let area of areas; let ix = index">
     <app-ire-main-area-sel
          [imageHref] ="imageHref"
          [area] = "area"
@@ -42,14 +42,14 @@ interface IActionContext {
          [outerHeight] = "height"
          (mousedown) = "onSelectionMouseDown($event, ix)">
     </app-ire-main-area-sel>
-    <i *ngIf="showHandles(ix)">
+    <div *ngIf="showHandles(ix)">
       <app-ire-main-area-handlers
          [area]="area"
          [show]="true"
          (mousedown) = "onHandlerMouseDown($event, ix)">
       </app-ire-main-area-handlers>
-    </i>
-  </i>
+    </div>
+  </div>
   <app-ire-main-area-action-layer
          [outerWidth]="width"
          [outerHeight]="height"
