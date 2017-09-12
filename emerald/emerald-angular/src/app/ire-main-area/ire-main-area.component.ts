@@ -12,16 +12,6 @@ interface IActionContext {
   action: Action, selection: number, area?: any, originatingEvent?: any
 }
 
-namespace IActionContext {
-  export function initial() : IActionContext {
-    const retVal : IActionContext = {
-      action: Action.NoAction,
-      selection: -1
-    }
-    return retVal;
-  }
-}
-
 @Component({
   selector: 'app-ire-main-area',
   styles : [],
@@ -99,7 +89,7 @@ export class IreMainAreaComponent {
   @Input() height: number;
 
   private readonly currentActionSubj: BehaviorSubject<IActionContext> =
-    new BehaviorSubject<IActionContext>(IActionContext.initial());
+    new BehaviorSubject<IActionContext>(null);
 
   private onOutsideSelectionMouseDown(event: any): void {
     const area = {
@@ -112,7 +102,7 @@ export class IreMainAreaComponent {
     this.selectedAreaChanged.emit(this.selectedArea);
     const actionContext: IActionContext = {
       action: Action.Add,
-      selection: selection,
+      selection: this.selectedArea,
       area: { ...area },
       originatingEvent: event
     }
@@ -125,7 +115,7 @@ export class IreMainAreaComponent {
     const area = this.areas[this.selectedArea];
     const actionContext: IActionContext = {
       action: Action.Select,
-      selection: selection,
+      selection: this.selectedArea,
       area: { ...area },
       originatingEvent: event
     }
@@ -148,11 +138,11 @@ export class IreMainAreaComponent {
   }
 
   private onActionLayerMouseDown(event: any): void {
-    this.currentActionSubj.next(IActionContext.initial());
+    this.currentActionSubj.next(this.rollbackAction(this.currentActionSubj.getValue(), event));
   }
 
   private onActionLayerMouseOut(event: any): void {
-    this.currentActionSubj.next(IActionContext.initial());
+    this.currentActionSubj.next(this.rollbackAction(this.currentActionSubj.getValue(), event));
   }
 
   private onActionLayerMouseMove(event: any): void {
@@ -164,14 +154,23 @@ export class IreMainAreaComponent {
   private onActionLayerMouseUp(event: any): void {
     const actionContext =
       this.updateActionContext(this.currentActionSubj.getValue(), event);
-    this.currentActionSubj.next(this.completeAction(actionContext));
+    this.currentActionSubj.next(this.commitAction(actionContext, event));
+  }
+
+  private rollbackAction(context: IActionContext, event: any): IActionContext {
+    return null; // It is possible to put previous area at its most recent place
+                 // from context here, but it's not necessary yet.
+  }
+
+  private commitAction(context: IActionContext, event: any): IActionContext {
+    return null; // Just switch this to NoAction state
   }
 
   private updateActionContext(oldContext: IActionContext, event: any): IActionContext {
     switch (oldContext.action) {
       case Action.Add:
         return this.updateScaleSCtx(Action.Add, oldContext, event);
-      case Action.Select: // fall through
+      case Action.Select:   // fall through
       case Action.Move:
         return this.updateMoveSCtx(oldContext, event);
       case Action.ScaleNW:  // fall through
@@ -184,7 +183,7 @@ export class IreMainAreaComponent {
       case Action.ScaleSE:
         return this.updateScaleSCtx(oldContext.action, oldContext, event);
       default:
-        return IActionContext.initial();
+        return null;
     }
   }
 
@@ -263,10 +262,6 @@ export class IreMainAreaComponent {
       area: oldContext.area, originatingEvent: oldContext.originatingEvent
     }
     return retVal;
-  }
-
-  private completeAction(context: IActionContext): IActionContext {
-    return IActionContext.initial();
   }
 
   private get currentAction(): Action {
