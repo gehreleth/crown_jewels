@@ -13,42 +13,42 @@ export interface IScaleEvent {
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleNW"
-    (mousedown) = "onHandleMouseDown($event, ScaleNW)">
+    (mousedown) = "onMouseDown($event, ScaleNW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleN"
-    (mousedown) = "onHandleMouseDown($event, ScaleN)">
+    (mousedown) = "onMouseDown($event, ScaleN)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleNE"
-    (mousedown) = "onHandleMouseDown($event, ScaleNE)">
+    (mousedown) = "onMouseDown($event, ScaleNE)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleW"
-    (mousedown) = "onHandleMouseDown($event, ScaleW)">
+    (mousedown) = "onMouseDown($event, ScaleW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleE"
-    (mousedown) = "onHandleMouseDown($event, ScaleE)">
+    (mousedown) = "onMouseDown($event, ScaleE)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleSW"
-    (mousedown) = "onHandleMouseDown($event, ScaleSW)">
+    (mousedown) = "onMouseDown($event, ScaleSW)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleS"
-    (mousedown) = "onHandleMouseDown($event, ScaleS)">
+    (mousedown) = "onMouseDown($event, ScaleS)">
   </app-ire-main-area-handle>
   <app-ire-main-area-handle
     [area] = "area"
     [action] = "ScaleSE"
-    (mousedown) = "onHandleMouseDown($event, ScaleSE)">
+    (mousedown) = "onMouseDown($event, ScaleSE)">
   </app-ire-main-area-handle>
 </i>`
 })
@@ -64,13 +64,13 @@ export class IreMainAreaHandlersComponent {
 
   @Input() area: any;
   @Input() show: boolean;
-  @Output() scale: EventEmitter<IScaleEvent> =
+  @Output() onScale: EventEmitter<IScaleEvent> =
     new EventEmitter<IScaleEvent>();
 
-  private onHandleMouseDown(event: any, action: Action) {
-    const scaleEvent : IScaleEvent = {
+  private onMouseDown(event: any, action: Action) {
+    const scaleEvent: IScaleEvent = {
       action: action, nestedEvent: event
     }
-    this.scale.emit(scaleEvent);
+    this.onScale.emit(scaleEvent);
   }
 }

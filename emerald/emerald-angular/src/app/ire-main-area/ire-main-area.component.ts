@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { SafeUrl } from '@angular/platform-browser';
 import { Action } from './action';
 import { IScaleEvent } from '../ire-main-area-handlers/ire-main-area-handlers.component';
@@ -24,7 +24,7 @@ interface IActionContext {
          [height]="height">
     <div class="select-areas-overlay" [ngStyle]="overlayStyles"></div>
     <div [ngStyle]="backgroundStyles"
-         (mousedown) = "onOutsideSelectionMouseDown($event)">
+         (mousedown) = "onNewSelectionStart($event)">
     </div>
   </div>
   <ng-template #noselection>
@@ -32,7 +32,7 @@ interface IActionContext {
          [width]="width"
          [height]="height"
          [ngStyle]="imgNoSelectionStyles"
-         (mousedown) = "onOutsideSelectionMouseDown($event)">
+         (mousedown) = "onNewSelectionStart($event)">
   </ng-template>
   <div *ngFor="let area of areas; let ix = index">
     <app-ire-main-area-sel
@@ -40,17 +40,17 @@ interface IActionContext {
          [area] = "area"
          [outerWidth] = "width"
          [outerHeight] = "height"
-         (mousedown) = "onSelectionMouseDown($event, ix)">
+         (mousedown) = "onSelectionDragStart($event, ix)">
     </app-ire-main-area-sel>
     <app-ire-main-area-handlers
          [area]="area"
          [show]="showHandles(ix)"
-         (scale) = "onScale($event, ix)">
+         (onScale) = "onScaleStart($event, ix)">
     </app-ire-main-area-handlers>
     <app-ire-main-area-delete
          [area]="area"
          [show]="showHandles(ix)"
-         (click) = "onDeleteClick($event, ix)">
+         (click) = "onDelete($event, ix)">
     </app-ire-main-area-delete>
   </div>
   <app-ire-main-area-action-layer
@@ -58,13 +58,12 @@ interface IActionContext {
          [outerHeight]="height"
          [action]="currentAction"
          (mousedown)="onActionLayerMouseDown($event)"
-         (mouseout)="onActionLayerMouseOut($event)"
          (mousemove)="onActionLayerMouseMove($event)"
          (mouseup)="onActionLayerMouseUp($event)">
   </app-ire-main-area-action-layer>
 </div>`
 })
-export class IreMainAreaComponent {
+export class IreMainAreaComponent implements OnInit {
   private readonly NoAction = Action.NoAction;
   private readonly Add = Action.Add;
   private readonly Select = Action.Select;
@@ -93,7 +92,11 @@ export class IreMainAreaComponent {
   private readonly currentActionSubj: BehaviorSubject<IActionContext> =
     new BehaviorSubject<IActionContext>(null);
 
-  private onOutsideSelectionMouseDown(event: any): void {
+  ngOnInit() {
+    this.currentActionSubj.subscribe(action => this.areasChanged.emit(this.areas));
+  }
+
+  private onNewSelectionStart(event: any): void {
     const area = {
       x: event.layerX, y: event.layerY, width: 0, height: 0
     }
@@ -111,7 +114,7 @@ export class IreMainAreaComponent {
     this.currentActionSubj.next(actionContext);
   }
 
-  private onSelectionMouseDown(event: any, selection: number): void {
+  private onSelectionDragStart(event: any, selection: number): void {
     this.selectedArea = selection;
     this.selectedAreaChanged.emit(this.selectedArea);
     const area = this.areas[this.selectedArea];
@@ -124,7 +127,7 @@ export class IreMainAreaComponent {
     this.currentActionSubj.next(actionContext);
   }
 
-  private onScale(event: IScaleEvent, selection: number): void {
+  private onScaleStart(event: IScaleEvent, selection: number): void {
     this.selectedArea = selection;
     this.selectedAreaChanged.emit(this.selectedArea);
     const area = this.areas[this.selectedArea];
@@ -137,28 +140,22 @@ export class IreMainAreaComponent {
     this.currentActionSubj.next(actionContext);
   }
 
-  private onDeleteClick(event: any, selection: number): void {
-
-  }
+  private onDelete(event: any, selection: number): void { }
 
   private onActionLayerMouseDown(event: any): void {
-    this.currentActionSubj.next(this.rollbackAction(this.currentActionSubj.getValue(), event));
-  }
-
-  private onActionLayerMouseOut(event: any): void {
-    this.currentActionSubj.next(this.rollbackAction(this.currentActionSubj.getValue(), event));
+    this.currentActionSubj.next(
+      this.rollbackAction(this.currentActionSubj.getValue(), event));
   }
 
   private onActionLayerMouseMove(event: any): void {
-    const actionContext =
-      this.updateActionContext(this.currentActionSubj.getValue(), event);
-    this.currentActionSubj.next(actionContext);
+    this.currentActionSubj.next(
+      this.updateActionContext(this.currentActionSubj.getValue(), event));
   }
 
   private onActionLayerMouseUp(event: any): void {
-    const actionContext =
-      this.updateActionContext(this.currentActionSubj.getValue(), event);
-    this.currentActionSubj.next(this.commitAction(actionContext, event));
+    this.currentActionSubj.next(
+      this.commitAction(this.updateActionContext(
+        this.currentActionSubj.getValue(), event), event));
   }
 
   private rollbackAction(context: IActionContext, event: any): IActionContext {
@@ -195,10 +192,10 @@ export class IreMainAreaComponent {
   private updateMoveSCtx(oldContext: IActionContext, event: any): IActionContext {
     const deltaX = event.x - oldContext.originatingEvent.x;
     const deltaY = event.y - oldContext.originatingEvent.y;
-    let x = Math.max(oldContext.area.x + deltaX, 0);
-    let y = Math.max(oldContext.area.y + deltaY, 0);
-    x = Math.min(this.width - oldContext.area.width, x);
-    y = Math.min(this.height - oldContext.area.height, y);
+    const x = Math.min(this.width - oldContext.area.width,
+      Math.max(oldContext.area.x + deltaX, 0));
+    const y = Math.min(this.height - oldContext.area.height,
+      Math.max(oldContext.area.y + deltaY, 0));
     this.areas[oldContext.selection] = {x: x, y: y,
       width: oldContext.area.width, height: oldContext.area.height};
     this.areasChanged.emit(this.areas);
