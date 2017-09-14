@@ -124,11 +124,34 @@ public class ImgRegionEditorSave {
         for (Iterator<JsonElement> itr = arg.iterator(); itr.hasNext();) {
             JsonObject obj = itr.next().getAsJsonObject();
             Region region = new Region();
-            region.text = obj.get("text").getAsString();
-            region.x = obj.get("x").getAsDouble();
-            region.y = obj.get("y").getAsDouble();
-            region.width = obj.get("width").getAsDouble();
-            region.height = obj.get("height").getAsDouble();
+            JsonElement element = obj.get("text");
+            if (element != null) {
+                region.text = element.getAsString();
+            }
+            element = obj.get("x");
+            if (element != null) {
+                region.x = element.getAsDouble();
+            } else {
+                throw new RuntimeException("Lacking mandatory parameter: X");
+            }
+            element = obj.get("y");
+            if (element != null) {
+                region.y = element.getAsDouble();
+            } else {
+                throw new RuntimeException("Lacking mandatory parameter: Y");
+            }
+            element = obj.get("width");
+            if (element != null) {
+                region.width = element.getAsDouble();
+            } else {
+                throw new RuntimeException("Lacking mandatory parameter: Width");
+            }
+            element = obj.get("height");
+            if (element != null) {
+                region.height = element.getAsDouble();
+            } else {
+                throw new RuntimeException("Lacking mandatory parameter: Height");
+            }
             retVal.add(region);
         }
         return retVal;

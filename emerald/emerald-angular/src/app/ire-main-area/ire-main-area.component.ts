@@ -140,7 +140,12 @@ export class IreMainAreaComponent implements OnInit {
     this.currentActionSubj.next(actionContext);
   }
 
-  private onDelete(event: any, selection: number): void { }
+  private onDelete(event: any, selection: number): void {
+    this.areas.splice(selection, 1);
+    this.areasChanged.emit(this.areas);
+    this.selectedArea = -1;
+    this.selectedAreaChanged.emit(this.selectedArea);
+  }
 
   private onActionLayerMouseDown(event: any): void {
     this.currentActionSubj.next(
