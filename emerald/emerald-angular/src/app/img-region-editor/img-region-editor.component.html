@@ -14,8 +14,9 @@
   </div>
   <hr>
   <app-ire-main-area [imageHref]="AquamarineBlobHref"
-                     [(areas)] = "ImageMeta.regions"
+                     [areas] = "Areas"
                      [width]="Width"
-                     [height]="Height">
+                     [height]="Height"
+                     (areasChanged)=onAreasChanged($event)>
   </app-ire-main-area>
 </div>

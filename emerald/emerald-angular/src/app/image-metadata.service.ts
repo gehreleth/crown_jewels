@@ -82,7 +82,7 @@ export class ImageMetadataService {
      }
   }
 
-  updateWithRegions(arg: IImageMeta): Observable<IImageMeta> {
+  assignRegionsAndUpdate(arg: IImageMeta, regions: Array<IImageRegion>): Observable<IImageMeta> {
     if (arg && arg.href) {
       return this.http.patch(arg.href,
        JSON.stringify({
@@ -94,7 +94,7 @@ export class ImageMetadataService {
          const selfHref = new URL(dict._links.self.href).pathname;
          const regionsHref = new URL(dict._links.regions.href).pathname;
          const putRegionsHref = new URL(dict._links.putRegions.href).pathname;
-         return this.http.put(putRegionsHref, IImageRegion.regionArrayToJson(arg.regions))
+         return this.http.put(putRegionsHref, IImageRegion.regionArrayToJson(regions))
            .map((rsp : Response) => {
               const dict = rsp.json();
               const regions = IImageRegion.jsonToRegionArray(dict);

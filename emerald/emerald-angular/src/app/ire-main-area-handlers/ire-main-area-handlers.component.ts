@@ -1,4 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { IArea } from '../ire-main-area/area'
 import { Action } from '../ire-main-area/action'
 
 export interface IScaleEvent {
@@ -62,7 +63,7 @@ export class IreMainAreaHandlersComponent {
   private readonly ScaleS = Action.ScaleS;
   private readonly ScaleSE = Action.ScaleSE;
 
-  @Input() area: any;
+  @Input() area: IArea;
   @Input() show: boolean;
   @Output() onScale: EventEmitter<IScaleEvent> =
     new EventEmitter<IScaleEvent>();

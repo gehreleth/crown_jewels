@@ -1,6 +1,6 @@
 export interface IImageRegion {
   readonly href? : string;
-  readonly text : string;
+  readonly text? : string;
   readonly x : number;
   readonly y : number;
   readonly width : number;

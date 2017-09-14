@@ -1,4 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { IArea } from '../ire-main-area/area'
 
 const HorzOffset: number = 5; // TODO : derieve from image and handle size
 const VertOffset: number = -29;
@@ -13,9 +14,8 @@ const VertOffset: number = -29;
 `
 })
 export class IreMainAreaDeleteComponent {
-  @Input() area: any;
+  @Input() area: IArea;
   @Input() show: boolean;
-  @Output() click: EventEmitter<any> = new EventEmitter<any>();
 
   constructor() { }
 

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter  } from '@angular/core';
 import { ElementRef } from '@angular/core';
-
+import { IArea } from '../ire-main-area/area'
 import { SecurityContext } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 
@@ -17,7 +17,7 @@ import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 })
 export class IreMainAreaSelComponent {
   @Input() imageHref: SafeUrl;
-  @Input() area: any;
+  @Input() area: IArea;
   @Input() outerWidth: number;
   @Input() outerHeight: number;
 

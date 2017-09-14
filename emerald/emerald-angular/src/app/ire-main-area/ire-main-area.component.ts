@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { SafeUrl } from '@angular/platform-browser';
 import { Action } from './action';
+import { IArea } from './area';
 import { IScaleEvent } from '../ire-main-area-handlers/ire-main-area-handlers.component';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
@@ -63,7 +64,7 @@ interface IActionContext {
   </app-ire-main-area-action-layer>
 </div>`
 })
-export class IreMainAreaComponent implements OnInit {
+export class IreMainAreaComponent {
   private readonly NoAction = Action.NoAction;
   private readonly Add = Action.Add;
   private readonly Select = Action.Select;
@@ -77,9 +78,9 @@ export class IreMainAreaComponent implements OnInit {
   private readonly ScaleS = Action.ScaleS;
   private readonly ScaleSE = Action.ScaleSE;
 
-  @Input() areas: Array<any>;
-  @Output() areasChanged: EventEmitter< Array<any> > =
-    new EventEmitter< Array<any> >();
+  @Input() areas: Array<IArea>;
+  @Output() areasChanged: EventEmitter< Array<IArea> > =
+    new EventEmitter< Array<IArea> >();
 
   @Input() selectedArea: number = 0;
   @Output() selectedAreaChanged: EventEmitter<number> =
@@ -92,12 +93,8 @@ export class IreMainAreaComponent implements OnInit {
   private readonly currentActionSubj: BehaviorSubject<IActionContext> =
     new BehaviorSubject<IActionContext>(null);
 
-  ngOnInit() {
-    this.currentActionSubj.subscribe(action => this.areasChanged.emit(this.areas));
-  }
-
   private onNewSelectionStart(event: any): void {
-    const area = {
+    const area: IArea = {
       x: event.layerX, y: event.layerY, width: 0, height: 0
     }
     this.areas = this.areas.concat([area]);
@@ -150,6 +147,7 @@ export class IreMainAreaComponent implements OnInit {
   private onActionLayerMouseDown(event: any): void {
     this.currentActionSubj.next(
       this.rollbackAction(this.currentActionSubj.getValue(), event));
+    this.areasChanged.emit(this.areas);
   }
 
   private onActionLayerMouseMove(event: any): void {
@@ -161,6 +159,7 @@ export class IreMainAreaComponent implements OnInit {
     this.currentActionSubj.next(
       this.commitAction(this.updateActionContext(
         this.currentActionSubj.getValue(), event), event));
+    this.areasChanged.emit(this.areas);
   }
 
   private rollbackAction(context: IActionContext, event: any): IActionContext {

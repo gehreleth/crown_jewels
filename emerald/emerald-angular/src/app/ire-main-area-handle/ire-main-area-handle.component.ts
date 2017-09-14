@@ -1,4 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { IArea } from '../ire-main-area/area'
 import { Action } from '../ire-main-area/action'
 
 const HandlerSize: number = 8;
@@ -14,7 +15,7 @@ interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
 })
 export class IreMainAreaHandleComponent {
   @Input() action: Action;
-  @Input() area: any;
+  @Input() area: IArea;
 
   private get handlerClass(): string {
     let str: string;
@@ -59,7 +60,7 @@ export class IreMainAreaHandleComponent {
                'z-index': 101 };
   }
 
-  private static rhc(action: Action, area: any): HandlerStyles {
+  private static rhc(action: Action, area: IArea): HandlerStyles {
     let top: number;
     let left: number;
     let pw: string;
