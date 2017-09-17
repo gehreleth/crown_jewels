@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { IArea } from '../ire-main-area/area'
+import { IArea } from '../area'
 
 const HorzOffset: number = 5; // TODO : derieve from image and handle size
 const VertOffset: number = -29;

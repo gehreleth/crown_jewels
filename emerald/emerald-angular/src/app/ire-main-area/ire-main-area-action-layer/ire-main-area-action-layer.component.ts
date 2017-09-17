@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Action } from '../ire-main-area/action';
+import { Action } from '../action';
 
 @Component({
   selector: 'app-ire-main-area-action-layer',

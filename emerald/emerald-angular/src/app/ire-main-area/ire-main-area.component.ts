@@ -4,7 +4,7 @@ import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 import { SecurityContext } from '@angular/core';
 import { Action } from './action';
 import { IArea } from './area';
-import { IScaleEvent } from '../ire-main-area-handlers/ire-main-area-handlers.component';
+import { IScaleEvent } from './ire-main-area-handlers/ire-main-area-handlers.component';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 const MinSelectionWidth = 30;

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter  } from '@angular/core';
 import { ElementRef } from '@angular/core';
-import { IArea } from '../ire-main-area/area'
+import { IArea } from '../area'
 import { SecurityContext } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { IArea } from '../ire-main-area/area'
-import { Action } from '../ire-main-area/action'
+import { IArea } from '../area'
+import { Action } from '../action'
 
 const HandlerSize: number = 8;
 interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };

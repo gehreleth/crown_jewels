@@ -17,11 +17,11 @@ import { BusyModule } from 'angular2-busy';
 import { ImgRegionEditorComponent } from './img-region-editor/img-region-editor.component';
 import { ImageMetadataService } from './image-metadata.service';
 import { IreMainAreaComponent } from './ire-main-area/ire-main-area.component';
-import { IreMainAreaSelComponent } from './ire-main-area-sel/ire-main-area-sel.component';
-import { IreMainAreaHandleComponent } from './ire-main-area-handle/ire-main-area-handle.component';
-import { IreMainAreaActionLayerComponent } from './ire-main-area-action-layer/ire-main-area-action-layer.component';
-import { IreMainAreaHandlersComponent } from './ire-main-area-handlers/ire-main-area-handlers.component';
-import { IreMainAreaDeleteComponent } from './ire-main-area-delete/ire-main-area-delete.component';
+import { IreMainAreaSelComponent } from './ire-main-area/ire-main-area-sel/ire-main-area-sel.component';
+import { IreMainAreaHandleComponent } from './ire-main-area/ire-main-area-handle/ire-main-area-handle.component';
+import { IreMainAreaActionLayerComponent } from './ire-main-area/ire-main-area-action-layer/ire-main-area-action-layer.component';
+import { IreMainAreaHandlersComponent } from './ire-main-area/ire-main-area-handlers/ire-main-area-handlers.component';
+import { IreMainAreaDeleteComponent } from './ire-main-area/ire-main-area-delete/ire-main-area-delete.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
