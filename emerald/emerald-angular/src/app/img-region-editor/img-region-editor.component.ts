@@ -14,13 +14,13 @@ import { IArea } from '../ire-main-area/area'
 function a2r(arg: Array<IArea>): Array<IImageRegion> {
   return arg.map(
     q => {
-      let text: string = null;
-      if (q.attachment && q.attachment.text) {
-        text = q.attachment.text;
-      }
       let href: string = null;
       if (q.attachment && q.attachment.href) {
         href = q.attachment.href;
+      }
+      let text: string = null;
+      if (q.attachment && q.attachment.text) {
+        text = q.attachment.text;
       }
       const retVal: IImageRegion = {
         x: q.x,
@@ -44,15 +44,14 @@ function r2a(arg: Array<IImageRegion>): Array<IArea> {
         width: q.width,
         height: q.height,
         attachment: {
+          href: q.href,
           text: q.text,
-          href: q.href
         }
       }
       return retVal;
     }
   );
 }
-
 
 @Component({
   selector: 'app-img-region-editor',
@@ -90,9 +89,6 @@ export class ImgRegionEditorComponent implements OnChanges {
     return this._sanitizer.bypassSecurityTrustUrl('/emerald/blobs/'
       + `${this.ImageMeta.aquamarineId}`
       + `?rot=${Rotation[this.ImageMeta.rotation]}`);
-  }
-
-  ngAfterViewInit() {
   }
 
   onRotateCW(event:any): void {
