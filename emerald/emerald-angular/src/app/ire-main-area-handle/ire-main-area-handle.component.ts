@@ -15,10 +15,7 @@ interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
   width: 8px;
   overflow: hidden;
 }`],
-  template: `
-<div class="{{handlerClass}}"
-     [ngStyle]="areaResizeHandlerStyles">
-</div>`
+  template: `<div class="{{handlerClass}}" [ngStyle]="areaResizeHandlerStyles"></div>`
 })
 export class IreMainAreaHandleComponent {
   @Input() action: Action;

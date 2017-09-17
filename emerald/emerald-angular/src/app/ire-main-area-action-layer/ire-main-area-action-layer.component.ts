@@ -4,10 +4,7 @@ import { Action } from '../ire-main-area/action';
 @Component({
   selector: 'app-ire-main-area-action-layer',
   styles : [],
-  template: `
-<div *ngIf="layerActive"
-     [ngStyle]="style">
-</div>`
+  template: `<div *ngIf="layerActive" [ngStyle]="style"></div>`
 })
 export class IreMainAreaActionLayerComponent {
   @Input() outerWidth: number;
