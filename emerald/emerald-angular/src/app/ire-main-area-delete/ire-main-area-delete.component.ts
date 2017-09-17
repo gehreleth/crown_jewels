@@ -21,14 +21,13 @@ const VertOffset: number = -29;
 }
 `],
   template: `
-<div *ngIf="show" class="delete-area" [ngStyle]="style">
+<div class="delete-area" [ngStyle]="style">
   <div class="select-areas-delete-area"></div>
 </div>
 `
 })
 export class IreMainAreaDeleteComponent {
   @Input() area: IArea;
-  @Input() show: boolean;
 
   constructor() { }
 

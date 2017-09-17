@@ -10,48 +10,47 @@ export interface IScaleEvent {
   selector: 'app-ire-main-area-handlers',
   styles : [],
   template: `
-<i *ngIf="show">
-  <app-ire-main-area-handle
-    [area] = "area"
-    [action] = "ScaleNW"
-    (mousedown) = "onMouseDown($event, ScaleNW)">
-  </app-ire-main-area-handle>
-  <app-ire-main-area-handle
-    [area] = "area"
-    [action] = "ScaleN"
-    (mousedown) = "onMouseDown($event, ScaleN)">
-  </app-ire-main-area-handle>
-  <app-ire-main-area-handle
-    [area] = "area"
-    [action] = "ScaleNE"
-    (mousedown) = "onMouseDown($event, ScaleNE)">
-  </app-ire-main-area-handle>
-  <app-ire-main-area-handle
-    [area] = "area"
-    [action] = "ScaleW"
-    (mousedown) = "onMouseDown($event, ScaleW)">
-  </app-ire-main-area-handle>
-  <app-ire-main-area-handle
-    [area] = "area"
-    [action] = "ScaleE"
-    (mousedown) = "onMouseDown($event, ScaleE)">
-  </app-ire-main-area-handle>
-  <app-ire-main-area-handle
-    [area] = "area"
-    [action] = "ScaleSW"
-    (mousedown) = "onMouseDown($event, ScaleSW)">
-  </app-ire-main-area-handle>
-  <app-ire-main-area-handle
-    [area] = "area"
-    [action] = "ScaleS"
-    (mousedown) = "onMouseDown($event, ScaleS)">
-  </app-ire-main-area-handle>
-  <app-ire-main-area-handle
-    [area] = "area"
-    [action] = "ScaleSE"
-    (mousedown) = "onMouseDown($event, ScaleSE)">
-  </app-ire-main-area-handle>
-</i>`
+<app-ire-main-area-handle
+  [area] = "area"
+  [action] = "ScaleNW"
+  (mousedown) = "onMouseDown($event, ScaleNW)">
+</app-ire-main-area-handle>
+<app-ire-main-area-handle
+  [area] = "area"
+  [action] = "ScaleN"
+  (mousedown) = "onMouseDown($event, ScaleN)">
+</app-ire-main-area-handle>
+<app-ire-main-area-handle
+  [area] = "area"
+  [action] = "ScaleNE"
+  (mousedown) = "onMouseDown($event, ScaleNE)">
+</app-ire-main-area-handle>
+<app-ire-main-area-handle
+  [area] = "area"
+  [action] = "ScaleW"
+  (mousedown) = "onMouseDown($event, ScaleW)">
+</app-ire-main-area-handle>
+<app-ire-main-area-handle
+  [area] = "area"
+  [action] = "ScaleE"
+  (mousedown) = "onMouseDown($event, ScaleE)">
+</app-ire-main-area-handle>
+<app-ire-main-area-handle
+  [area] = "area"
+  [action] = "ScaleSW"
+  (mousedown) = "onMouseDown($event, ScaleSW)">
+</app-ire-main-area-handle>
+<app-ire-main-area-handle
+  [area] = "area"
+  [action] = "ScaleS"
+  (mousedown) = "onMouseDown($event, ScaleS)">
+</app-ire-main-area-handle>
+<app-ire-main-area-handle
+  [area] = "area"
+  [action] = "ScaleSE"
+  (mousedown) = "onMouseDown($event, ScaleSE)">
+</app-ire-main-area-handle>
+`
 })
 export class IreMainAreaHandlersComponent {
   private readonly ScaleNW = Action.ScaleNW;
@@ -64,7 +63,6 @@ export class IreMainAreaHandlersComponent {
   private readonly ScaleSE = Action.ScaleSE;
 
   @Input() area: IArea;
-  @Input() show: boolean;
   @Output() onScale: EventEmitter<IScaleEvent> =
     new EventEmitter<IScaleEvent>();
 

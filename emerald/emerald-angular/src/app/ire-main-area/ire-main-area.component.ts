@@ -59,16 +59,16 @@ interface IActionContext {
          [outerHeight] = "height"
          (mousedown) = "onSelectionDragStart($event, ix)">
     </app-ire-main-area-sel>
-    <app-ire-main-area-handlers
-         [area]="area"
-         [show]="showHandles(ix)"
-         (onScale) = "onScaleStart($event, ix)">
-    </app-ire-main-area-handlers>
-    <app-ire-main-area-delete
-         [area]="area"
-         [show]="showHandles(ix)"
-         (click) = "onDelete($event, ix)">
-    </app-ire-main-area-delete>
+    <i *ngIf="showHandles(ix)">
+      <app-ire-main-area-handlers
+          [area]="area"
+          (onScale) = "onScaleStart($event, ix)">
+      </app-ire-main-area-handlers>
+      <app-ire-main-area-delete
+          [area]="area"
+          (click) = "onDelete($event, ix)">
+      </app-ire-main-area-delete>
+    </i>
   </div>
   <app-ire-main-area-action-layer
          [outerWidth]="width"
@@ -119,7 +119,7 @@ export class IreMainAreaComponent implements OnChanges {
         imageHrefChange.previousValue as SafeUrl);
       const currentHref = this._sanitizer.sanitize(SecurityContext.URL,
         imageHrefChange.currentValue as SafeUrl);
-      if (!previousHref || previousHref !== currentHref) {
+      if (imageHrefChange.firstChange || previousHref !== currentHref) {
         this.selectedArea = -1;
         this.selectedAreaChanged.emit(this.selectedArea);
       }
