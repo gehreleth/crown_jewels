@@ -1,5 +1,7 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { SafeUrl } from '@angular/platform-browser';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges,
+  SimpleChanges } from '@angular/core';
+import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
+import { SecurityContext } from '@angular/core';
 import { Action } from './action';
 import { IArea } from './area';
 import { IScaleEvent } from '../ire-main-area-handlers/ire-main-area-handlers.component';
@@ -31,7 +33,7 @@ interface IActionContext {
 `],
   template: `
 <div [ngStyle]="topLevelStyles">
-  <div *ngIf="isSelectionsPresent; else noselection">
+  <div *ngIf="atLeastOneSelection; else noselection">
     <img class="blurred"
          [src]="imageHref"
          [ngStyle]="imgStyles"
@@ -78,7 +80,7 @@ interface IActionContext {
   </app-ire-main-area-action-layer>
 </div>`
 })
-export class IreMainAreaComponent {
+export class IreMainAreaComponent implements OnChanges {
   private readonly NoAction = Action.NoAction;
   private readonly Add = Action.Add;
   private readonly Select = Action.Select;
@@ -104,6 +106,25 @@ export class IreMainAreaComponent {
   @Input() height: number;
 
   private actionContext: IActionContext = null;
+
+  constructor(private _sanitizer: DomSanitizer)
+  { }
+
+  // XXX: this construct is too verbose to do a basically simple thing
+  // - to reset the current selection selection when source image is about to change.
+  ngOnChanges(changes: SimpleChanges) {
+    const imageHrefChange = changes['imageHref'];
+    if (imageHrefChange) {
+      const previousHref = this._sanitizer.sanitize(SecurityContext.URL,
+        imageHrefChange.previousValue as SafeUrl);
+      const currentHref = this._sanitizer.sanitize(SecurityContext.URL,
+        imageHrefChange.currentValue as SafeUrl);
+      if (!previousHref || previousHref !== currentHref) {
+        this.selectedArea = -1;
+        this.selectedAreaChanged.emit(this.selectedArea);
+      }
+    }
+  }
 
   private onNewSelectionStart(event: any): void {
     const area: IArea = {
@@ -290,7 +311,7 @@ export class IreMainAreaComponent {
            selection === this.selectedArea;
   }
 
-  private get isSelectionsPresent() : boolean {
+  private get atLeastOneSelection() : boolean {
     return this.areas && this.areas.length > 0;
   }
 

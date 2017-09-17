@@ -72,7 +72,8 @@ export class ImgRegionEditorComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     const imageMetaChange = changes['ImageMeta'];
     if (imageMetaChange) {
-      this.UpdatedAreas = r2a((imageMetaChange.currentValue as IImageMeta).regions);
+      const newImageMeta = (imageMetaChange.currentValue as IImageMeta);
+      this.UpdatedAreas = r2a(newImageMeta.regions);
       this.Areas = this.UpdatedAreas;
     }
   }
