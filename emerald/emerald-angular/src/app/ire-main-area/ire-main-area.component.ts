@@ -79,19 +79,17 @@ export class IreMainAreaComponent {
   private readonly ScaleSE = Action.ScaleSE;
 
   @Input() areas: Array<IArea>;
-  @Output() areasChanged: EventEmitter< Array<IArea> > =
-    new EventEmitter< Array<IArea> >();
+  @Output() areasChanged: EventEmitter<Array<IArea>> =
+    new EventEmitter<Array<IArea>>();
 
   @Input() selectedArea: number = 0;
-  @Output() selectedAreaChanged: EventEmitter<number> =
-    new EventEmitter<number>();
+  @Output() selectedAreaChanged: EventEmitter<number> = new EventEmitter<number>();
 
   @Input() imageHref: SafeUrl;
   @Input() width: number;
   @Input() height: number;
 
-  private readonly currentActionSubj: BehaviorSubject<IActionContext> =
-    new BehaviorSubject<IActionContext>(null);
+  private actionContext: IActionContext = null;
 
   private onNewSelectionStart(event: any): void {
     const area: IArea = {
@@ -108,7 +106,7 @@ export class IreMainAreaComponent {
       area: { ...area },
       originatingEvent: event
     }
-    this.currentActionSubj.next(actionContext);
+    this.actionContext = actionContext;
   }
 
   private onSelectionDragStart(event: any, selection: number): void {
@@ -121,7 +119,7 @@ export class IreMainAreaComponent {
       area: { ...area },
       originatingEvent: event
     }
-    this.currentActionSubj.next(actionContext);
+    this.actionContext = actionContext;
   }
 
   private onScaleStart(event: IScaleEvent, selection: number): void {
@@ -134,7 +132,7 @@ export class IreMainAreaComponent {
       area: { ...area },
       originatingEvent: event.nestedEvent
     }
-    this.currentActionSubj.next(actionContext);
+    this.actionContext = actionContext;
   }
 
   private onDelete(event: any, selection: number): void {
@@ -145,20 +143,18 @@ export class IreMainAreaComponent {
   }
 
   private onActionLayerMouseDown(event: any): void {
-    this.currentActionSubj.next(
-      this.rollbackAction(this.currentActionSubj.getValue(), event));
+    this.actionContext = this.rollbackAction(this.actionContext, event);
     this.areasChanged.emit(this.areas);
   }
 
   private onActionLayerMouseMove(event: any): void {
-    this.currentActionSubj.next(
-      this.updateActionContext(this.currentActionSubj.getValue(), event));
+    this.actionContext = this.updateActionContext(this.actionContext, event);
   }
 
   private onActionLayerMouseUp(event: any): void {
-    this.currentActionSubj.next(
-      this.commitAction(this.updateActionContext(
-        this.currentActionSubj.getValue(), event), event));
+    this.actionContext =
+      this.commitAction(
+        this.updateActionContext(this.actionContext, event), event);
     this.areasChanged.emit(this.areas);
   }
 
@@ -271,7 +267,7 @@ export class IreMainAreaComponent {
   }
 
   private get currentAction(): Action {
-    const val = this.currentActionSubj.getValue();
+    const val = this.actionContext;
     return val ? val.action : Action.NoAction;
   }
 
