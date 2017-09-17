@@ -7,7 +7,14 @@ interface HandlerStyles { 'left': number, 'top': number, 'cursor': string };
 
 @Component({
   selector: 'app-ire-main-area-handle',
-  styles : [],
+  styles : [`
+.select-areas-resize-handler {
+  background-color: #000;
+  border: 1px #fff solid;
+  height: 8px;
+  width: 8px;
+  overflow: hidden;
+}`],
   template: `
 <div class="{{handlerClass}}"
      [ngStyle]="areaResizeHandlerStyles">

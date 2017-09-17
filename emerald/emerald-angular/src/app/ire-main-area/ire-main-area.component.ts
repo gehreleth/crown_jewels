@@ -14,7 +14,21 @@ interface IActionContext {
 
 @Component({
   selector: 'app-ire-main-area',
-  styles : [],
+  styles : [`
+.blurred {
+	filter: url("/filters.svg#blur3px");
+	-webkit-filter: blur(3px);
+	-moz-filter: blur(3px);
+	-o-filter: blur(3px);
+	filter: blur(3px);
+}
+
+.select-areas-overlay {
+	background-color: #000;
+	overflow: hidden;
+	position: absolute;
+}
+`],
   template: `
 <div [ngStyle]="topLevelStyles">
   <div *ngIf="isSelectionsPresent; else noselection">
