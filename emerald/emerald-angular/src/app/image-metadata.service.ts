@@ -15,10 +15,6 @@ class Private {
     headers.append('Content-Type', 'application/json;charset=UTF-8');
     return new RequestOptions({ headers: headers });
   }
-
-  static imageHref(aquamarineId: string, rotation: Rotation): string {
-    return `/emerald/blobs/${aquamarineId}?rot=${Rotation[rotation]}`;
-  }
 }
 
 @Injectable()
@@ -37,6 +33,10 @@ export class ImageMetadataService {
       aquamarineId: arg.aquamarineId,
       mimeType: arg.mimeType,
       contentLength: arg.contentLength,
+      naturalWidth: arg.naturalHeight, // Rotate 90 deg, so we have to swap them
+      naturalHeight: arg.naturalWidth,
+      clientWidth: arg.clientHeight,
+      clientHeight: arg.clientWidth,
       rotation: updRotation,
       regions: arg.regions
     }
@@ -50,6 +50,10 @@ export class ImageMetadataService {
       aquamarineId: arg.aquamarineId,
       mimeType: arg.mimeType,
       contentLength: arg.contentLength,
+      naturalWidth: arg.naturalHeight, // Rotate 90 deg, so we have to swap them
+      naturalHeight: arg.naturalWidth,
+      clientWidth: arg.clientHeight,
+      clientHeight: arg.clientWidth,
       rotation: updRotation,
       regions: arg.regions
     }
@@ -72,6 +76,10 @@ export class ImageMetadataService {
            aquamarineId: arg.aquamarineId,
            mimeType: arg.mimeType,
            contentLength: arg.contentLength,
+           naturalWidth: arg.naturalWidth,
+           naturalHeight: arg.naturalHeight,
+           clientWidth: arg.clientWidth,
+           clientHeight: arg.clientHeight,
            rotation: rotation,
            regions: arg.regions
          }
@@ -103,6 +111,10 @@ export class ImageMetadataService {
                 aquamarineId: arg.aquamarineId,
                 mimeType: arg.mimeType,
                 contentLength: arg.contentLength,
+                naturalWidth: arg.naturalWidth,
+                naturalHeight: arg.naturalHeight,
+                clientWidth: arg.clientWidth,
+                clientHeight: arg.clientHeight,
                 rotation: rotation,
                 regions: regions
               }
@@ -112,6 +124,24 @@ export class ImageMetadataService {
      } else {
        return Observable.throw("Provided IImageMeta instance lacks href parameter");
      }
+  }
+
+  assignDimensions(arg: IImageMeta, naturalWidth: number, naturalHeight: number,
+    clientWidth: number, clientHeight: number): Observable<IImageMeta>
+  {
+    const retVal: IImageMeta = {
+      href: arg.href,
+      aquamarineId: arg.aquamarineId,
+      mimeType: arg.mimeType,
+      contentLength: arg.contentLength,
+      naturalWidth: naturalWidth,
+      naturalHeight: naturalHeight,
+      clientWidth: clientWidth,
+      clientHeight: clientHeight,
+      rotation: arg.rotation,
+      regions: arg.regions
+    };
+    return Observable.of(retVal);
   }
 
   private metaFromNode(imageNode: ITreeNode, createIfNone: boolean)

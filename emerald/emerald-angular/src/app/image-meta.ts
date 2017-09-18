@@ -29,6 +29,10 @@ export interface IImageMeta {
   readonly aquamarineId: string;
   readonly mimeType: string;
   readonly contentLength: number;
+  readonly naturalWidth?: number;
+  readonly naturalHeight?: number;
+  readonly clientWidth?: number;
+  readonly clientHeight?: number;
   readonly rotation: Rotation;
   readonly regions: Array<IImageRegion>;
 }

@@ -1,15 +1,12 @@
-import { Component, Input, Output, EventEmitter,
-  ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { OnInit, ViewChild, ElementRef } from '@angular/core';
+import { OnChanges, SimpleChanges } from '@angular/core';
+import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
+import { IArea } from '../ire-main-area/area'
 import { ITreeNode, NodeType } from '../tree-node'
 import { ImageMetadataService } from '../image-metadata.service';
 import { IImageMeta, Rotation } from '../image-meta';
 import { IImageRegion } from '../image-region';
-import { OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
-import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
-import { IArea } from '../ire-main-area/area'
 
 function a2r(arg: Array<IArea>): Array<IImageRegion> {
   return arg.map(
@@ -65,25 +62,39 @@ export class ImgRegionEditorComponent implements OnChanges {
   Areas: Array<IArea> = [];
   UpdatedAreas: Array<IArea> = [];
 
-  private Width: number = 1400;
-  private Height: number = 990;
+  @ViewChild('dimensionProbe') dimensionProbe: ElementRef;
+
+  constructor(private _service: ImageMetadataService,
+              private _sanitizer: DomSanitizer)
+  { }
 
   ngOnChanges(changes: SimpleChanges) {
-    const imageMetaChange = changes['ImageMeta'];
-    if (imageMetaChange) {
-      const newImageMeta = (imageMetaChange.currentValue as IImageMeta);
-      this.UpdatedAreas = r2a(newImageMeta.regions);
-      this.Areas = this.UpdatedAreas;
-    }
+    setTimeout(()=>{
+      if (this.dimensionProbe) {
+        const el = this.dimensionProbe.nativeElement;
+        if (el.complete) {
+          this.updateDimensions(el.naturalWidth,
+            el.naturalHeight, el.clientWidth, el.clientHeight);
+        } else {
+          el.onload = () => this.updateDimensions(el.naturalWidth,
+            el.naturalHeight, el.clientWidth, el.clientHeight);
+        }
+      }
+    }, 0);
+  }
+
+  private updateDimensions(naturalWidth: number, naturalHeight: number,
+    clientWidth: number, clientHeight: number)
+  {
+    this.UpdatedAreas = r2a(this.ImageMeta.regions);
+    this.Areas = this.UpdatedAreas;
+    this._service.assignDimensions(this.ImageMeta, naturalWidth,
+      naturalHeight, clientWidth, clientHeight).subscribe(im => this.update(im));
   }
 
   onAreasChanged(arg: Array<IArea>) {
     this.UpdatedAreas = arg;
   }
-
-  constructor(private _service: ImageMetadataService,
-              private _sanitizer: DomSanitizer)
-  { }
 
   get AquamarineBlobHref(): SafeUrl {
     return this._sanitizer.bypassSecurityTrustUrl('/emerald/blobs/'
