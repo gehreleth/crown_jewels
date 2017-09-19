@@ -31,10 +31,10 @@ export class ImageMetadataService {
       aquamarineId: arg.aquamarineId,
       mimeType: arg.mimeType,
       contentLength: arg.contentLength,
-      naturalWidth: undefined, // This will trigger rescale to fit rotated image
-      naturalHeight: undefined,
-      clientWidth: undefined,
-      clientHeight: undefined,
+      naturalWidth: null, // This will trigger rescale to fit rotated image
+      naturalHeight: null,
+      clientWidth: null,
+      clientHeight: null,
       rotation: updRotation,
       regions: arg.regions
     }
@@ -48,10 +48,10 @@ export class ImageMetadataService {
       aquamarineId: arg.aquamarineId,
       mimeType: arg.mimeType,
       contentLength: arg.contentLength,
-      naturalWidth: undefined, // This will trigger rescale to fit rotated image
-      naturalHeight: undefined,
-      clientWidth: undefined,
-      clientHeight: undefined,
+      naturalWidth: null, // This will trigger rescale to fit rotated image
+      naturalHeight: null,
+      clientWidth: null,
+      clientHeight: null,
       rotation: updRotation,
       regions: arg.regions
     }
@@ -88,7 +88,9 @@ export class ImageMetadataService {
      }
   }
 
-  assignRegionsAndUpdate(arg: IImageMeta, regions: Array<IImageRegion>): Observable<IImageMeta> {
+  assignRegionsAndUpdate(arg: IImageMeta, regions: Array<IImageRegion>)
+    : Observable<IImageMeta>
+  {
     if (arg && arg.href) {
       return this.http.patch(arg.href,
        JSON.stringify({
@@ -99,29 +101,98 @@ export class ImageMetadataService {
          const rotation = Rotation[dict['rotation'] as string];
          const selfHref = new URL(dict._links.self.href).pathname;
          const regionsHref = new URL(dict._links.regions.href).pathname;
-         const putRegionsHref = new URL(dict._links.putRegions.href).pathname;
-         return this.http.put(putRegionsHref, IImageRegion.regionArrayToJson(regions))
-           .map((rsp : Response) => {
-              const dict = rsp.json();
-              const regions = IImageRegion.jsonToRegionArray(dict);
-              const retVal: IImageMeta = {
-                href : selfHref,
-                aquamarineId: arg.aquamarineId,
-                mimeType: arg.mimeType,
-                contentLength: arg.contentLength,
-                naturalWidth: arg.naturalWidth,
-                naturalHeight: arg.naturalHeight,
-                clientWidth: arg.clientWidth,
-                clientHeight: arg.clientHeight,
-                rotation: rotation,
-                regions: regions
-              }
-              return retVal;
-           });
-         });
+         return this.http.get(regionsHref).concatMap(
+           (rsp : Response) =>
+             this.updateRegions(arg, IImageRegion.jsonToRegionArray(rsp.json()), regions)
+               .map((updatedRegions: Array<IImageRegion>) => {
+                 const retVal: IImageMeta = {
+                   href : selfHref,
+                   aquamarineId: arg.aquamarineId,
+                   mimeType: arg.mimeType,
+                   contentLength: arg.contentLength,
+                   naturalWidth: arg.naturalWidth,
+                   naturalHeight: arg.naturalHeight,
+                   clientWidth: arg.clientWidth,
+                   clientHeight: arg.clientHeight,
+                   rotation: rotation,
+                   regions: updatedRegions
+                 };
+                 return retVal;
+               }));
+             });
      } else {
        return Observable.throw("Provided IImageMeta instance lacks href parameter");
      }
+  }
+
+  private updateRegions(arg: IImageMeta, previousRegions: Array<IImageRegion>,
+    currentRegions: Array<IImageRegion>): Observable< Array<IImageRegion> >
+  {
+    const previousRegionHrefs = new Set<string>(previousRegions.map(q => q.href));
+    const currentRegionHrefs = new Set<string>(currentRegions.map(q => q.href));
+    let regionsToPost: Array<IImageRegion> = [];
+    let regionsToPatch: Array<IImageRegion> = [];
+    const regionHrefsToDelete =
+      previousRegions.filter(r => !currentRegionHrefs.has(r.href))
+      .map(r => r.href);
+    for (const r of currentRegions) {
+      if (!r.href) {
+        regionsToPost.push(r);
+      } else if (previousRegionHrefs.has(r.href)) {
+        regionsToPatch.push(r);
+      }
+    }
+    return Observable.forkJoin(
+      this.updateRegions_post(arg, regionsToPost)
+        .concat(this.updateRegions_patch(regionsToPatch))
+          .concat(this.updateRegions_delete(regionHrefsToDelete)))
+          .map((rsps: Array<Response>) =>
+            rsps.map(q => IImageRegion.fromDict(q.json())));
+  }
+
+  private updateRegions_post(arg: IImageMeta, regions: Array<IImageRegion>)
+    : Array<Observable<Response>>
+  {
+    let retVal = new Array<Observable<Response>>();
+    for (const r of regions) {
+      retVal.push(this.http.post('/emerald/rest-jpa/img-region',
+        JSON.stringify({
+          text: r.text,
+          x: r.x,
+          y: r.y,
+          width: r.width,
+          height: r.height,
+          imageMetadata: arg.href
+        }), makeDefReqOpts()));
+    }
+    return retVal;
+  }
+
+  private updateRegions_patch(regions: Array<IImageRegion>)
+    : Array<Observable<Response>>
+  {
+    let retVal = new Array<Observable<Response>>();
+    for (const r of regions) {
+      retVal.push(this.http.patch(r.href,
+        JSON.stringify({
+          text: r.text,
+          x: r.x,
+          y: r.y,
+          width: r.width,
+          height: r.height
+        }), makeDefReqOpts()));
+    }
+    return retVal;
+  }
+
+  private updateRegions_delete(regionHrefs: Array<string>)
+    : Array<Observable<Response>>
+  {
+    let retVal = new Array<Observable<Response>>();
+    for (const rh of regionHrefs) {
+      retVal.push(this.http.delete(rh));
+    }
+    return retVal;
   }
 
   assignDimensions(arg: IImageMeta, naturalWidth: number, naturalHeight: number,

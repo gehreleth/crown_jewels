@@ -132,7 +132,7 @@ export class IreMainAreaComponent implements OnChanges {
 
   private onNewSelectionStart(event: any): void {
     const area: IArea = {
-      x: event.layerX, y: event.layerY, width: 0, height: 0
+      x: event.layerX, y: event.layerY, width: 0, height: 0, attachment: null
     }
     this.areas = this.areas.concat([area]);
     this.areasChanged.emit(this.areas);
@@ -236,7 +236,9 @@ export class IreMainAreaComponent implements OnChanges {
     const y = Math.min(this.height - oldContext.area.height,
       Math.max(oldContext.area.y + deltaY, 0));
     this.areas[oldContext.selection] = {x: x, y: y,
-      width: oldContext.area.width, height: oldContext.area.height};
+      width: oldContext.area.width, height: oldContext.area.height,
+      attachment: oldContext.area.attachment
+    };
     this.areasChanged.emit(this.areas);
     const retVal: IActionContext = {
       action: Action.Move,
@@ -296,7 +298,8 @@ export class IreMainAreaComponent implements OnChanges {
     right = Math.min(this.width, right);
     bottom = Math.min(this.height, bottom);
     this.areas[oldContext.selection] = {x: left, y: top,
-      width: right - left, height: bottom - top};
+      width: right - left, height: bottom - top,
+      attachment: oldContext.area.attachment };
     this.areasChanged.emit(this.areas);
     const retVal: IActionContext = {
       action: action, selection: oldContext.selection,
