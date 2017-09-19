@@ -8,7 +8,7 @@ import { ImageMetadataService } from '../image-metadata.service';
 import { IImageMeta, Rotation } from '../image-meta';
 import { IImageRegion } from '../image-region';
 
-function a2r(arg: Array<IArea>): Array<IImageRegion> {
+function a2r(arg: Array<IArea>, scale: number): Array<IImageRegion> {
   return arg.map(
     q => {
       let href: string = null;
@@ -20,10 +20,10 @@ function a2r(arg: Array<IArea>): Array<IImageRegion> {
         text = q.attachment.text;
       }
       const retVal: IImageRegion = {
-        x: q.x,
-        y: q.y,
-        width: q.width,
-        height: q.height,
+        x: q.x * scale,
+        y: q.y * scale,
+        width: q.width * scale,
+        height: q.height * scale,
         text: text,
         href: href
       }
@@ -32,14 +32,14 @@ function a2r(arg: Array<IArea>): Array<IImageRegion> {
   );
 }
 
-function r2a(arg: Array<IImageRegion>): Array<IArea> {
+function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
   return arg.map(
     q => {
       const retVal: IArea = {
-        x: q.x,
-        y: q.y,
-        width: q.width,
-        height: q.height,
+        x: q.x * scale,
+        y: q.y * scale,
+        width: q.width * scale,
+        height: q.height * scale,
         attachment: {
           href: q.href,
           text: q.text,
@@ -86,7 +86,8 @@ export class ImgRegionEditorComponent implements OnChanges {
   private updateDimensions(naturalWidth: number, naturalHeight: number,
     clientWidth: number, clientHeight: number)
   {
-    this.UpdatedAreas = r2a(this.ImageMeta.regions);
+    const scale = clientWidth / naturalWidth;
+    this.UpdatedAreas = r2a(this.ImageMeta.regions, scale);
     this.Areas = this.UpdatedAreas;
     this._service.assignDimensions(this.ImageMeta, naturalWidth,
       naturalHeight, clientWidth, clientHeight).subscribe(im => this.update(im));
@@ -111,7 +112,8 @@ export class ImgRegionEditorComponent implements OnChanges {
   }
 
   onSaveRegions(event: any) : void {
-    this._service.assignRegionsAndUpdate(this.ImageMeta, a2r(this.UpdatedAreas))
+    const scale = this.ImageMeta.naturalWidth / this.ImageMeta.clientWidth;
+    this._service.assignRegionsAndUpdate(this.ImageMeta, a2r(this.UpdatedAreas, scale))
       .subscribe(im => this.update(im));
   }
 

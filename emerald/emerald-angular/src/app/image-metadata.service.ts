@@ -9,12 +9,10 @@ import "rxjs/add/observable/of";
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/operator/concatMap';
 
-class Private {
-  static jsonUtf8ReqOpts() : RequestOptions {
-    let headers = new Headers();
-    headers.append('Content-Type', 'application/json;charset=UTF-8');
-    return new RequestOptions({ headers: headers });
-  }
+function makeDefReqOpts() : RequestOptions {
+  let headers = new Headers();
+  headers.append('Content-Type', 'application/json;charset=UTF-8');
+  return new RequestOptions({ headers: headers });
 }
 
 @Injectable()
@@ -33,7 +31,7 @@ export class ImageMetadataService {
       aquamarineId: arg.aquamarineId,
       mimeType: arg.mimeType,
       contentLength: arg.contentLength,
-      naturalWidth: undefined, // This will trigger rescale to fit image
+      naturalWidth: undefined, // This will trigger rescale to fit rotated image
       naturalHeight: undefined,
       clientWidth: undefined,
       clientHeight: undefined,
@@ -50,7 +48,7 @@ export class ImageMetadataService {
       aquamarineId: arg.aquamarineId,
       mimeType: arg.mimeType,
       contentLength: arg.contentLength,
-      naturalWidth: undefined, // This will trigger rescale to fit image
+      naturalWidth: undefined, // This will trigger rescale to fit rotated image
       naturalHeight: undefined,
       clientWidth: undefined,
       clientHeight: undefined,
@@ -65,7 +63,7 @@ export class ImageMetadataService {
       return this.http.patch(arg.href,
        JSON.stringify({
          rotation : Rotation[arg.rotation],
-       }), Private.jsonUtf8ReqOpts())
+       }), makeDefReqOpts())
        .map((rsp : Response) => {
          const dict = rsp.json();
          const rotation = Rotation[dict['rotation'] as string];
@@ -95,7 +93,7 @@ export class ImageMetadataService {
       return this.http.patch(arg.href,
        JSON.stringify({
          rotation : Rotation[arg.rotation],
-       }), Private.jsonUtf8ReqOpts())
+       }), makeDefReqOpts())
        .concatMap((rsp : Response) => {
          const dict = rsp.json();
          const rotation = Rotation[dict['rotation'] as string];
@@ -183,7 +181,7 @@ export class ImageMetadataService {
       JSON.stringify({
         rotation : Rotation[Rotation.NONE],
         storageNode: `/emerald/rest-jpa/storage-node/${imageNode.id}`
-      }), Private.jsonUtf8ReqOpts())
+      }), makeDefReqOpts())
       .map((rsp: Response) => {
         const dict = rsp.json();
         const selfHref = new URL(dict._links.self.href).pathname;
