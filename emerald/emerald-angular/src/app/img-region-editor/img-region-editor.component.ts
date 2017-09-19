@@ -56,13 +56,13 @@ function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
   styleUrls: ['./img-region-editor.component.scss']
 })
 export class ImgRegionEditorComponent implements OnChanges {
-  @Input() ImageMeta : IImageMeta = null;
-  @Output() ImageMetaChange = new EventEmitter<IImageMeta>();
+  @Input() imageMeta : IImageMeta = null;
+  @Output() imageMetaChange = new EventEmitter<IImageMeta>();
 
-  Areas: Array<IArea> = [];
-  UpdatedAreas: Array<IArea> = [];
+  private areas: Array<IArea> = [];
+  private updatedAreas: Array<IArea> = [];
 
-  @ViewChild('dimensionProbe') dimensionProbe: ElementRef;
+  @ViewChild('dimensionProbe') private dimensionProbe: ElementRef;
 
   constructor(private _service: ImageMetadataService,
               private _sanitizer: DomSanitizer)
@@ -87,38 +87,38 @@ export class ImgRegionEditorComponent implements OnChanges {
     clientWidth: number, clientHeight: number)
   {
     const scale = clientWidth / naturalWidth;
-    this.UpdatedAreas = r2a(this.ImageMeta.regions, scale);
-    this.Areas = this.UpdatedAreas;
-    this._service.assignDimensions(this.ImageMeta, naturalWidth,
+    this.updatedAreas = r2a(this.imageMeta.regions, scale);
+    this.areas = this.updatedAreas;
+    this._service.assignDimensions(this.imageMeta, naturalWidth,
       naturalHeight, clientWidth, clientHeight).subscribe(im => this.update(im));
   }
 
-  onAreasChanged(arg: Array<IArea>) {
-    this.UpdatedAreas = arg;
+  private areasChanged(arg: Array<IArea>) {
+    this.updatedAreas = arg;
   }
 
-  get AquamarineBlobHref(): SafeUrl {
+  private get aquamarineBlobHref(): SafeUrl {
     return this._sanitizer.bypassSecurityTrustUrl('/emerald/blobs/'
-      + `${this.ImageMeta.aquamarineId}`
-      + `?rot=${Rotation[this.ImageMeta.rotation]}`);
+      + `${this.imageMeta.aquamarineId}`
+      + `?rot=${Rotation[this.imageMeta.rotation]}`);
   }
 
-  onRotateCW(event:any): void {
-    this._service.rotateCW(this.ImageMeta).subscribe(im => this.update(im));
+  private onRotateCW(event:any): void {
+    this._service.rotateCW(this.imageMeta).subscribe(im => this.update(im));
   }
 
-  onRotateCCW(event:any): void {
-    this._service.rotateCCW(this.ImageMeta).subscribe(im => this.update(im));
+  private onRotateCCW(event:any): void {
+    this._service.rotateCCW(this.imageMeta).subscribe(im => this.update(im));
   }
 
-  onSaveRegions(event: any) : void {
-    const scale = this.ImageMeta.naturalWidth / this.ImageMeta.clientWidth;
-    this._service.assignRegionsAndUpdate(this.ImageMeta, a2r(this.UpdatedAreas, scale))
+  private onSaveRegions(event: any) : void {
+    const scale = this.imageMeta.naturalWidth / this.imageMeta.clientWidth;
+    this._service.assignRegionsAndUpdate(this.imageMeta, a2r(this.updatedAreas, scale))
       .subscribe(im => this.update(im));
   }
 
   private update(arg: IImageMeta) :void {
-    this.ImageMeta = arg;
-    this.ImageMetaChange.emit(this.ImageMeta);
+    this.imageMeta = arg;
+    this.imageMetaChange.emit(this.imageMeta);
   }
 }

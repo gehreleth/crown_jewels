@@ -13,14 +13,14 @@
     </button>
   </div>
   <hr>
-  <app-ire-main-area *ngIf="ImageMeta.clientWidth; else nodimensions"
-                     [imageHref]="AquamarineBlobHref"
-                     [width]="ImageMeta.clientWidth"
-                     [height]="ImageMeta.clientHeight"
-                     [areas] = "Areas"
+  <app-ire-main-area *ngIf="imageMeta.clientWidth; else nodimensions"
+                     [imageHref]="aquamarineBlobHref"
+                     [width]="imageMeta.clientWidth"
+                     [height]="imageMeta.clientHeight"
+                     [areas] = "areas"
                      (areasChanged)=onAreasChanged($event)>
   </app-ire-main-area>
   <ng-template #nodimensions>
-    <img #dimensionProbe [src]="AquamarineBlobHref" class="img-fluid">
+    <img #dimensionProbe [src]="aquamarineBlobHref" class="img-fluid">
   </ng-template>
 </div>

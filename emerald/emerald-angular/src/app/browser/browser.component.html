@@ -24,7 +24,7 @@
           </div>
           <div *ngSwitchCase="nodeType.Image">
             <div *ngIf="ImageMeta;else nometadata">
-              <app-img-region-editor [(ImageMeta)]="ImageMeta">
+              <app-img-region-editor [(imageMeta)]="ImageMeta">
               </app-img-region-editor>
             </div>
             <ng-template #nometadata>
