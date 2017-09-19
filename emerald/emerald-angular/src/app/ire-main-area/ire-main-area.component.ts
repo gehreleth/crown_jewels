@@ -115,15 +115,19 @@ export class IreMainAreaComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     const imageHrefChange = changes['imageHref'];
     if (imageHrefChange) {
-      const previousHref = this._sanitizer.sanitize(SecurityContext.URL,
-        imageHrefChange.previousValue as SafeUrl);
-      const currentHref = this._sanitizer.sanitize(SecurityContext.URL,
-        imageHrefChange.currentValue as SafeUrl);
-      if (imageHrefChange.firstChange || previousHref !== currentHref) {
+      const previousHref = !imageHrefChange.firstChange
+        ? this.sanitizeUrl(imageHrefChange.previousValue)
+        : null;
+      const currentHref = this.sanitizeUrl(imageHrefChange.currentValue);
+      if (currentHref !== previousHref) {
         this.selectedArea = -1;
         this.selectedAreaChanged.emit(this.selectedArea);
       }
     }
+  }
+
+  private sanitizeUrl(arg: SafeUrl) : string {
+    return this._sanitizer.sanitize(SecurityContext.URL, arg);
   }
 
   private onNewSelectionStart(event: any): void {

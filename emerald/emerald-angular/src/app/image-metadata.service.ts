@@ -33,10 +33,10 @@ export class ImageMetadataService {
       aquamarineId: arg.aquamarineId,
       mimeType: arg.mimeType,
       contentLength: arg.contentLength,
-      naturalWidth: arg.naturalHeight, // Rotate 90 deg, so we have to swap them
-      naturalHeight: arg.naturalWidth,
-      clientWidth: arg.clientHeight,
-      clientHeight: arg.clientWidth,
+      naturalWidth: undefined, // This will trigger rescale to fit image
+      naturalHeight: undefined,
+      clientWidth: undefined,
+      clientHeight: undefined,
       rotation: updRotation,
       regions: arg.regions
     }
@@ -50,10 +50,10 @@ export class ImageMetadataService {
       aquamarineId: arg.aquamarineId,
       mimeType: arg.mimeType,
       contentLength: arg.contentLength,
-      naturalWidth: arg.naturalHeight, // Rotate 90 deg, so we have to swap them
-      naturalHeight: arg.naturalWidth,
-      clientWidth: arg.clientHeight,
-      clientHeight: arg.clientWidth,
+      naturalWidth: undefined, // This will trigger rescale to fit image
+      naturalHeight: undefined,
+      clientWidth: undefined,
+      clientHeight: undefined,
       rotation: updRotation,
       regions: arg.regions
     }
