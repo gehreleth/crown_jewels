@@ -17,7 +17,7 @@ function makeDefReqOpts() : RequestOptions {
 
 @Injectable()
 export class ImageMetadataService {
-  constructor(private http: Http) {
+  constructor(private _http: Http) {
   }
 
   getMeta(arg: ITreeNode): Observable<IImageMeta> {
@@ -60,7 +60,7 @@ export class ImageMetadataService {
 
   updateWithoutRegions(arg: IImageMeta) : Observable<IImageMeta> {
     if (arg && arg.href) {
-      return this.http.patch(arg.href,
+      return this._http.patch(arg.href,
        JSON.stringify({
          rotation : Rotation[arg.rotation],
        }), makeDefReqOpts())
@@ -92,7 +92,7 @@ export class ImageMetadataService {
     : Observable<IImageMeta>
   {
     if (arg && arg.href) {
-      return this.http.patch(arg.href,
+      return this._http.patch(arg.href,
        JSON.stringify({
          rotation : Rotation[arg.rotation],
        }), makeDefReqOpts())
@@ -126,7 +126,7 @@ export class ImageMetadataService {
   private updateRegions(arg: IImageMeta, regionsHref: string,
     currentRegions: Array<IImageRegion>): Observable< Array<IImageRegion> >
   {
-    return this.http.get(regionsHref).concatMap((response: Response) => {
+    return this._http.get(regionsHref).concatMap((response: Response) => {
       const previousRegions = IImageRegion.jsonToRegionArray(response.json());
       const previousRegionHrefs = new Set<string>(previousRegions.map(q => q.href));
       const currentRegionHrefs = new Set<string>(currentRegions.map(q => q.href));
@@ -151,7 +151,7 @@ export class ImageMetadataService {
           return Observable.throw(`Got HTTP error ${response.status} : ${response.statusText}`);
         }
       }
-      return this.http.get(regionsHref).map((response: Response) =>
+      return this._http.get(regionsHref).map((response: Response) =>
         IImageRegion.jsonToRegionArray(response.json()));
     });
   }
@@ -161,7 +161,7 @@ export class ImageMetadataService {
   {
     let retVal = new Array<Observable<Response>>();
     for (const r of regions) {
-      retVal.push(this.http.post('/emerald/rest-jpa/img-region',
+      retVal.push(this._http.post('/emerald/rest-jpa/img-region',
         JSON.stringify({
           text: r.text,
           x: r.x,
@@ -179,7 +179,7 @@ export class ImageMetadataService {
   {
     let retVal = new Array<Observable<Response>>();
     for (const r of regions) {
-      retVal.push(this.http.patch(r.href,
+      retVal.push(this._http.patch(r.href,
         JSON.stringify({
           text: r.text,
           x: r.x,
@@ -196,7 +196,7 @@ export class ImageMetadataService {
   {
     let retVal = new Array<Observable<Response>>();
     for (const rh of regionHrefs) {
-      retVal.push(this.http.delete(rh));
+      retVal.push(this._http.delete(rh));
     }
     return retVal;
   }
@@ -223,14 +223,14 @@ export class ImageMetadataService {
     : Observable<IImageMeta>
   {
     if (imageNode.type === NodeType.Image) {
-      return this.http.get('/emerald/rest-jpa/image-metadata/search/'
+      return this._http.get('/emerald/rest-jpa/image-metadata/search/'
                     + `findOneByStorageNodeId?storage_node_id=${imageNode.id}`)
         .concatMap((rsp: Response) => {
           const dict = rsp.json()
           const rotation = Rotation[dict['rotation'] as string];
           const selfHref = new URL(dict._links.self.href).pathname;
           const regionsHref = new URL(dict._links.regions.href).pathname;
-          return this.http.get(regionsHref).map((rsp: Response) => {
+          return this._http.get(regionsHref).map((rsp: Response) => {
             const regions = IImageRegion.jsonToRegionArray(rsp.json());
             const retVal: IImageMeta = {
               href : selfHref,
@@ -254,7 +254,7 @@ export class ImageMetadataService {
   }
 
   private createImageMeta(imageNode: ITreeNode): Observable<IImageMeta> {
-    return this.http.post('/emerald/rest-jpa/image-metadata/',
+    return this._http.post('/emerald/rest-jpa/image-metadata/',
       JSON.stringify({
         rotation : Rotation[Rotation.NONE],
         storageNode: `/emerald/rest-jpa/storage-node/${imageNode.id}`
