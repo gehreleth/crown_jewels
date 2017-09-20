@@ -105,7 +105,7 @@ export class IreMainAreaComponent implements OnChanges {
   @Input() width: number;
   @Input() height: number;
 
-  private actionContext: IActionContext = null;
+  private _actionContext: IActionContext = null;
 
   constructor(private _sanitizer: DomSanitizer)
   { }
@@ -145,7 +145,7 @@ export class IreMainAreaComponent implements OnChanges {
       area: { ...area },
       originatingEvent: event
     }
-    this.actionContext = actionContext;
+    this._actionContext = actionContext;
   }
 
   private onSelectionDragStart(event: any, selection: number): void {
@@ -158,7 +158,7 @@ export class IreMainAreaComponent implements OnChanges {
       area: { ...area },
       originatingEvent: event
     }
-    this.actionContext = actionContext;
+    this._actionContext = actionContext;
   }
 
   private onScaleStart(event: IScaleEvent, selection: number): void {
@@ -171,7 +171,7 @@ export class IreMainAreaComponent implements OnChanges {
       area: { ...area },
       originatingEvent: event.nestedEvent
     }
-    this.actionContext = actionContext;
+    this._actionContext = actionContext;
   }
 
   private onDelete(event: any, selection: number): void {
@@ -182,18 +182,18 @@ export class IreMainAreaComponent implements OnChanges {
   }
 
   private onActionLayerMouseDown(event: any): void {
-    this.actionContext = this.rollbackAction(this.actionContext, event);
+    this._actionContext = this.rollbackAction(this._actionContext, event);
     this.areasChanged.emit(this.areas);
   }
 
   private onActionLayerMouseMove(event: any): void {
-    this.actionContext = this.updateActionContext(this.actionContext, event);
+    this._actionContext = this.updateActionContext(this._actionContext, event);
   }
 
   private onActionLayerMouseUp(event: any): void {
-    this.actionContext =
+    this._actionContext =
       this.commitAction(
-        this.updateActionContext(this.actionContext, event), event);
+        this.updateActionContext(this._actionContext, event), event);
     this.areasChanged.emit(this.areas);
   }
 
@@ -309,7 +309,7 @@ export class IreMainAreaComponent implements OnChanges {
   }
 
   private get currentAction(): Action {
-    const val = this.actionContext;
+    const val = this._actionContext;
     return val ? val.action : Action.NoAction;
   }
 
