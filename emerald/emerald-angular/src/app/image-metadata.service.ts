@@ -147,7 +147,7 @@ export class ImageMetadataService {
             .concat(this.updateRegions_delete(regionHrefsToDelete)));
     }).concatMap((responses: Array<Response>) => {
       for (const response of responses) {
-        if (!(response.status >= 200 && response.status <= 300)) {
+        if (!(response.status >= 200 && response.status < 300)) {
           return Observable.throw(`Got HTTP error ${response.status} : ${response.statusText}`);
         }
       }
