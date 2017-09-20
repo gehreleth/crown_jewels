@@ -101,56 +101,63 @@ export class ImageMetadataService {
          const rotation = Rotation[dict['rotation'] as string];
          const selfHref = new URL(dict._links.self.href).pathname;
          const regionsHref = new URL(dict._links.regions.href).pathname;
-         return this.http.get(regionsHref).concatMap(
-           (rsp : Response) =>
-             this.updateRegions(arg, IImageRegion.jsonToRegionArray(rsp.json()), regions)
-               .map((updatedRegions: Array<IImageRegion>) => {
-                 const retVal: IImageMeta = {
-                   href : selfHref,
-                   aquamarineId: arg.aquamarineId,
-                   mimeType: arg.mimeType,
-                   contentLength: arg.contentLength,
-                   naturalWidth: arg.naturalWidth,
-                   naturalHeight: arg.naturalHeight,
-                   clientWidth: arg.clientWidth,
-                   clientHeight: arg.clientHeight,
-                   rotation: rotation,
-                   regions: updatedRegions
-                 };
-                 return retVal;
-               }));
-             });
+         return this.updateRegions(arg, regionsHref, regions)
+           .map((updatedRegions: Array<IImageRegion>) => {
+             const retVal: IImageMeta = {
+               href : selfHref,
+               aquamarineId: arg.aquamarineId,
+               mimeType: arg.mimeType,
+               contentLength: arg.contentLength,
+               naturalWidth: arg.naturalWidth,
+               naturalHeight: arg.naturalHeight,
+               clientWidth: arg.clientWidth,
+               clientHeight: arg.clientHeight,
+               rotation: rotation,
+               regions: updatedRegions
+             };
+             return retVal;
+           })
+         });
      } else {
        return Observable.throw("Provided IImageMeta instance lacks href parameter");
      }
   }
 
-  private updateRegions(arg: IImageMeta, previousRegions: Array<IImageRegion>,
+  private updateRegions(arg: IImageMeta, regionsHref: string,
     currentRegions: Array<IImageRegion>): Observable< Array<IImageRegion> >
   {
-    const previousRegionHrefs = new Set<string>(previousRegions.map(q => q.href));
-    const currentRegionHrefs = new Set<string>(currentRegions.map(q => q.href));
-    let regionsToPost: Array<IImageRegion> = [];
-    let regionsToPatch: Array<IImageRegion> = [];
-    const regionHrefsToDelete =
-      previousRegions.filter(r => !currentRegionHrefs.has(r.href))
-      .map(r => r.href);
-    for (const r of currentRegions) {
-      if (!r.href) {
-        regionsToPost.push(r);
-      } else if (previousRegionHrefs.has(r.href)) {
-        regionsToPatch.push(r);
+    let statObs = this.http.get(regionsHref).concatMap((response: Response) => {
+      const previousRegions = IImageRegion.jsonToRegionArray(response.json());
+      const previousRegionHrefs = new Set<string>(previousRegions.map(q => q.href));
+      const currentRegionHrefs = new Set<string>(currentRegions.map(q => q.href));
+      let regionsToPost: Array<IImageRegion> = [];
+      let regionsToPatch: Array<IImageRegion> = [];
+      const regionHrefsToDelete =
+        previousRegions.filter(r => !currentRegionHrefs.has(r.href))
+        .map(r => r.href);
+      for (const r of currentRegions) {
+        if (!r.href) {
+          regionsToPost.push(r);
+        } else if (previousRegionHrefs.has(r.href)) {
+          regionsToPatch.push(r);
+        }
       }
-    }
-    return Observable.forkJoin(
-      this.updateRegions_post(arg, regionsToPost)
-        .concat(this.updateRegions_patch(regionsToPatch))
-          .concat(this.updateRegions_delete(regionHrefsToDelete)))
-          .map((rsps: Array<Response>) =>
-            rsps.map(q => IImageRegion.fromDict(q.json())));
+      return Observable.forkJoin(this.updateRegions_post(arg.href, regionsToPost)
+          .concat(this.updateRegions_patch(regionsToPatch))
+            .concat(this.updateRegions_delete(regionHrefsToDelete)));
+    });
+    return statObs.concatMap((responses: Array<Response>) => {
+      for (const response of responses) {
+        if (!(response.status >= 200 && response.status <= 300)) {
+          return Observable.throw(`Got HTTP error ${response.status} : ${response.statusText}`);
+        }
+      }
+      return this.http.get(regionsHref).map((response: Response) =>
+        IImageRegion.jsonToRegionArray(response.json()));
+    });
   }
 
-  private updateRegions_post(arg: IImageMeta, regions: Array<IImageRegion>)
+  private updateRegions_post(imageMetadataHref: string, regions: Array<IImageRegion>)
     : Array<Observable<Response>>
   {
     let retVal = new Array<Observable<Response>>();
@@ -162,7 +169,7 @@ export class ImageMetadataService {
           y: r.y,
           width: r.width,
           height: r.height,
-          imageMetadata: arg.href
+          imageMetadata: imageMetadataHref
         }), makeDefReqOpts()));
     }
     return retVal;
