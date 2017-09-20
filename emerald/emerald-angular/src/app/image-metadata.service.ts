@@ -20,10 +20,25 @@ export class ImageMetadataService {
   constructor(private _http: Http) {
   }
 
+  /**
+  * Gets image meta for given tree node associated with image stored in aquamarine.
+  *
+  * @param arg tree node for wich we receive meta object.
+  *
+  * @returns Observeble of image meta object, just created at backend
+  * if none existed prior to this call.
+  */
   getMeta(arg: ITreeNode): Observable<IImageMeta> {
     return this.metaFromNode(arg, true);
   }
 
+  /**
+  * Updates image meta, sets its default angle to (current angle + 90) MOD 360
+  *
+  * @param arg the meta object being updated.
+  *
+  * @returns Observable of updated meta object.
+  */
   rotateCW(arg: IImageMeta) : Observable<IImageMeta> {
     const updRotation = Rotation.rotateCW(arg.rotation)
     const im: IImageMeta = {
@@ -41,6 +56,13 @@ export class ImageMetadataService {
     return this.updateWithoutRegions(im);
   }
 
+  /**
+  * Updates image meta, sets its default angle to (current angle + 270) MOD 360
+  *
+  * @param arg the meta object being updated.
+  *
+  * @returns Observable of updated meta object.
+  */
   rotateCCW(arg: IImageMeta) : Observable<IImageMeta> {
     const updRotation = Rotation.rotateCCW(arg.rotation)
     const im: IImageMeta = {
@@ -58,6 +80,14 @@ export class ImageMetadataService {
     return this.updateWithoutRegions(im);
   }
 
+  /**
+  * Performs shallow update of image meta object not touching any external entities
+  * associated with this image meta via foreign key.
+  *
+  * @param arg the meta object being updated.
+  *
+  * @returns Observable of the updated meta object.
+  */
   updateWithoutRegions(arg: IImageMeta) : Observable<IImageMeta> {
     if (arg && arg.href) {
       return this._http.patch(arg.href,
@@ -88,6 +118,19 @@ export class ImageMetadataService {
      }
   }
 
+  /**
+  * Assigns new regions collection to the image meta object and performs deep
+  * update of regions involving POST, PATCH and DELETE for each region, according
+  * to its status. If region doesn't have HATEOAS href yet, it it's being inserted via
+  * POST, otherwise it's being updated via PATCH, and regions didn't found in the provided
+  * collection, but found at backend will be deleted with DELETE request.
+  *
+  * @param arg meta object being updated.
+  *
+  * @param regions new regions.
+  *
+  * @returns Observable of the updated meta object.
+  */
   assignRegionsAndUpdate(arg: IImageMeta, regions: Array<IImageRegion>)
     : Observable<IImageMeta>
   {
