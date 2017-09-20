@@ -59,8 +59,8 @@ export class ImgRegionEditorComponent implements OnChanges {
   @Input() imageMeta : IImageMeta = null;
   @Output() imageMetaChange = new EventEmitter<IImageMeta>();
 
-  private areas: Array<IArea> = [];
-  private updatedAreas: Array<IArea> = [];
+  private _areas: Array<IArea> = [];
+  private _updatedAreas: Array<IArea> = [];
 
   @ViewChild('dimensionProbe') private dimensionProbe: ElementRef;
 
@@ -87,14 +87,14 @@ export class ImgRegionEditorComponent implements OnChanges {
     clientWidth: number, clientHeight: number)
   {
     const scale = clientWidth / naturalWidth;
-    this.updatedAreas = r2a(this.imageMeta.regions, scale);
-    this.areas = this.updatedAreas;
+    this._updatedAreas = r2a(this.imageMeta.regions, scale);
+    this._areas = this._updatedAreas;
     this._service.assignDimensions(this.imageMeta, naturalWidth,
       naturalHeight, clientWidth, clientHeight).subscribe(im => this.update(im));
   }
 
   private areasChanged(arg: Array<IArea>) {
-    this.updatedAreas = arg;
+    this._updatedAreas = arg;
   }
 
   private get aquamarineBlobHref(): SafeUrl {
@@ -113,7 +113,7 @@ export class ImgRegionEditorComponent implements OnChanges {
 
   private onSaveRegions(event: any) : void {
     const scale = this.imageMeta.naturalWidth / this.imageMeta.clientWidth;
-    this._service.assignRegionsAndUpdate(this.imageMeta, a2r(this.updatedAreas, scale))
+    this._service.assignRegionsAndUpdate(this.imageMeta, a2r(this._updatedAreas, scale))
       .subscribe(im => this.update(im));
   }
 
