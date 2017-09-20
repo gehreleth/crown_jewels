@@ -126,7 +126,7 @@ export class ImageMetadataService {
   private updateRegions(arg: IImageMeta, regionsHref: string,
     currentRegions: Array<IImageRegion>): Observable< Array<IImageRegion> >
   {
-    let statObs = this.http.get(regionsHref).concatMap((response: Response) => {
+    return this.http.get(regionsHref).concatMap((response: Response) => {
       const previousRegions = IImageRegion.jsonToRegionArray(response.json());
       const previousRegionHrefs = new Set<string>(previousRegions.map(q => q.href));
       const currentRegionHrefs = new Set<string>(currentRegions.map(q => q.href));
@@ -145,8 +145,7 @@ export class ImageMetadataService {
       return Observable.forkJoin(this.updateRegions_post(arg.href, regionsToPost)
           .concat(this.updateRegions_patch(regionsToPatch))
             .concat(this.updateRegions_delete(regionHrefsToDelete)));
-    });
-    return statObs.concatMap((responses: Array<Response>) => {
+    }).concatMap((responses: Array<Response>) => {
       for (const response of responses) {
         if (!(response.status >= 200 && response.status <= 300)) {
           return Observable.throw(`Got HTTP error ${response.status} : ${response.statusText}`);
