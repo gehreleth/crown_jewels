@@ -244,6 +244,21 @@ export class ImageMetadataService {
     return retVal;
   }
 
+  /**
+   * The image dimensions isn't stored at backend, but involved in calculations
+   * of the data being sent to the backend, so it's convinient to make a method
+   * in the service acting as if they were stored.
+   *
+   * @param arg meta object being updated - changes won't be sent to backend,
+   * but this method will return result as Observable instance.
+   *
+   * @param naturalWidth image.naturalWidth field extracted from dimensionProbe.
+   * @param naturalHeight image.naturalHeigh field extracted from dimensionProbe.
+   * @param clientWidth image.clientWidth field extracted from dimensionProbe.
+   * @param clientHeight image.clientHeight field extracted from dimensionProbe.
+   *
+   * @returns Observable of the updated meta object.
+   */
   assignDimensions(arg: IImageMeta, naturalWidth: number, naturalHeight: number,
     clientWidth: number, clientHeight: number): Observable<IImageMeta>
   {
