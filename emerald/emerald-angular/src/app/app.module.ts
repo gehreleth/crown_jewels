@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { NgxPopperModule } from 'ngx-popper';
 import { NgModule } from '@angular/core';
 import { HttpModule } from '@angular/http'
 import { LocationStrategy,
@@ -44,6 +45,7 @@ const routes: Routes = [
   ],
   imports: [
     BrowserModule,
+    NgxPopperModule,
     AngularFontAwesomeModule,
     HttpModule,
     BrowserAnimationsModule,

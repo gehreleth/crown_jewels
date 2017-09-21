@@ -12,7 +12,21 @@ import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 	overflow: hidden;
 }`],
   template: `
-<div class="select-areas-outline" [ngStyle]="outlineStyles"></div>
+<div *ngIf="area.text; else notext">
+  <div #popper1 class="select-areas-outline"
+       [popper]="popper1Content"
+       [popperShowOnStart]="true"
+       [popperTrigger]="'click'"
+       [popperPlacement]="'right'"
+       [ngStyle]="outlineStyles">
+   </div>
+   <popper-content #popper1Content>
+     <p class="bold">{{area.text}}</p>
+   </popper-content>
+</div>
+<ng-template #notext>
+  <div class="select-areas-outline" [ngStyle]="outlineStyles"></div>
+</ng-template>
 <div class="select-areas-background-area"
      [style.background]="sanitizedAreaBackgroundStyles"
      [ngStyle]="areaBackgroundOtherStyles">

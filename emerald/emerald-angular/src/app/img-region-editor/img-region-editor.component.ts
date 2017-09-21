@@ -15,16 +15,12 @@ function a2r(arg: Array<IArea>, scale: number): Array<IImageRegion> {
       if (q.attachment && q.attachment.href) {
         href = q.attachment.href;
       }
-      let text: string = null;
-      if (q.attachment && q.attachment.text) {
-        text = q.attachment.text;
-      }
       const retVal: IImageRegion = {
         x: q.x * scale,
         y: q.y * scale,
         width: q.width * scale,
         height: q.height * scale,
-        text: text,
+        text: q.text,
         href: href
       }
       return retVal;
@@ -40,9 +36,9 @@ function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
         y: q.y * scale,
         width: q.width * scale,
         height: q.height * scale,
+        text: q.text,
         attachment: {
           href: q.href,
-          text: q.text,
         }
       }
       return retVal;

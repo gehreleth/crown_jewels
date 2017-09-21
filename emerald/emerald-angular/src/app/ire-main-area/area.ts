@@ -3,5 +3,6 @@ export interface IArea {
   y: number;
   width: number;
   height: number;
+  text: string;
   attachment? : any;
 }
