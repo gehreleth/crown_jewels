@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter  } from '@angular/core';
 import { ElementRef } from '@angular/core';
 import { IArea } from '../area'
+import { Action } from '../action'
 import { SecurityContext } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 
@@ -10,36 +11,56 @@ import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 .select-areas-outline {
 	background: #fff url('data:image/gif;base64,R0lGODlhCAAIAJECAAAAAP///wAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFBgACACwAAAAACAAIAAACDYQhKadrzVRMB9FZ5SwAIfkECQYAAgAsAAAAAAgACAAAAgeUj6nL7V0AACH5BAUGAAIALAAAAAAIAAgAAAIPFA6imGrnXlvQocjspbUAACH5BAkGAAIALAAAAAAIAAgAAAIHlI+py+1dAAAh+QQFBgACACwAAAAACAAIAAACD5SAYJeb6tBi0LRYaX2iAAAh+QQJBgACACwAAAAACAAIAAACB5SPqcvtXQAAIfkEBQYAAgAsAAAAAAgACAAAAg+UgWCSernaYmjCWLF7qAAAIfkEBQYAAgAsAAAAAAEAAQAAAgJUAQAh+QQJBgACACwAAAAACAAIAAACB5SPqcvtXQAAIfkEBQYAAgAsAAAAAAgACAAAAg2UBQmna81UTAfRWeUsACH5BAkGAAIALAAAAAAIAAgAAAIHlI+py+1dAAAh+QQFBgACACwAAAAACAAIAAACD4QuoJhq515b0KHI7KW1AAAh+QQJBgACACwAAAAACAAIAAACB5SPqcvtXQAAIfkEBQYAAgAsAAAAAAgACAAAAg8EhGKXm+rQYtC0WGl9oAAAIfkEBQ0AAgAsAAAAAAEAAQAAAgJUAQA7');
 	overflow: hidden;
-}`],
+}
+
+.popup-padding {
+	 padding-left: 8px;
+   padding-right: 8px;
+   padding-top: 8px;
+   padding-bottom: 8px;
+}
+`],
   template: `
-<div *ngIf="area.text; else notext">
-  <div #popper1 class="select-areas-outline"
-       [popper]="popper1Content"
-       [popperShowOnStart]="true"
-       [popperTrigger]="'click'"
-       [popperPlacement]="'right'"
-       [ngStyle]="outlineStyles">
-   </div>
-   <popper-content #popper1Content>
-     <p class="bold">{{area.text}}</p>
-   </popper-content>
+<div class="select-areas-outline" [ngStyle]="outlineStyles"></div>
+<div *ngIf="showPopup; else nopopup">
+  <div #popper class="select-areas-background-area"
+       [style.background]="sanitizedAreaBackgroundStyles"
+       [ngStyle]="areaBackgroundOtherStyles"
+       [popper]="popperContent"
+       [popperShowOnStart]="false"
+       [popperDisableStyle]="true"
+       [popperDisableAnimation]="true"
+       [popperTrigger]="'hover'"
+       [popperPlacement]="'right'">
+  </div>
+  <popper-content #popperContent>
+    <div class="popup-padding">
+      <div class="alert alert-success" role="alert">
+        {{area.text}}
+      </div>
+    </div>
+  </popper-content>
 </div>
-<ng-template #notext>
-  <div class="select-areas-outline" [ngStyle]="outlineStyles"></div>
+<ng-template #nopopup>
+  <div class="select-areas-background-area"
+       [style.background]="sanitizedAreaBackgroundStyles"
+       [ngStyle]="areaBackgroundOtherStyles">
+  </div>
 </ng-template>
-<div class="select-areas-background-area"
-     [style.background]="sanitizedAreaBackgroundStyles"
-     [ngStyle]="areaBackgroundOtherStyles">
-</div>
 `
 })
 export class IreMainAreaSelComponent {
   @Input() imageHref: SafeUrl;
   @Input() area: IArea;
+  @Input() action: Action;
   @Input() outerWidth: number;
   @Input() outerHeight: number;
 
   constructor(private _sanitizer: DomSanitizer) { }
+
+  private get showPopup(): boolean {
+    return this.area.text && this.action == Action.NoAction;
+  }
 
   private get outlineStyles(): any {
     return {   'opacity': 0.5,

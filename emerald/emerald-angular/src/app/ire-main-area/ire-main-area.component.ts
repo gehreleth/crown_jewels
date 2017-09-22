@@ -17,14 +17,6 @@ interface IActionContext {
 @Component({
   selector: 'app-ire-main-area',
   styles : [`
-.blurred {
-	filter: url("/filters.svg#blur3px");
-	-webkit-filter: blur(3px);
-	-moz-filter: blur(3px);
-	-o-filter: blur(3px);
-	filter: blur(3px);
-}
-
 .select-areas-overlay {
 	background-color: #000;
 	overflow: hidden;
@@ -34,8 +26,7 @@ interface IActionContext {
   template: `
 <div [ngStyle]="topLevelStyles">
   <div *ngIf="atLeastOneSelection; else noselection">
-    <img class="blurred"
-         [src]="imageHref"
+    <img [src]="imageHref"
          [ngStyle]="imgStyles"
          [width]="width"
          [height]="height">
@@ -55,6 +46,7 @@ interface IActionContext {
     <app-ire-main-area-sel
          [imageHref] ="imageHref"
          [area] = "area"
+         [action]="currentAction"
          [outerWidth] = "width"
          [outerHeight] = "height"
          (mousedown) = "onSelectionDragStart($event, ix)">
@@ -340,7 +332,7 @@ export class IreMainAreaComponent implements OnChanges {
   }
 
   private get overlayStyles(): any {
-    return {   'opacity': 0.5,
+    return {   'opacity': 0.1,
                'position': 'absolute',
                'width': `${this.width}px`,
                'height': `${this.height}px`,
