@@ -332,7 +332,7 @@ export class IreMainAreaComponent implements OnChanges {
   }
 
   private get overlayStyles(): any {
-    return {   'opacity': 0.1,
+    return {   'opacity': 0.2,
                'position': 'absolute',
                'width': `${this.width}px`,
                'height': `${this.height}px`,

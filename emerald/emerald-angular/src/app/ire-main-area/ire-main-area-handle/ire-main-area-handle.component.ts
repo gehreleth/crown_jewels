@@ -61,7 +61,7 @@ export class IreMainAreaHandleComponent {
                'cursor': hs.cursor,
                'left': `${hs.left}px`,
                'top': `${hs.top}px`,
-               'z-index': 101 };
+               'z-index': 3 };
   }
 
   private static rhc(action: Action, area: IArea): HandlerStyles {
