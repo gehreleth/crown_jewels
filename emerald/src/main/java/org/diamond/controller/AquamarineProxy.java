@@ -135,33 +135,38 @@ public class AquamarineProxy {
     }
 
     private static void rotateJpeg(InputStream is, OutputStream os, Rotation rot) throws LLJTranException, IOException {
-        LLJTran jpegTransform = new LLJTran(is);
-        jpegTransform.read(mediautil.image.jpeg.LLJTran.READ_ALL, true);
-        int tsf;
-        switch (rot) {
-            case CW90:
-                tsf = LLJTran.ROT_90;
-                break;
-            case CW180:
-                tsf = LLJTran.ROT_180;
-                break;
-            case CW270:
-                tsf = LLJTran.ROT_270;
-                break;
-            case CCW90:
-                tsf = LLJTran.ROT_270;
-                break;
-            case CCW180:
-                tsf = LLJTran.ROT_180;
-                break;
-            case CCW270:
-                tsf = LLJTran.ROT_90;
-                break;
-            default:
-                tsf = LLJTran.ROT_90;
+        LLJTran jpegTransform = null;
+        try {
+            jpegTransform = new LLJTran(is);
+            jpegTransform.read(LLJTran.READ_ALL, true);
+            int tsf;
+            switch (rot) {
+                case CW90:
+                    tsf = LLJTran.ROT_90;
+                    break;
+                case CW180:
+                    tsf = LLJTran.ROT_180;
+                    break;
+                case CW270:
+                    tsf = LLJTran.ROT_270;
+                    break;
+                case CCW90:
+                    tsf = LLJTran.ROT_270;
+                    break;
+                case CCW180:
+                    tsf = LLJTran.ROT_180;
+                    break;
+                case CCW270:
+                    tsf = LLJTran.ROT_90;
+                    break;
+                default:
+                    tsf = LLJTran.ROT_90;
+            }
+            jpegTransform.transform(tsf);
+            jpegTransform.save(os, LLJTran.OPT_WRITE_ALL);
+        } finally {
+            if (jpegTransform != null) { try { jpegTransform.freeMemory(); } catch (Exception e0) { } }
         }
-        jpegTransform.transform(tsf);
-        jpegTransform.save(os, LLJTran.OPT_WRITE_ALL);
     }
 
     private static void rotatePng(InputStream is, OutputStream os, Rotation rot) {
