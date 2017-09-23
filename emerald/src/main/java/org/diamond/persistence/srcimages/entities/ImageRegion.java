@@ -1,6 +1,7 @@
 package org.diamond.persistence.srcimages.entities;
 
 import javax.persistence.*;
+import java.util.List;
 
 @SuppressWarnings("serial")
 @Entity
@@ -29,6 +30,12 @@ public class ImageRegion {
 
     @Column(name = "height")
     private double height;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "tag_region",
+               joinColumns = { @JoinColumn(name = "region_id", nullable = false, updatable = false) },
+               inverseJoinColumns = { @JoinColumn(name = "tag_id", nullable = false, updatable = false) })
+    private List<Tag> tags;
 
     public Long getId() {
         return id;
@@ -84,5 +91,13 @@ public class ImageRegion {
 
     public void setHeight(double height) {
         this.height = height;
+    }
+
+    public List<Tag> getTags() {
+        return this.tags;
+    }
+
+    public void setTags(List<Tag> tags) {
+        this.tags = tags;
     }
 }
