@@ -28,6 +28,9 @@ public class ImageRegion {
     @Column(name = "width")
     private double width;
 
+    @Column(name = "status")
+    private ImageRegionStatus status = ImageRegionStatus.HighUncertainty;
+
     @Column(name = "height")
     private double height;
 
@@ -91,6 +94,14 @@ public class ImageRegion {
 
     public void setHeight(double height) {
         this.height = height;
+    }
+
+    public ImageRegionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ImageRegionStatus status) {
+        this.status = status;
     }
 
     public List<Tag> getTags() {

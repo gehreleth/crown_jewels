@@ -12,8 +12,8 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "tag", unique = true)
-    private String tag;
+    @Column(name = "name", unique = true)
+    private String name;
 
     @Column(name = "description")
     private String description;
@@ -29,12 +29,12 @@ public class Tag {
         this.id = id;
     }
 
-    public String getTag() {
-        return tag;
+    public String getName() {
+        return name;
     }
 
-    public void setTag(String tag) {
-        this.tag = tag;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
