@@ -3,14 +3,16 @@ package org.diamond.controller;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import org.apache.commons.lang3.tuple.Pair;
-import org.diamond.aquamarine.IAquamarineService;
 import org.diamond.aquamarine.IContent;
 import org.diamond.persistence.srcimages.entities.Rotation;
+import org.postgresql.largeobject.LargeObject;
+import org.postgresql.largeobject.LargeObjectManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,10 +21,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import javax.sql.DataSource;
+import java.io.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 @Controller
@@ -31,7 +35,7 @@ public class AquamarineProxy {
     private static final Logger LOGGER = LoggerFactory.getLogger(AquamarineProxy.class);
 
     @Autowired
-    private IAquamarineService aquamarineService;
+    private DataSource dataSource;
 
     private static final Set<String> KNOWN_IMAGE_FORMATS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("image/jpeg", "image/png")));
@@ -44,7 +48,11 @@ public class AquamarineProxy {
             rot = Rotation.NONE;
         ResponseEntity<AbstractResource> retVal;
         try {
-            IContent content = aquamarineService.retrieveContent(aquamarineId);
+            IContent content;
+            try (Connection conn = dataSource.getConnection()) {
+                conn.setAutoCommit(false);
+                content = retrieveContent(conn, aquamarineId);
+            }
             AbstractResource resource;
             long length;
             if (rot == Rotation.NONE) {
@@ -65,6 +73,45 @@ public class AquamarineProxy {
         }
         return retVal;
     }
+
+    private IContent retrieveContent(Connection conn, UUID uuid) throws SQLException, IOException {
+        IContent retVal;
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "select mime_type, get_lo_size(content) as content_length, content" +
+                        " from blob_storage where guid = ?"))
+        {
+            stmt.setString(1, uuid.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    final String contentType = rs.getString("mime_type");
+                    final long contentLength = rs.getLong("content_length");
+                    long oid = rs.getLong("content");
+                    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    sendLobContent(conn, oid, baos);
+                    retVal = new IContent() {
+                        @Override
+                        public AbstractResource getData() {
+                            return new InputStreamResource(new ByteArrayInputStream(baos.toByteArray()));
+                        }
+
+                        @Override
+                        public String getMimeType() {
+                            return contentType;
+                        }
+
+                        @Override
+                        public long getLength() {
+                            return contentLength;
+                        }
+                    };
+                } else {
+                    throw new FileNotFoundException("File not found:" + uuid.toString());
+                }
+            }
+        }
+        return retVal;
+    }
+
 
     private static Pair<AbstractResource, Long> performRotation(IContent content, Rotation rot) throws IOException, LLJTranException {
         final String mimeType = content.getMimeType();
@@ -119,5 +166,41 @@ public class AquamarineProxy {
 
     private static void rotatePng(InputStream is, OutputStream os, Rotation rot) {
         throw new RuntimeException("PNG rotation not implemented");
+    }
+
+    private static final int LOB_BUFF_SIZE = 65536;
+
+    private static long createLob(Connection conn, InputStream inputStream) throws SQLException, IOException {
+        LargeObject obj = null;
+        long oid;
+        try {
+            LargeObjectManager lobj = ((org.postgresql.PGConnection) conn).getLargeObjectAPI();
+            oid = lobj.createLO(LargeObjectManager.READ | LargeObjectManager.WRITE);
+            obj = lobj.open(oid, LargeObjectManager.WRITE);
+            byte buf[] = new byte[LOB_BUFF_SIZE];
+            int s;
+            while ((s = inputStream.read(buf, 0, LOB_BUFF_SIZE)) > 0) {
+                obj.write(buf, 0, s);
+            }
+        } finally {
+            if (obj != null) try { obj.close(); } catch (Exception e) { }
+        }
+        return oid;
+    }
+
+    private static void sendLobContent(Connection conn, long oid, OutputStream outputStream) throws SQLException, IOException {
+        org.postgresql.PGConnection nativeConn = conn.unwrap(org.postgresql.PGConnection.class);
+        LargeObject obj = null;
+        try {
+            LargeObjectManager lobj = nativeConn.getLargeObjectAPI();
+            obj = lobj.open(oid, LargeObjectManager.READ);
+            byte buf[] = new byte[LOB_BUFF_SIZE];
+            int s;
+            while ((s = obj.read(buf, 0, LOB_BUFF_SIZE)) > 0) {
+                outputStream.write(buf, 0, s);
+            }
+        } finally {
+            if (obj != null) try { obj.close(); } catch (Exception e) { }
+        }
     }
 }
