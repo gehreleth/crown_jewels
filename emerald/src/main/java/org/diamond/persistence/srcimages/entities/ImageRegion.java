@@ -28,7 +28,7 @@ public class ImageRegion {
     @Column(name = "width")
     private double width;
 
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     private ImageRegionStatus status = ImageRegionStatus.HighUncertainty;
 
     @Column(name = "height")
