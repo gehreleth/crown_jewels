@@ -1,7 +1,6 @@
 package org.diamond.controller;
 
 import mediautil.image.jpeg.LLJTran;
-import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.diamond.aquamarine.IAquamarineService;
