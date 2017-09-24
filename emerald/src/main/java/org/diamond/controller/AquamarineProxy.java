@@ -1,7 +1,9 @@
 package org.diamond.controller;
 
+import com.google.common.cache.*;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.diamond.aquamarine.IContent;
 import org.diamond.persistence.srcimages.entities.Rotation;
@@ -44,35 +46,50 @@ public class AquamarineProxy {
     public ResponseEntity<AbstractResource> get(@PathVariable UUID aquamarineId,
                                                 @RequestParam(value="rot", required=false) Rotation rot)
     {
-        if (rot == null)
-            rot = Rotation.NONE;
         ResponseEntity<AbstractResource> retVal;
         try {
-            IContent content;
-            try (Connection conn = dataSource.getConnection()) {
-                conn.setAutoCommit(false);
-                content = retrieveContent(conn, aquamarineId);
-            }
-            AbstractResource resource;
-            long length;
-            if (rot == Rotation.NONE) {
-                resource = content.getData();
-                length = content.getLength();
-            } else {
-                Pair<AbstractResource, Long> rotatedContent = performRotation(content, rot);
-                resource = rotatedContent.getLeft();
-                length = rotatedContent.getRight();
-            }
-            retVal = ResponseEntity.ok()
-                    .contentLength(length)
-                    .contentType(MediaType.parseMediaType(content.getMimeType()))
-                    .body(resource);
+            BlobCacheKey key = new BlobCacheKey();
+            key.uuid = aquamarineId;
+            key.rotation = rot;
+            IContent content = cachedImages.get(key);
+            retVal = ResponseEntity.ok().contentLength(content.getLength())
+                        .contentType(MediaType.parseMediaType(content.getMimeType())).body(content.getData());
         } catch (Exception e) {
             LOGGER.error("getContent", e);
             retVal = ResponseEntity.notFound().build();
         }
         return retVal;
     }
+
+    private final CacheLoader<BlobCacheKey, CachedContent> loader = new CacheLoader<BlobCacheKey, CachedContent> () {
+        public CachedContent load(BlobCacheKey key) throws Exception {
+            IContent content;
+            try (Connection conn = dataSource.getConnection()) {
+                conn.setAutoCommit(false);
+                content = retrieveContent(conn, key.uuid);
+            }
+            content = applyTransformations(content, key);
+            File tmp = new File(System.getProperty("java.io.tmpdir")
+                                 + File.separator
+                                 + "img_cache" + System.currentTimeMillis() + ".tmp");
+            FileUtils.copyInputStreamToFile(content.getData().getInputStream(), tmp);
+            return new CachedContent(tmp, content.getLength(), content.getMimeType());
+        }
+    };
+
+    private final RemovalListener<BlobCacheKey, CachedContent> removalListener = removal -> {
+        try {
+            File file = removal.getValue().tmpFile;
+            if (!file.delete()) {
+                LOGGER.warn("Can't remove temporary file :" + file.getName());
+            }
+        } catch (Exception e) {
+            LOGGER.error("Cache removal listener", e);
+        }
+    };
+
+    private final LoadingCache<BlobCacheKey, CachedContent> cachedImages = CacheBuilder.newBuilder()
+            .maximumSize(100).removalListener(removalListener).build(loader);
 
     private IContent retrieveContent(Connection conn, UUID uuid) throws SQLException, IOException {
         IContent retVal;
@@ -112,6 +129,30 @@ public class AquamarineProxy {
         return retVal;
     }
 
+    private IContent applyTransformations(final IContent content, BlobCacheKey key) throws IOException, LLJTranException {
+        if (key.rotation != null && key.rotation != Rotation.NONE) {
+            final Pair<AbstractResource, Long> transformed = performRotation(content, key.rotation);
+            return new IContent() {
+
+                @Override
+                public String getMimeType() {
+                    return content.getMimeType();
+                }
+
+                @Override
+                public long getLength() {
+                    return transformed.getRight();
+                }
+
+                @Override
+                public AbstractResource getData() {
+                    return transformed.getLeft();
+                }
+            };
+        } else {
+            return content;
+        }
+    }
 
     private static Pair<AbstractResource, Long> performRotation(IContent content, Rotation rot) throws IOException, LLJTranException {
         final String mimeType = content.getMimeType();
@@ -206,6 +247,82 @@ public class AquamarineProxy {
             }
         } finally {
             if (obj != null) try { obj.close(); } catch (Exception e) { }
+        }
+    }
+
+
+    private static class BlobCacheKey {
+        UUID uuid;
+
+        Rotation rotation;
+
+        Integer x;
+
+        Integer y;
+
+        Integer width;
+
+        Integer height;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            BlobCacheKey that = (BlobCacheKey) o;
+
+            if (uuid != null ? !uuid.equals(that.uuid) : that.uuid != null) return false;
+            if (rotation != that.rotation) return false;
+            if (x != null ? !x.equals(that.x) : that.x != null) return false;
+            if (y != null ? !y.equals(that.y) : that.y != null) return false;
+            if (width != null ? !width.equals(that.width) : that.width != null) return false;
+            return height != null ? height.equals(that.height) : that.height == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = uuid != null ? uuid.hashCode() : 0;
+            result = 31 * result + (rotation != null ? rotation.hashCode() : 0);
+            result = 31 * result + (x != null ? x.hashCode() : 0);
+            result = 31 * result + (y != null ? y.hashCode() : 0);
+            result = 31 * result + (width != null ? width.hashCode() : 0);
+            result = 31 * result + (height != null ? height.hashCode() : 0);
+            return result;
+        }
+    }
+
+    private static class CachedContent implements IContent {
+        final File tmpFile;
+
+        final long length;
+
+        final String mimeType;
+
+        CachedContent(File tmpFile, long length, String mimeType) {
+            this.tmpFile = tmpFile;
+            this.length = length;
+            this.mimeType = mimeType;
+        }
+
+        @Override
+        public AbstractResource getData() {
+            InputStreamResource retVal;
+            try {
+                retVal = new InputStreamResource(new FileInputStream(tmpFile));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return retVal;
+        }
+
+        @Override
+        public String getMimeType() {
+            return mimeType;
+        }
+
+        @Override
+        public long getLength() {
+            return length;
         }
     }
 }
