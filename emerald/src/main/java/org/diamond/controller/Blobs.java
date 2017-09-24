@@ -61,7 +61,7 @@ public class Blobs {
      * TODO: - Support Client-side caching as well (Cache-Control/ETag/HTTP 304)
      *
      * @param uuid primary key in the blob storage
-     * @param rot rotation MONE, CW90-CW270, CCW90-CCCW270
+     * @param rot rotation NONE, CW90-CW270, CCW90-CCCW270
      * @param x crop rect x
      * @param y crop rect y
      * @param width crop rect width
