@@ -51,6 +51,23 @@ public class Blobs {
     private static final Set<String> KNOWN_IMAGE_FORMATS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("image/jpeg", "image/png")));
 
+    /**
+     * Return blob from internal storage. Perform server-side JPEG rotation&cropping if additional parameters are
+     * provided.
+     *
+     * Server-side caching is supported. That means it stores transformed fragment in a temp file for some time.
+     *
+     * TODO: - Support PNG
+     * TODO: - Support Client-side caching as well (Cache-Control/ETag/HTTP 304)
+     *
+     * @param uuid primary key in the blob storage
+     * @param rot rotation MONE, CW90-CW270, CCW90-CCCW270
+     * @param x crop rect x
+     * @param y crop rect y
+     * @param width crop rect width
+     * @param height crop rect height
+     * @return response entity as binary stream
+     */
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<AbstractResource> get(@PathVariable UUID uuid,
                                                 @RequestParam(value="rot", required=false) Rotation rot,
