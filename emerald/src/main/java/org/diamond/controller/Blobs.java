@@ -1,6 +1,7 @@
 package org.diamond.controller;
 
 import com.google.common.cache.*;
+import java.awt.Rectangle;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import org.apache.commons.io.FileUtils;
@@ -33,8 +34,16 @@ import java.util.*;
 
 @Controller
 @RequestMapping("/blobs")
-public class AquamarineProxy {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AquamarineProxy.class);
+public class Blobs {
+    private static long seed = System.currentTimeMillis();
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Blobs.class);
+
+    private static synchronized File makeTmpFile() {
+        return new File(System.getProperty("java.io.tmpdir")
+                + File.separator
+                + "img_cache" + (++seed) + ".tmp");
+    }
 
     @Autowired
     private DataSource dataSource;
@@ -42,15 +51,23 @@ public class AquamarineProxy {
     private static final Set<String> KNOWN_IMAGE_FORMATS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("image/jpeg", "image/png")));
 
-    @GetMapping(value = "/{aquamarineId}")
-    public ResponseEntity<AbstractResource> get(@PathVariable UUID aquamarineId,
-                                                @RequestParam(value="rot", required=false) Rotation rot)
+    @GetMapping(value = "/{uuid}")
+    public ResponseEntity<AbstractResource> get(@PathVariable UUID uuid,
+                                                @RequestParam(value="rot", required=false) Rotation rot,
+                                                @RequestParam(value="x", required=false) Integer x,
+                                                @RequestParam(value="y", required=false) Integer y,
+                                                @RequestParam(value="width", required=false) Integer width,
+                                                @RequestParam(value="height", required=false) Integer height)
     {
         ResponseEntity<AbstractResource> retVal;
         try {
             BlobCacheKey key = new BlobCacheKey();
-            key.uuid = aquamarineId;
+            key.uuid = uuid;
             key.rotation = rot;
+            key.x = x;
+            key.y = y;
+            key.width = width;
+            key.height = height;
             IContent content = cachedImages.get(key);
             retVal = ResponseEntity.ok().contentLength(content.getLength())
                         .contentType(MediaType.parseMediaType(content.getMimeType())).body(content.getData());
@@ -69,9 +86,7 @@ public class AquamarineProxy {
                 content = retrieveContent(conn, key.uuid);
             }
             content = applyTransformations(content, key);
-            File tmp = new File(System.getProperty("java.io.tmpdir")
-                                 + File.separator
-                                 + "img_cache" + System.currentTimeMillis() + ".tmp");
+            File tmp = makeTmpFile();
             FileUtils.copyInputStreamToFile(content.getData().getInputStream(), tmp);
             return new CachedContent(tmp, content.getLength(), content.getMimeType());
         }
@@ -88,6 +103,7 @@ public class AquamarineProxy {
         }
     };
 
+    // TODO: Take cache size from project configuration
     private final LoadingCache<BlobCacheKey, CachedContent> cachedImages = CacheBuilder.newBuilder()
             .maximumSize(100).removalListener(removalListener).build(loader);
 
@@ -130,13 +146,32 @@ public class AquamarineProxy {
     }
 
     private IContent applyTransformations(final IContent content, BlobCacheKey key) throws IOException, LLJTranException {
-        if (key.rotation != null && key.rotation != Rotation.NONE) {
-            final Pair<AbstractResource, Long> transformed = performRotation(content, key.rotation);
+        boolean nullTransform = (key.rotation == null || key.rotation == Rotation.NONE)
+                && (key.x == null) && (key.y == null) && (key.width == null) && (key.height == null);
+        if (!nullTransform) {
+            final String mimeType = content.getMimeType();
+            if (!KNOWN_IMAGE_FORMATS.contains(mimeType)) {
+                throw new RuntimeException("Rotate isn't applicable for mime type " + mimeType);
+            }
+            final Pair<AbstractResource, Long> transformed;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (InputStream is = content.getData().getInputStream()) {
+                if ("image/jpeg".equals(mimeType)) {
+                    transformJpeg(is, baos, key);
+                } else if ("image/png".equals(mimeType)) {
+                    transformPng(is, baos, key);
+                } else {
+                    throw new RuntimeException("Rotate isn't applicable for mime type " + mimeType);
+                }
+            } finally {
+                baos.close();
+            }
+            byte[] byteArray = baos.toByteArray();
+            transformed = Pair.of(new ByteArrayResource(byteArray), (long) byteArray.length);
             return new IContent() {
-
                 @Override
                 public String getMimeType() {
-                    return content.getMimeType();
+                    return mimeType;
                 }
 
                 @Override
@@ -154,63 +189,52 @@ public class AquamarineProxy {
         }
     }
 
-    private static Pair<AbstractResource, Long> performRotation(IContent content, Rotation rot) throws IOException, LLJTranException {
-        final String mimeType = content.getMimeType();
-        if (!KNOWN_IMAGE_FORMATS.contains(mimeType))
-            throw new RuntimeException("Rotate isn't applicable for mime type " + mimeType);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (InputStream is = content.getData().getInputStream()) {
-            if ("image/jpeg".equals(mimeType)) {
-                rotateJpeg(is, baos, rot);
-            } else if ("image/png".equals(mimeType)) {
-                rotatePng(is, baos, rot);
-            } else {
-                throw new RuntimeException("Rotate isn't applicable for mime type " + mimeType);
-            }
-        } finally {
-            baos.close();
-        }
-        byte[] byteArray = baos.toByteArray();
-        return Pair.of(new ByteArrayResource(byteArray), (long) byteArray.length);
-    }
-
-    private static void rotateJpeg(InputStream is, OutputStream os, Rotation rot) throws LLJTranException, IOException {
+    private static void transformJpeg(InputStream is, OutputStream os, BlobCacheKey key) throws LLJTranException, IOException {
         LLJTran jpegTransform = null;
         try {
             jpegTransform = new LLJTran(is);
             jpegTransform.read(LLJTran.READ_ALL, true);
             int tsf;
-            switch (rot) {
-                case CW90:
-                    tsf = LLJTran.ROT_90;
-                    break;
-                case CW180:
-                    tsf = LLJTran.ROT_180;
-                    break;
-                case CW270:
-                    tsf = LLJTran.ROT_270;
-                    break;
-                case CCW90:
-                    tsf = LLJTran.ROT_270;
-                    break;
-                case CCW180:
-                    tsf = LLJTran.ROT_180;
-                    break;
-                case CCW270:
-                    tsf = LLJTran.ROT_90;
-                    break;
-                default:
-                    tsf = LLJTran.ROT_90;
+            if (key.rotation != null && key.rotation != Rotation.NONE) {
+                switch (key.rotation) {
+                    case CW90:
+                        tsf = LLJTran.ROT_90;
+                        break;
+                    case CW180:
+                        tsf = LLJTran.ROT_180;
+                        break;
+                    case CW270:
+                        tsf = LLJTran.ROT_270;
+                        break;
+                    case CCW90:
+                        tsf = LLJTran.ROT_270;
+                        break;
+                    case CCW180:
+                        tsf = LLJTran.ROT_180;
+                        break;
+                    case CCW270:
+                        tsf = LLJTran.ROT_90;
+                        break;
+                    default:
+                        tsf = LLJTran.ROT_90;
+                }
+                jpegTransform.transform(tsf);
             }
-            jpegTransform.transform(tsf);
+            if (key.x != null || key.y != null || key.width != null || key.height != null) {
+                Rectangle cropArea = new Rectangle();
+                cropArea.x = key.x != null ? key.x : 0;
+                cropArea.y = key.y != null ? key.y : 0;
+                cropArea.width = key.width != null ? key.width : 0;
+                cropArea.height = key.height != null ? key.height : 0;
+                jpegTransform.transform(LLJTran.CROP, LLJTran.OPT_DEFAULTS, cropArea);
+            }
             jpegTransform.save(os, LLJTran.OPT_WRITE_ALL);
         } finally {
             if (jpegTransform != null) { try { jpegTransform.freeMemory(); } catch (Exception e0) { } }
         }
     }
 
-    private static void rotatePng(InputStream is, OutputStream os, Rotation rot) {
+    private static void transformPng(InputStream is, OutputStream os, BlobCacheKey key) {
         throw new RuntimeException("PNG rotation not implemented");
     }
 
