@@ -23,10 +23,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import javax.sql.DataSource;
 import java.io.*;
@@ -348,22 +346,25 @@ public class Blobs {
 
     private static final int LOB_BUFF_SIZE = 65536;
 
-    private static long createLob(Connection conn, InputStream inputStream) throws SQLException, IOException {
+    private static Pair<Long, Long> createLob(Connection conn, InputStream inputStream) throws SQLException, IOException {
+        org.postgresql.PGConnection nativeConn = conn.unwrap(org.postgresql.PGConnection.class);
         LargeObject obj = null;
+        long contentLangth = 0L;
         long oid;
         try {
-            LargeObjectManager lobj = ((org.postgresql.PGConnection) conn).getLargeObjectAPI();
+            LargeObjectManager lobj = nativeConn.getLargeObjectAPI();
             oid = lobj.createLO(LargeObjectManager.READ | LargeObjectManager.WRITE);
             obj = lobj.open(oid, LargeObjectManager.WRITE);
             byte buf[] = new byte[LOB_BUFF_SIZE];
             int s;
             while ((s = inputStream.read(buf, 0, LOB_BUFF_SIZE)) > 0) {
                 obj.write(buf, 0, s);
+                contentLangth += s;
             }
         } finally {
             if (obj != null) try { obj.close(); } catch (Exception e) { }
         }
-        return oid;
+        return Pair.of(oid, contentLangth);
     }
 
     private static void sendLobContent(Connection conn, long oid, OutputStream outputStream) throws SQLException, IOException {
