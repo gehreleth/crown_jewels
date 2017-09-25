@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { OnInit, ViewChild, ElementRef } from '@angular/core';
+import { ViewChild, ElementRef } from '@angular/core';
 import { OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 import { IArea } from '../ire-main-area/area'
@@ -52,7 +52,6 @@ function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
   styleUrls: ['./img-region-editor.component.scss']
 })
 export class ImgRegionEditorComponent implements OnChanges {
-  @Input() homeRouterLink: any;
   @Input() imageMeta : IImageMeta = null;
   @Output() imageMetaChange = new EventEmitter<IImageMeta>();
 

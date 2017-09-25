@@ -12,6 +12,8 @@ import { EmeraldBackendStorageService } from './emerald-backend-storage.service'
 import { TreeView } from './tree-view/tree-view.component'
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
+import { BrowserOverviewComponent } from './browser/browser-overview/browser-overview.component';
+import { BrowserSelectionsComponent } from './browser/browser-selections/browser-selections.component';
 import { MenuComponent } from './menu/menu.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BusyModule } from 'angular2-busy';
@@ -26,7 +28,13 @@ import { IreMainAreaDeleteComponent } from './ire-main-area/ire-main-area-delete
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
-    { path: 'browse/:id', component: BrowserComponent }
+    { path: 'browse/:id',
+      component: BrowserComponent,
+      children: [
+        {path: '', component: BrowserOverviewComponent },
+        {path: 'selections', component: BrowserSelectionsComponent },
+      ]
+  }
 ];
 @NgModule({
   declarations: [
@@ -41,7 +49,9 @@ const routes: Routes = [
     IreMainAreaHandleComponent,
     IreMainAreaActionLayerComponent,
     IreMainAreaHandlersComponent,
-    IreMainAreaDeleteComponent
+    IreMainAreaDeleteComponent,
+    BrowserOverviewComponent,
+    BrowserSelectionsComponent
   ],
   imports: [
     BrowserModule,

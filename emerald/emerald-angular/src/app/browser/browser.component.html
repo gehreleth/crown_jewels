@@ -4,40 +4,15 @@
       <div [ngBusy]="busy"></div>
       <div>
         <tree-view [Nodes]="_storageService.Nodes"
-                   [SelectedNode]="SelectedNode"
+                   [(SelectedNode)]="_storageService.SelectedNode"
                    (onRequestNodes)="onRequest($event)">
         </tree-view>
       </div>
       <hr>
-      <div>
-        <app-upload-form></app-upload-form>
-      </div>
+      <app-upload-form></app-upload-form>
     </nav>
     <main class="col-sm-9 ml-sm-auto col-md-10 pt-3" role="main">
-      <div *ngIf="SelectedNode;else noselection">
-        <div [ngSwitch]="SelectedNode.type">
-          <div *ngSwitchCase="nodeType.Zip">
-            <p>Zip file</p>
-          </div>
-          <div *ngSwitchCase="nodeType.Folder">
-            <p>Folder</p>
-          </div>
-          <div *ngSwitchCase="nodeType.Image">
-            <div *ngIf="ImageMeta;else nometadata">
-              <app-img-region-editor [(imageMeta)]="ImageMeta"
-                                     [homeRouterLink]="['/browse', SelectedNode.id]">
-                                     [homeRouterLink]="['/browse', SelectedNode.id]">
-              </app-img-region-editor>
-            </div>
-            <ng-template #nometadata>
-              <p>Loading metadata ...</p>
-            </ng-template>
-          </div>
-        </div>
-      </div>
-      <ng-template #noselection>
-        <p>No selection</p>
-      </ng-template>
+      <router-outlet></router-outlet>
     </main>
   </div>
 </div>

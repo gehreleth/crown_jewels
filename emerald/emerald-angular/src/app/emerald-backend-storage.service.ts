@@ -10,6 +10,8 @@ enum TrackingStatus { PENDING, SUCCESS, FAIL };
 export class EmeraldBackendStorageService {
   onNewRoots: EventEmitter<void> = new EventEmitter<void>();
   Nodes: Array<ITreeNode> = null;
+  SelectedNode: ITreeNode = null;
+  SelectedNodeChanged: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
   private Id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
 
   constructor(private http: Http) {
