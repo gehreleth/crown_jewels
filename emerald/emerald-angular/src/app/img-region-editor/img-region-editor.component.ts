@@ -52,6 +52,7 @@ function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
   styleUrls: ['./img-region-editor.component.scss']
 })
 export class ImgRegionEditorComponent implements OnChanges {
+  @Input() homeRouterLink: any;
   @Input() imageMeta : IImageMeta = null;
   @Output() imageMetaChange = new EventEmitter<IImageMeta>();
 
