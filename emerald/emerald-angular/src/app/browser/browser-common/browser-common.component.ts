@@ -14,12 +14,10 @@ export class BrowserCommonComponent implements OnInit {
   public nodeType = NodeType;
   public browserView = BrowserView;
 
-  @Input() node: ITreeNode;
-  @Input() imageMeta: IImageMeta;
   @Input() view: BrowserView;
 
   constructor(private _storageService : EmeraldBackendStorageService,
-              private _imageMetadataService : ImageMetadataService)
+              private _imageMetadataService: ImageMetadataService)
   { }
 
   ngOnInit() {}

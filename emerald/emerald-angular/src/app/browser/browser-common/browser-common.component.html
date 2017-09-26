@@ -1,5 +1,5 @@
-<div *ngIf="node;else noselection">
-  <div [ngSwitch]="node.type">
+<div *ngIf="_storageService.SelectedNode; else noselection">
+  <div [ngSwitch]="_storageService.SelectedNode.type">
     <div *ngSwitchCase="nodeType.Zip">
       <p>Zip file</p>
     </div>
@@ -10,19 +10,21 @@
       <div id="navtabs">
         <ul class="nav nav-tabs">
           <li class="nav-item">
-            <a class="{{_navLinkClass(browserView.Overview)}}"
+            <a [ngClass]="_navLinkClass(browserView.Overview)"
                [routerLink]="_routerLink(browserView.Overview)">Whole page</a>
           </li>
           <li class="nav-item">
-            <a class="{{_navLinkClass(browserView.Selections)}}"
+            <a [ngClass]="_navLinkClass(browserView.Selections)"
                [routerLink]="_routerLink(browserView.Selections)">Selections</a>
           </li>
         </ul>
       </div>
-      <div *ngIf="imageMeta;else nometa">
+      <div *ngIf="_storageService.SelectedImageMeta;else nometa">
         <div [ngSwitch]="view">
           <div *ngSwitchCase="browserView.Overview">
-            <app-img-region-editor [(imageMeta)]="imageMeta"></app-img-region-editor>
+            <app-img-region-editor
+              [(imageMeta)]="_storageService.SelectedImageMeta">
+            </app-img-region-editor>
           </div>
           <div *ngSwitchCase="browserView.Selections">
             <p>TODO: Selections view</p>
