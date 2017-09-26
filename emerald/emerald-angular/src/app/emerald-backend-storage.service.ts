@@ -1,8 +1,10 @@
 import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Response } from '@angular/http';
-import { ITreeNode } from './tree-node';
+import { ITreeNode, NodeType } from './tree-node';
+import { IImageMeta } from './image-meta';
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/map';
+import { ImageMetadataService } from './image-metadata.service';
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
@@ -10,13 +12,32 @@ enum TrackingStatus { PENDING, SUCCESS, FAIL };
 export class EmeraldBackendStorageService {
   onNewRoots: EventEmitter<void> = new EventEmitter<void>();
   Nodes: Array<ITreeNode> = null;
+
   SelectedNode: ITreeNode = null;
   SelectedNodeChanged: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
-  PendingPromise: Promise<any> = Promise.resolve(1);
-  private Id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
 
-  constructor(private http: Http) {
+  SelectedImageMeta: IImageMeta = null;
+  SelectedImageMetaChanged: EventEmitter<IImageMeta> = new EventEmitter<IImageMeta>();
+
+  PendingPromise: Promise<any> = Promise.resolve(1);
+  private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
+
+  constructor(private _http: Http,
+              private _imageMetadataService: ImageMetadataService)
+  {
     this.onNewRoots.subscribe(() => this.populateChildren(null, true));
+    this.SelectedNodeChanged.subscribe((node : ITreeNode) => {
+      this.requestNodes(node)
+      if (node.type === NodeType.Image) {
+        this._imageMetadataService.getMeta(node).subscribe((imageMeta: IImageMeta) => {
+          this.SelectedImageMeta = imageMeta;
+          this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
+        });
+      } else {
+        this.SelectedImageMeta = null;
+        this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
+      }
+    });
     this.onNewRoots.emit();
   }
 
@@ -35,10 +56,10 @@ export class EmeraldBackendStorageService {
       [newBranchRoot], lookup);
     let newNodes = EmeraldBackendStorageService.mergeBranch0(null, this.Nodes,
       [newBranchRoot], lookup);
-    let newId2Node = new Map<number, ITreeNode>(this.Id2Node);
+    let newId2Node = new Map<number, ITreeNode>(this._id2Node);
     lookup.forEach((v, k) => newId2Node.set(k, v));
     this.Nodes = newNodes;
-    this.Id2Node = newId2Node;
+    this._id2Node = newId2Node;
   }
 
   /**
@@ -131,10 +152,10 @@ export class EmeraldBackendStorageService {
  */
   getNodeById(id : number) : Promise<ITreeNode> {
     let retVal: Promise<ITreeNode>;
-    if (this.Id2Node.has(id))
-      retVal = new Promise<ITreeNode>(resolve => resolve(this.Id2Node.get(id)));
+    if (this._id2Node.has(id))
+      retVal = new Promise<ITreeNode>(resolve => resolve(this._id2Node.get(id)));
     else {
-      const rsp = this.http.get(`/emerald/storage/populate-branch/${id}`);
+      const rsp = this._http.get(`/emerald/storage/populate-branch/${id}`);
       retVal = rsp.map((response: Response) => response.json()).toPromise()
         .then((serverAnswer: any) => ITreeNode.fromDictRec(serverAnswer, null))
         .then((n : ITreeNode) => {
@@ -161,18 +182,18 @@ export class EmeraldBackendStorageService {
       retVal = new Promise< Array<ITreeNode> >(resolve => resolve(children));
     } else {
       const rsp = parent
-        ? this.http.get(`/emerald/storage/populate-children/${parent.id}`)
-        : this.http.get('/emerald/storage/populate-root');
+        ? this._http.get(`/emerald/storage/populate-children/${parent.id}`)
+        : this._http.get('/emerald/storage/populate-root');
       retVal = rsp.map((response: Response) => response.json()).toPromise()
         .then((serverAnswer: any) => {
           let arr = serverAnswer as any[];
           return arr.map((ee:any) => ITreeNode.fromDict(ee, parent));
         })
-        .then((ch : Array<ITreeNode>) => ch.filter(n => !this.Id2Node.has(n.id)))
+        .then((ch : Array<ITreeNode>) => ch.filter(n => !this._id2Node.has(n.id)))
         .then((ch : Array<ITreeNode>) => {
           let oldCh = parent ? parent.children : this.Nodes;
           let newCh = oldCh ? oldCh.concat(ch) : ch;
-          ch.forEach(n => this.Id2Node.set(n.id, n))
+          ch.forEach(n => this._id2Node.set(n.id, n))
           if (parent)
             parent.children = newCh;
           else
@@ -198,6 +219,11 @@ export class EmeraldBackendStorageService {
     })
   }
 
+  requestNodes(parent: ITreeNode) {
+    this.populateChildren(parent)
+      .then(children => { parent.children = children; });
+  }
+
  /**
   * Uploads a file using POST request. Polls for a server event
   * signalling end of processing. Requests tree root update upon success.
@@ -205,7 +231,7 @@ export class EmeraldBackendStorageService {
   upload(file: any) {
     let formData = new FormData();
     formData.append('file', file);
-    this.http.post('/emerald/input-content/submit-content', formData)
+    this._http.post('/emerald/input-content/submit-content', formData)
     .subscribe((rsp: Response) => {
       const dict = rsp.json();
       const submitAccepted = dict['success'] as boolean;
@@ -217,7 +243,7 @@ export class EmeraldBackendStorageService {
   }
 
   private trackBatchExecution(trackingId: number) {
-    this.http.get(`/emerald/input-content/submit-status/${trackingId}`)
+    this._http.get(`/emerald/input-content/submit-status/${trackingId}`)
       .subscribe((rsp: Response) =>
     {
       const dict = rsp.json();

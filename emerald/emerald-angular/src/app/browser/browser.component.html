@@ -5,7 +5,7 @@
       <div>
         <tree-view [Nodes]="_storageService.Nodes"
                    [SelectedNode]="_storageService.SelectedNode"
-                   (onRequestNodes)="onRequestNodes($event)">
+                   (onRequestNodes)="_storageService.requestNodes($event)">
         </tree-view>
       </div>
       <hr>

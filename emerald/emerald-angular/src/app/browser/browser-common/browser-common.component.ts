@@ -23,4 +23,21 @@ export class BrowserCommonComponent implements OnInit {
   { }
 
   ngOnInit() {}
+
+  private _navLinkClass(view: BrowserView): string {
+    return 'nav-link' + ((view === this.view) ? ' active' : '');
+  }
+
+  private _routerLink(view: BrowserView): any[] {
+    if (view === this.view) {
+      return ['./'];
+    } else {
+      switch (view) {
+        case BrowserView.Selections:
+          return ['./selections', {page: 0, size: 10}];
+        default:
+          return ['../'];
+      }
+    }
+  }
 }
