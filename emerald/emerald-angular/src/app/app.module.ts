@@ -12,6 +12,7 @@ import { EmeraldBackendStorageService } from './emerald-backend-storage.service'
 import { TreeView } from './tree-view/tree-view.component'
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
+import { BrowserCommonComponent } from './browser/browser-common/browser-common.component';
 import { BrowserOverviewComponent } from './browser/browser-overview/browser-overview.component';
 import { BrowserSelectionsComponent } from './browser/browser-selections/browser-selections.component';
 import { MenuComponent } from './menu/menu.component';
@@ -25,6 +26,7 @@ import { IreMainAreaHandleComponent } from './ire-main-area/ire-main-area-handle
 import { IreMainAreaActionLayerComponent } from './ire-main-area/ire-main-area-action-layer/ire-main-area-action-layer.component';
 import { IreMainAreaHandlersComponent } from './ire-main-area/ire-main-area-handlers/ire-main-area-handlers.component';
 import { IreMainAreaDeleteComponent } from './ire-main-area/ire-main-area-delete/ire-main-area-delete.component';
+
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -51,7 +53,8 @@ const routes: Routes = [
     IreMainAreaHandlersComponent,
     IreMainAreaDeleteComponent,
     BrowserOverviewComponent,
-    BrowserSelectionsComponent
+    BrowserSelectionsComponent,
+    BrowserCommonComponent
   ],
   imports: [
     BrowserModule,

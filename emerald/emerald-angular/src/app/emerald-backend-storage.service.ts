@@ -186,6 +186,18 @@ export class EmeraldBackendStorageService {
     return retVal;
   }
 
+  selectById(id: number) {
+    this.getNodeById(id).then(node => {
+      let cur = node;
+      while (cur) {
+        cur.isExpanded = true;
+        cur = cur.parent;
+      }
+      this.SelectedNode = node;
+      this.SelectedNodeChanged.emit(this.SelectedNode);
+    })
+  }
+
  /**
   * Uploads a file using POST request. Polls for a server event
   * signalling end of processing. Requests tree root update upon success.

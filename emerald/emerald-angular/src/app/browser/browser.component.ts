@@ -11,18 +11,15 @@ import { Subject } from 'rxjs/Subject';
 })
 
 export class BrowserComponent implements OnInit {
-  public nodeType = NodeType;
-
-
   constructor(private _storageService : EmeraldBackendStorageService)
   { }
 
   ngOnInit() {
     const selectedNodeChanged = this._storageService.SelectedNodeChanged;
-    selectedNodeChanged.subscribe((node: ITreeNode) => this.onRequest(node));
+    selectedNodeChanged.subscribe((node: ITreeNode) => this.onRequestNodes(node));
   }
 
-  onRequest(parent: ITreeNode) {
+  private onRequestNodes(parent: ITreeNode) {
     this._storageService.populateChildren(parent)
       .then(children => { parent.children = children; });
   }

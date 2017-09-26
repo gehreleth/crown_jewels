@@ -1,4 +1,4 @@
-<div *ngIf="_storageService.SelectedNode;else noselection">
+<div *ngIf="node;else noselection">
   <div [ngSwitch]="node.type">
     <div *ngSwitchCase="nodeType.Zip">
       <p>Zip file</p>
@@ -17,8 +17,8 @@
           </li>
         </ul>
       </div>
-      <div *ngIf="_imageMeta;else nometa">
-        <app-img-region-editor [(imageMeta)]="_imageMeta"></app-img-region-editor>
+      <div *ngIf="imageMeta;else nometa">
+        <app-img-region-editor [(imageMeta)]="imageMeta"></app-img-region-editor>
       </div>
       <ng-template #nometa>
         <p>Loading ...</p>
