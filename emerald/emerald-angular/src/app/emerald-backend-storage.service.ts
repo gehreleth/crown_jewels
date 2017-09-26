@@ -12,6 +12,7 @@ export class EmeraldBackendStorageService {
   Nodes: Array<ITreeNode> = null;
   SelectedNode: ITreeNode = null;
   SelectedNodeChanged: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
+  PendingPromise: Promise<any> = Promise.resolve(1);
   private Id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
 
   constructor(private http: Http) {
@@ -129,17 +130,20 @@ export class EmeraldBackendStorageService {
  * eagerly restore entire tree segment by using the populate-branch server call.
  */
   getNodeById(id : number) : Promise<ITreeNode> {
+    let retVal: Promise<ITreeNode>;
     if (this.Id2Node.has(id))
-      return new Promise<ITreeNode>(resolve => resolve(this.Id2Node.get(id)));
+      retVal = new Promise<ITreeNode>(resolve => resolve(this.Id2Node.get(id)));
     else {
       const rsp = this.http.get(`/emerald/storage/populate-branch/${id}`);
-      return rsp.map((response: Response) => response.json()).toPromise()
+      retVal = rsp.map((response: Response) => response.json()).toPromise()
         .then((serverAnswer: any) => ITreeNode.fromDictRec(serverAnswer, null))
         .then((n : ITreeNode) => {
           this.mergeBranch(n);
           return this.getNodeById(id);
         });
     }
+    this.PendingPromise = this.PendingPromise.then(() => retVal);
+    return retVal;
   }
 
   /**
@@ -151,14 +155,15 @@ export class EmeraldBackendStorageService {
   populateChildren(parent: ITreeNode | null, forceRefresh : boolean = false) :
     Promise< Array<ITreeNode> >
   {
+    let retVal: Promise< Array<ITreeNode> >;
     const children = parent ? parent.children : this.Nodes;
-    if (!forceRefresh && children != null)
-      return new Promise< Array<ITreeNode> >(resolve => resolve(children));
-    else {
+    if (!forceRefresh && children != null) {
+      retVal = new Promise< Array<ITreeNode> >(resolve => resolve(children));
+    } else {
       const rsp = parent
         ? this.http.get(`/emerald/storage/populate-children/${parent.id}`)
         : this.http.get('/emerald/storage/populate-root');
-      return rsp.map((response: Response) => response.json()).toPromise()
+      retVal = rsp.map((response: Response) => response.json()).toPromise()
         .then((serverAnswer: any) => {
           let arr = serverAnswer as any[];
           return arr.map((ee:any) => ITreeNode.fromDict(ee, parent));
@@ -177,6 +182,8 @@ export class EmeraldBackendStorageService {
           new Promise< Array<ITreeNode> >(resolve => undefined);
         });
     }
+    this.PendingPromise = this.PendingPromise.then(() => retVal);
+    return retVal;
   }
 
  /**

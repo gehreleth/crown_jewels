@@ -7,44 +7,8 @@ import { IImageMeta } from '../../image-meta'
 
 @Component({
   selector: 'app-browser-overview',
-  styles : [`
-#navtabs {
-   margin-bottom: 16px;
-}
-`],
-  template: `
-<div *ngIf="_storageService.SelectedNode;else noselection">
-  <div [ngSwitch]="node.type">
-    <div *ngSwitchCase="nodeType.Zip">
-      <p>Zip file</p>
-    </div>
-    <div *ngSwitchCase="nodeType.Folder">
-      <p>Folder</p>
-    </div>
-    <div *ngSwitchCase="nodeType.Image">
-      <div id="navtabs">
-        <ul class="nav nav-tabs">
-          <li class="nav-item">
-            <a class="nav-link active" [routerLink]="['./']">Whole page</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" [routerLink]="['./selections', {page: 0, size: 10}]">Selections</a>
-          </li>
-        </ul>
-      </div>
-      <div *ngIf="_imageMeta;else nometa">
-        <app-img-region-editor [(imageMeta)]="_imageMeta"></app-img-region-editor>
-      </div>
-      <ng-template #nometa>
-        <p>Loading ...</p>
-      </ng-template>
-    </div>
-  </div>
-</div>
-<ng-template #noselection>
-  <p>No selection</p>
-</ng-template>
-`
+  templateUrl: './browser-overview.component.html',
+  styleUrls: ['./browser-overview.component.scss']
 })
 export class BrowserOverviewComponent implements OnInit {
   public nodeType = NodeType;
@@ -55,7 +19,8 @@ export class BrowserOverviewComponent implements OnInit {
 
   constructor(private _activatedRoute: ActivatedRoute,
               private _storageService : EmeraldBackendStorageService,
-              private _imageMetadataService : ImageMetadataService) { }
+              private _imageMetadataService : ImageMetadataService)
+  { }
 
   ngOnInit() {
     this._activatedRoute.parent.params.subscribe((params: Params) => {
