@@ -10,10 +10,12 @@
       <div id="navtabs">
         <ul class="nav nav-tabs">
           <li class="nav-item">
-            <a class="nav-link active" [routerLink]="['./']">Whole page</a>
+            <a class="nav-link {{view === browserView.Overview ? 'active' : ''}}"
+               [routerLink]="['./']">Whole page</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" [routerLink]="['./selections', {page: 0, size: 10}]">Selections</a>
+            <a class="nav-link {{view === browserView.Selections ? 'active' : ''}}" 
+               [routerLink]="['./selections', {page: 0, size: 10}]">Selections</a>
           </li>
         </ul>
       </div>
