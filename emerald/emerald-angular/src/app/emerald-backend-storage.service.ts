@@ -22,16 +22,16 @@ export class EmeraldBackendStorageService {
   newRoots: EventEmitter<void> = new EventEmitter<void>();
   browseSlashId: EventEmitter<string> = new EventEmitter<string>();
 
-  Nodes: Array<ITreeNode> = null;
-  NodesChanged: EventEmitter<Array<ITreeNode>> = new EventEmitter<Array<ITreeNode>>();
+  rootNodes: Array<ITreeNode> = null;
+  rootNodesChanged: EventEmitter<Array<ITreeNode>> = new EventEmitter<Array<ITreeNode>>();
 
-  SelectedNode: ITreeNode = null;
-  SelectedNodeChanged: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
+  treePaneSelection: ITreeNode = null;
+  treePaneSelectionChanged: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
 
-  SelectedImageMeta: IImageMeta = null;
-  SelectedImageMetaChanged: EventEmitter<IImageMeta> = new EventEmitter<IImageMeta>();
+  rightPaneSelection: IImageMeta = null;
+  rightPaneSelectionChanged: EventEmitter<IImageMeta> = new EventEmitter<IImageMeta>();
 
-  PendingPromise: Promise<any> = Promise.resolve(1);
+  pendingPromise: Promise<any> = Promise.resolve(1);
 
   private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
@@ -39,7 +39,7 @@ export class EmeraldBackendStorageService {
   constructor(private _http: Http)
   {
     this.newRoots.subscribe(() => this.requestNodes(null, true));
-    this.SelectedNodeChanged.subscribe((node: ITreeNode) =>
+    this.treePaneSelectionChanged.subscribe((node: ITreeNode) =>
       this.handleSelectedNodeChanged(node));
     this.browseSlashId.subscribe(id => this.handleBrowseSlashId(id));
     this.newRoots.emit();
@@ -49,15 +49,15 @@ export class EmeraldBackendStorageService {
     if (node.type === NodeType.Image) {
       this.wait(metaFromNode(this._http, this._defReqOpts, node))
         .subscribe((imageMeta: IImageMeta) => {
-          this.SelectedImageMeta = imageMeta;
-          this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
+          this.rightPaneSelection = imageMeta;
+          this.rightPaneSelectionChanged.emit(this.rightPaneSelection);
         });
     } else {
       if (node.type === NodeType.Zip || node.type === NodeType.Folder) {
         this.requestNodes(node, false);
       }
-      this.SelectedImageMeta = null;
-      this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
+      this.rightPaneSelection = null;
+      this.rightPaneSelectionChanged.emit(this.rightPaneSelection);
     }
   }
 
@@ -83,8 +83,8 @@ export class EmeraldBackendStorageService {
       cur.isExpanded = true;
       cur = cur.parent;
     }
-    this.SelectedNode = terminalNode;
-    this.SelectedNodeChanged.emit(this.SelectedNode);
+    this.treePaneSelection = terminalNode;
+    this.treePaneSelectionChanged.emit(this.treePaneSelection);
   }
 
   private wait<Q>(arg: Observable<Q>, logObj?: any): Observable<Q> {
@@ -98,7 +98,7 @@ export class EmeraldBackendStorageService {
         reject(err);
       });
     });
-    this.PendingPromise = this.PendingPromise.then(() => pr);
+    this.pendingPromise = this.pendingPromise.then(() => pr);
     return Observable.fromPromise(pr);
   }
 
@@ -109,7 +109,7 @@ export class EmeraldBackendStorageService {
   }
 
   requestNodes(parent: ITreeNode, forceRefresh: boolean) {
-    const curChildren = parent ? parent.children : this.Nodes;
+    const curChildren = parent ? parent.children : this.rootNodes;
     if (!curChildren || forceRefresh) {
       this.wait(populateChildren(this._http, parent))
         .subscribe(children => {
@@ -117,8 +117,8 @@ export class EmeraldBackendStorageService {
           if (parent) {
             parent.children = children;
           } else {
-            this.Nodes = children;
-            this.NodesChanged.emit(this.Nodes);
+            this.rootNodes = children;
+            this.rootNodesChanged.emit(this.rootNodes);
           }
         });
     }
@@ -146,14 +146,14 @@ export class EmeraldBackendStorageService {
   */
   private mergeBranch(newBranchRoot: ITreeNode) {
     let lookup = new Map<number, ITreeNode>();
-    EmeraldBackendStorageService.makeSliceToMerge(this.Nodes,
+    EmeraldBackendStorageService.makeSliceToMerge(this.rootNodes,
       [newBranchRoot], lookup);
-    let newNodes = EmeraldBackendStorageService.mergeBranch0(null, this.Nodes,
+    let newNodes = EmeraldBackendStorageService.mergeBranch0(null, this.rootNodes,
       [newBranchRoot], lookup);
     let newId2Node = new Map<number, ITreeNode>(this._id2Node);
     lookup.forEach((v, k) => newId2Node.set(k, v));
-    this.Nodes = newNodes;
-    this.NodesChanged.emit(this.Nodes);
+    this.rootNodes = newNodes;
+    this.rootNodesChanged.emit(this.rootNodes);
     this._id2Node = newId2Node;
   }
 
