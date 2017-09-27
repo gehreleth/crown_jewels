@@ -145,6 +145,7 @@ export class EmeraldBackendStorageService {
     let newId2Node = new Map<number, ITreeNode>(this._id2Node);
     lookup.forEach((v, k) => newId2Node.set(k, v));
     this.Nodes = newNodes;
+    this.NodesChanged.emit(this.Nodes);
     this._id2Node = newId2Node;
   }
 
