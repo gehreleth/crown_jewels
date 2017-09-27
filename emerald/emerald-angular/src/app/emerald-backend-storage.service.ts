@@ -1,8 +1,7 @@
 import { Injectable, Input, Output, EventEmitter} from '@angular/core';
-import { Http, Response } from '@angular/http';
+import { Http, Headers, RequestOptions, Response } from '@angular/http';
 import { ITreeNode, NodeType } from './tree-node';
 import { IImageMeta } from './image-meta';
-import { ImageMetadataService } from './image-metadata.service';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/catch';
@@ -14,6 +13,7 @@ import 'rxjs/add/operator/map';
 
 import populateChildren from './backend/populateChildren';
 import populateBranchByTerminalNodeId from './backend/populateBranchByTerminalNodeId';
+import metaFromNode from './backend/metaFromNode';
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
@@ -36,8 +36,7 @@ export class EmeraldBackendStorageService {
   private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
 
-  constructor(private _http: Http,
-              private _imageMetadataService: ImageMetadataService)
+  constructor(private _http: Http)
   {
     this.newRoots.subscribe(() => this.requestNodes(null, true));
     this.SelectedNodeChanged.subscribe((node: ITreeNode) =>
@@ -48,7 +47,7 @@ export class EmeraldBackendStorageService {
 
   private handleSelectedNodeChanged(node: ITreeNode) {
     if (node.type === NodeType.Image) {
-      this.wait(this._imageMetadataService.getMeta(node))
+      this.wait(metaFromNode(this._http, this._defReqOpts, node))
         .subscribe((imageMeta: IImageMeta) => {
           this.SelectedImageMeta = imageMeta;
           this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
@@ -101,6 +100,12 @@ export class EmeraldBackendStorageService {
     });
     this.PendingPromise = this.PendingPromise.then(() => pr);
     return Observable.fromPromise(pr);
+  }
+
+  private get _defReqOpts() : RequestOptions {
+    let headers = new Headers();
+    headers.append('Content-Type', 'application/json;charset=UTF-8');
+    return new RequestOptions({ headers: headers });
   }
 
   requestNodes(parent: ITreeNode, forceRefresh: boolean) {

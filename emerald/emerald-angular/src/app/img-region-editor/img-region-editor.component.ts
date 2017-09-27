@@ -1,12 +1,20 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Http, Headers, RequestOptions } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
 import { ViewChild, ElementRef } from '@angular/core';
 import { OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 import { IArea } from '../ire-main-area/area'
 import { ITreeNode, NodeType } from '../tree-node'
-import { ImageMetadataService } from '../image-metadata.service';
 import { IImageMeta, Rotation } from '../image-meta';
 import { IImageRegion } from '../image-region';
+
+import 'rxjs/add/observable/of';
+
+import rotateCW from '../backend/rotateCW';
+import rotateCCW from '../backend/rotateCCW';
+import metaFromNode from '../backend/metaFromNode';
+import assignRegionsAndUpdate from '../backend/assignRegionsAndUpdate';
 
 function a2r(arg: Array<IArea>, scale: number): Array<IImageRegion> {
   return arg.map(
@@ -46,6 +54,39 @@ function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
   );
 }
 
+/**
+ * The image dimensions isn't stored at backend, but involved in calculations
+ * of the data being sent to the backend, so it's convinient to make a method
+ * in the service acting as if they were stored.
+ *
+ * @param arg meta object being updated - changes won't be sent to backend,
+ * but this method will return result as Observable instance.
+ *
+ * @param naturalWidth image.naturalWidth field extracted from dimensionProbe.
+ * @param naturalHeight image.naturalHeigh field extracted from dimensionProbe.
+ * @param clientWidth image.clientWidth field extracted from dimensionProbe.
+ * @param clientHeight image.clientHeight field extracted from dimensionProbe.
+ *
+ * @returns Observable of the updated meta object.
+ */
+function assignDimensions(arg: IImageMeta, naturalWidth: number, naturalHeight: number,
+  clientWidth: number, clientHeight: number): Observable<IImageMeta>
+{
+  const retVal: IImageMeta = {
+    href: arg.href,
+    aquamarineId: arg.aquamarineId,
+    mimeType: arg.mimeType,
+    contentLength: arg.contentLength,
+    naturalWidth: naturalWidth,
+    naturalHeight: naturalHeight,
+    clientWidth: clientWidth,
+    clientHeight: clientHeight,
+    rotation: arg.rotation,
+    regions: arg.regions
+  };
+  return Observable.of(retVal);
+}
+
 @Component({
   selector: 'app-img-region-editor',
   templateUrl: './img-region-editor.component.html',
@@ -60,8 +101,7 @@ export class ImgRegionEditorComponent implements OnChanges {
 
   @ViewChild('dimensionProbe') private dimensionProbe: ElementRef;
 
-  constructor(private _service: ImageMetadataService,
-              private _sanitizer: DomSanitizer)
+  constructor(private _sanitizer: DomSanitizer, private _http: Http)
   { }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -79,14 +119,21 @@ export class ImgRegionEditorComponent implements OnChanges {
     }, 0);
   }
 
+  private get _defReqOpts() : RequestOptions {
+    let headers = new Headers();
+    headers.append('Content-Type', 'application/json;charset=UTF-8');
+    return new RequestOptions({ headers: headers });
+  }
+
   private updateDimensions(naturalWidth: number, naturalHeight: number,
     clientWidth: number, clientHeight: number)
   {
     const scale = clientWidth / naturalWidth;
     this._updatedAreas = r2a(this.imageMeta.regions, scale);
     this._areas = this._updatedAreas;
-    this._service.assignDimensions(this.imageMeta, naturalWidth,
-      naturalHeight, clientWidth, clientHeight).subscribe(im => this.update(im));
+    assignDimensions(this.imageMeta, naturalWidth,
+      naturalHeight, clientWidth, clientHeight)
+        .subscribe(im => this.update(im));
   }
 
   private areasChanged(arg: Array<IArea>) {
@@ -100,17 +147,20 @@ export class ImgRegionEditorComponent implements OnChanges {
   }
 
   private onRotateCW(event:any): void {
-    this._service.rotateCW(this.imageMeta).subscribe(im => this.update(im));
+    rotateCW(this._http, this._defReqOpts, this.imageMeta)
+      .subscribe(im => this.update(im));
   }
 
   private onRotateCCW(event:any): void {
-    this._service.rotateCCW(this.imageMeta).subscribe(im => this.update(im));
+    rotateCCW(this._http, this._defReqOpts, this.imageMeta)
+      .subscribe(im => this.update(im));
   }
 
   private onSaveRegions(event: any) : void {
     const scale = this.imageMeta.naturalWidth / this.imageMeta.clientWidth;
-    this._service.assignRegionsAndUpdate(this.imageMeta, a2r(this._updatedAreas, scale))
-      .subscribe(im => this.update(im));
+    assignRegionsAndUpdate(this._http, this._defReqOpts, this.imageMeta,
+      a2r(this._updatedAreas, scale))
+        .subscribe(im => this.update(im));
   }
 
   private update(arg: IImageMeta) :void {
