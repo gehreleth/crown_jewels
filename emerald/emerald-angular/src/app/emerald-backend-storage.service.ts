@@ -9,7 +9,7 @@ import 'rxjs/add/operator/catch';
 import "rxjs/add/observable/of";
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/operator/concatMap';
-import 'rxjs/add/operator/toPromise';
+import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
@@ -45,11 +45,15 @@ export class EmeraldBackendStorageService {
 
   private handleSelectedNodeChanged(node: ITreeNode) {
     if (node.type === NodeType.Image) {
-      this._imageMetadataService.getMeta(node).subscribe((imageMeta: IImageMeta) => {
-        this.SelectedImageMeta = imageMeta;
-        this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
-      });
+      this.wait(this._imageMetadataService.getMeta(node))
+        .subscribe((imageMeta: IImageMeta) => {
+          this.SelectedImageMeta = imageMeta;
+          this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
+        });
     } else {
+      if (node.type === NodeType.Zip || node.type === NodeType.Folder) {
+        this.requestNodes(node, false);
+      }
       this.SelectedImageMeta = null;
       this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
     }
@@ -61,17 +65,13 @@ export class EmeraldBackendStorageService {
 
     const id: number = parseInt(idStr);
     if (this._id2Node.has(id)) {
-      const terminalNode = this._id2Node.get(id);
-      this.expandBranch(terminalNode);
+      this.expandBranch(this._id2Node.get(id));
     } else {
-      let branchObservable = this.populateBranchByTerminalNodeId(id);
-      this.PendingPromise = this.PendingPromise.then(() => branchObservable.toPromise());
-      const that = this;
-      branchObservable.subscribe((branchRoot: ITreeNode) => {
-        that.mergeBranch(branchRoot);
-        const terminalNode = this._id2Node.get(id);
-        that.expandBranch(terminalNode);
-      });
+      this.wait(this.populateBranchByTerminalNodeId(id))
+        .subscribe((branchRoot: ITreeNode) => {
+          this.mergeBranch(branchRoot);
+          this.expandBranch(this._id2Node.get(id));
+        });
     }
   }
 
@@ -85,6 +85,37 @@ export class EmeraldBackendStorageService {
     this.SelectedNodeChanged.emit(this.SelectedNode);
   }
 
+  private wait<Q>(arg: Observable<Q>, logObj?: any): Observable<Q> {
+    let pr = new Promise<Q>((resolve, reject) => {
+      arg.subscribe((q: Q) => {
+        if (logObj) { console.log("SUCCESS", logObj); }
+        resolve(q);
+      },
+      (err: Error) => {
+        if (logObj) { console.log("FAIL", logObj); }
+        reject(err);
+      });
+    });
+    this.PendingPromise = this.PendingPromise.then(() => pr);
+    return Observable.fromPromise(pr);
+  }
+
+  requestNodes(parent: ITreeNode, forceRefresh: boolean) {
+    const curChildren = parent ? parent.children : this.Nodes;
+    if (!curChildren || forceRefresh) {
+      this.wait(this.populateChildren(parent))
+        .subscribe(children => {
+          children = this.mergeChildrenSubsets(curChildren, children);
+          if (parent) {
+            parent.children = children;
+          } else {
+            this.Nodes = children;
+            this.NodesChanged.emit(this.Nodes);
+          }
+        });
+    }
+  }
+
   private mergeChildrenSubsets(oldCh: Array<ITreeNode>, ch: Array<ITreeNode>)
     : Array<ITreeNode>
   {
@@ -94,23 +125,6 @@ export class EmeraldBackendStorageService {
       this._id2Node.set(n.id, n);
     }
     return newCh;
-  }
-
-  requestNodes(parent: ITreeNode, forceRefresh: boolean) {
-    const curChildren = parent ? parent.children : this.Nodes;
-    if (!curChildren || forceRefresh) {
-      let childrenObservable = this.populateChildren(parent);
-      this.PendingPromise = this.PendingPromise.then(() => childrenObservable.toPromise());
-      childrenObservable.subscribe(children => {
-        children = this.mergeChildrenSubsets(curChildren, children);
-        if (parent) {
-          parent.children = children;
-        } else {
-          this.Nodes = children;
-          this.NodesChanged.emit(this.Nodes);
-        }
-      });
-    }
   }
 
   /**
@@ -187,7 +201,7 @@ export class EmeraldBackendStorageService {
 
     // because the branch we're merging with has caterpillar structure,
     // next node in it is the only one having children.
-    let nextNodeInBranch : ITreeNode | null =
+    let nextNodeInBranch: ITreeNode =
       newBranch.filter(q => q.children != null).pop();
 
     if (nextNodeInBranch) {
@@ -224,7 +238,6 @@ export class EmeraldBackendStorageService {
 
   /**
    * @param parent parent node (a ITreeNode instance, not id) or null for root
-   * @param forceRefresh
    *
    * @returns Array of children
    */
