@@ -2,16 +2,25 @@ import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Response } from '@angular/http';
 import { ITreeNode, NodeType } from './tree-node';
 import { IImageMeta } from './image-meta';
+import { ImageMetadataService } from './image-metadata.service';
+import { Observable } from 'rxjs/Observable';
+
+import 'rxjs/add/operator/catch';
+import "rxjs/add/observable/of";
+import 'rxjs/add/observable/forkJoin';
+import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/map';
-import { ImageMetadataService } from './image-metadata.service';
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
 @Injectable()
 export class EmeraldBackendStorageService {
-  onNewRoots: EventEmitter<void> = new EventEmitter<void>();
+  newRoots: EventEmitter<void> = new EventEmitter<void>();
+  browseSlashId: EventEmitter<string> = new EventEmitter<string>();
+
   Nodes: Array<ITreeNode> = null;
+  NodesChanged: EventEmitter<Array<ITreeNode>> = new EventEmitter<Array<ITreeNode>>();
 
   SelectedNode: ITreeNode = null;
   SelectedNodeChanged: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
@@ -20,25 +29,88 @@ export class EmeraldBackendStorageService {
   SelectedImageMetaChanged: EventEmitter<IImageMeta> = new EventEmitter<IImageMeta>();
 
   PendingPromise: Promise<any> = Promise.resolve(1);
+
   private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
+  private _isNumberRe: RegExp = new RegExp("^\\d+$");
 
   constructor(private _http: Http,
               private _imageMetadataService: ImageMetadataService)
   {
-    this.onNewRoots.subscribe(() => this.populateChildren(null, true));
-    this.SelectedNodeChanged.subscribe((node : ITreeNode) => {
-      this.requestNodes(node)
-      if (node.type === NodeType.Image) {
-        this._imageMetadataService.getMeta(node).subscribe((imageMeta: IImageMeta) => {
-          this.SelectedImageMeta = imageMeta;
-          this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
-        });
-      } else {
-        this.SelectedImageMeta = null;
+    this.newRoots.subscribe(() => this.requestNodes(null, true));
+    this.SelectedNodeChanged.subscribe((node: ITreeNode) =>
+      this.handleSelectedNodeChanged(node));
+    this.browseSlashId.subscribe(id => this.handleBrowseSlashId(id));
+    this.newRoots.emit();
+  }
+
+  private handleSelectedNodeChanged(node: ITreeNode) {
+    if (node.type === NodeType.Image) {
+      this._imageMetadataService.getMeta(node).subscribe((imageMeta: IImageMeta) => {
+        this.SelectedImageMeta = imageMeta;
         this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
-      }
-    });
-    this.onNewRoots.emit();
+      });
+    } else {
+      this.SelectedImageMeta = null;
+      this.SelectedImageMetaChanged.emit(this.SelectedImageMeta);
+    }
+  }
+
+  private handleBrowseSlashId(idStr: string) {
+    if (!this._isNumberRe.test(idStr))
+      return;
+
+    const id: number = parseInt(idStr);
+    if (this._id2Node.has(id)) {
+      const terminalNode = this._id2Node.get(id);
+      this.expandBranch(terminalNode);
+    } else {
+      let branchObservable = this.populateBranchByTerminalNodeId(id);
+      this.PendingPromise = this.PendingPromise.then(() => branchObservable.toPromise());
+      const that = this;
+      branchObservable.subscribe((branchRoot: ITreeNode) => {
+        that.mergeBranch(branchRoot);
+        const terminalNode = this._id2Node.get(id);
+        that.expandBranch(terminalNode);
+      });
+    }
+  }
+
+  private expandBranch(terminalNode: ITreeNode) {
+    let cur = terminalNode;
+    while (cur) {
+      cur.isExpanded = true;
+      cur = cur.parent;
+    }
+    this.SelectedNode = terminalNode;
+    this.SelectedNodeChanged.emit(this.SelectedNode);
+  }
+
+  private mergeChildrenSubsets(oldCh: Array<ITreeNode>, ch: Array<ITreeNode>)
+    : Array<ITreeNode>
+  {
+    ch = ch.filter(n => !this._id2Node.has(n.id));
+    const newCh = (oldCh ? oldCh.concat(ch) : ch);
+    for (const n of newCh) {
+      this._id2Node.set(n.id, n);
+    }
+    return newCh;
+  }
+
+  requestNodes(parent: ITreeNode, forceRefresh: boolean) {
+    const curChildren = parent ? parent.children : this.Nodes;
+    if (!curChildren || forceRefresh) {
+      let childrenObservable = this.populateChildren(parent);
+      this.PendingPromise = this.PendingPromise.then(() => childrenObservable.toPromise());
+      childrenObservable.subscribe(children => {
+        children = this.mergeChildrenSubsets(curChildren, children);
+        if (parent) {
+          parent.children = children;
+        } else {
+          this.Nodes = children;
+          this.NodesChanged.emit(this.Nodes);
+        }
+      });
+    }
   }
 
   /**
@@ -144,27 +216,10 @@ export class EmeraldBackendStorageService {
     return retVal;
   }
 
-/**
- * @param id a node
- *
- * @returns node as a promise. If this node is currently absent from the tree,
- * eagerly restore entire tree segment by using the populate-branch server call.
- */
-  getNodeById(id : number) : Promise<ITreeNode> {
-    let retVal: Promise<ITreeNode>;
-    if (this._id2Node.has(id))
-      retVal = new Promise<ITreeNode>(resolve => resolve(this._id2Node.get(id)));
-    else {
-      const rsp = this._http.get(`/emerald/storage/populate-branch/${id}`);
-      retVal = rsp.map((response: Response) => response.json()).toPromise()
-        .then((serverAnswer: any) => ITreeNode.fromDictRec(serverAnswer, null))
-        .then((n : ITreeNode) => {
-          this.mergeBranch(n);
-          return this.getNodeById(id);
-        });
-    }
-    this.PendingPromise = this.PendingPromise.then(() => retVal);
-    return retVal;
+  populateBranchByTerminalNodeId(id: number): Observable<ITreeNode> {
+    return this._http.get(`/emerald/storage/populate-branch/${id}`)
+      .map((response: Response) =>
+        ITreeNode.fromDictRec(response.json(), null));
   }
 
   /**
@@ -173,55 +228,13 @@ export class EmeraldBackendStorageService {
    *
    * @returns Array of children
    */
-  populateChildren(parent: ITreeNode | null, forceRefresh : boolean = false) :
-    Promise< Array<ITreeNode> >
+  populateChildren(parent?: ITreeNode): Observable<Array<ITreeNode>>
   {
-    let retVal: Promise< Array<ITreeNode> >;
-    const children = parent ? parent.children : this.Nodes;
-    if (!forceRefresh && children != null) {
-      retVal = new Promise< Array<ITreeNode> >(resolve => resolve(children));
-    } else {
-      const rsp = parent
-        ? this._http.get(`/emerald/storage/populate-children/${parent.id}`)
-        : this._http.get('/emerald/storage/populate-root');
-      retVal = rsp.map((response: Response) => response.json()).toPromise()
-        .then((serverAnswer: any) => {
-          let arr = serverAnswer as any[];
-          return arr.map((ee:any) => ITreeNode.fromDict(ee, parent));
-        })
-        .then((ch : Array<ITreeNode>) => ch.filter(n => !this._id2Node.has(n.id)))
-        .then((ch : Array<ITreeNode>) => {
-          let oldCh = parent ? parent.children : this.Nodes;
-          let newCh = oldCh ? oldCh.concat(ch) : ch;
-          ch.forEach(n => this._id2Node.set(n.id, n))
-          if (parent)
-            parent.children = newCh;
-          else
-            this.Nodes = newCh;
-          return this.populateChildren(parent, false);
-        }).catch(error => {
-          new Promise< Array<ITreeNode> >(resolve => undefined);
-        });
-    }
-    this.PendingPromise = this.PendingPromise.then(() => retVal);
-    return retVal;
-  }
-
-  selectById(id: number) {
-    this.getNodeById(id).then(node => {
-      let cur = node;
-      while (cur) {
-        cur.isExpanded = true;
-        cur = cur.parent;
-      }
-      this.SelectedNode = node;
-      this.SelectedNodeChanged.emit(this.SelectedNode);
-    })
-  }
-
-  requestNodes(parent: ITreeNode) {
-    this.populateChildren(parent)
-      .then(children => { parent.children = children; });
+    return (parent ? this._http.get(`/emerald/storage/populate-children/${parent.id}`)
+                   : this._http.get('/emerald/storage/populate-root'))
+      .map((response: Response) =>
+        (response.json() as any[]).map((ee: any) =>
+          ITreeNode.fromDict(ee, parent)));
   }
 
  /**
@@ -250,7 +263,7 @@ export class EmeraldBackendStorageService {
       const status = TrackingStatus[dict['status'] as string];
       switch (status) {
         case TrackingStatus.SUCCESS:
-          this.onNewRoots.emit();
+          this.newRoots.emit();
           break;
         case TrackingStatus.PENDING:
           setTimeout(() => this.trackBatchExecution(trackingId), 5000);
