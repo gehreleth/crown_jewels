@@ -12,6 +12,9 @@ import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 
+import populateChildren from './backend/populateChildren';
+import populateBranchByTerminalNodeId from './backend/populateBranchByTerminalNodeId';
+
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
 @Injectable()
@@ -67,7 +70,7 @@ export class EmeraldBackendStorageService {
     if (this._id2Node.has(id)) {
       this.expandBranch(this._id2Node.get(id));
     } else {
-      this.wait(this.populateBranchByTerminalNodeId(id))
+      this.wait(populateBranchByTerminalNodeId(this._http, id))
         .subscribe((branchRoot: ITreeNode) => {
           this.mergeBranch(branchRoot);
           this.expandBranch(this._id2Node.get(id));
@@ -103,7 +106,7 @@ export class EmeraldBackendStorageService {
   requestNodes(parent: ITreeNode, forceRefresh: boolean) {
     const curChildren = parent ? parent.children : this.Nodes;
     if (!curChildren || forceRefresh) {
-      this.wait(this.populateChildren(parent))
+      this.wait(populateChildren(this._http, parent))
         .subscribe(children => {
           children = this.mergeChildrenSubsets(curChildren, children);
           if (parent) {
@@ -229,26 +232,6 @@ export class EmeraldBackendStorageService {
         return q;
       }));
     return retVal;
-  }
-
-  populateBranchByTerminalNodeId(id: number): Observable<ITreeNode> {
-    return this._http.get(`/emerald/storage/populate-branch/${id}`)
-      .map((response: Response) =>
-        ITreeNode.fromDictRec(response.json(), null));
-  }
-
-  /**
-   * @param parent parent node (a ITreeNode instance, not id) or null for root
-   *
-   * @returns Array of children
-   */
-  populateChildren(parent?: ITreeNode): Observable<Array<ITreeNode>>
-  {
-    return (parent ? this._http.get(`/emerald/storage/populate-children/${parent.id}`)
-                   : this._http.get('/emerald/storage/populate-root'))
-      .map((response: Response) =>
-        (response.json() as any[]).map((ee: any) =>
-          ITreeNode.fromDict(ee, parent)));
   }
 
  /**
