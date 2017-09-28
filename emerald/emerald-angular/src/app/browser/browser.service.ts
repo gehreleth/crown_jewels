@@ -15,6 +15,86 @@ import populateChildren from '../backend/populateChildren';
 import populateBranchByTerminalNodeId from '../backend/populateBranchByTerminalNodeId';
 import metaFromNode from '../backend/metaFromNode';
 
+/**
+* Builds a set of nodes that should be kept intact during mergeBranch procedure
+* Basically, it's all the nodes that already exist in the tree,
+* but nave intersection with the branch.
+*
+* @param src of the nodes that already exist in one level of hiererchy
+* @param newBranch branch we're merging with
+* @param lookup the procedure will store its output here.
+* we can't make it a return value because this function it recursive and uses
+* this as accumulator shared between all its recursive contexts.
+*/
+function makeSliceToMerge(src: Array<ITreeNode>,
+  newBranch: Array<ITreeNode>, lookup: Map<number, ITreeNode>)
+{
+  src.forEach(n => lookup.set(n.id, n));
+  const nextNodeInBranch = newBranch.filter(n => n.children).pop();
+  if (nextNodeInBranch) {
+    let srcNested : Array<ITreeNode> = [];
+    {
+      const src0 = lookup.get(nextNodeInBranch.id);
+      if (src0)
+        srcNested = src0.children ? src0.children : [];
+    }
+    makeSliceToMerge(srcNested, nextNodeInBranch.children, lookup);
+  }
+}
+
+/**
+* Merges a new branch into a tree, most likely a lazily initiated tree and
+* its eagerly initiated branch just received from the server.
+*
+* @param parent the root branch from where we start merging.
+* Server currently give a whole branch growing from the root,
+* so this parameter is supposed to be null.
+* _But_ this recursive function uses this parameter internally
+* for merging sub-branches.
+*
+* @param src collection of exinting nodes on a branch
+*
+* @param newBranch collection of new nodes we merge with.
+* This algorithm assumes that newBranch have caterpillar tree structure.
+*
+* @returns src collection merged with new nodes
+*/
+function mergeBranchRec(parent: ITreeNode, src: Array<ITreeNode>,
+  newBranch: Array<ITreeNode>, lookup: Map<number, ITreeNode>): Array<ITreeNode>
+{
+  let retVal : Array<ITreeNode> = src != null ? src : [];
+  newBranch.forEach(q => { q.parent = parent });
+
+  // because the branch we're merging with has caterpillar structure,
+  // next node in it is the only one having children.
+  let nextNodeInBranch: ITreeNode =
+    newBranch.filter(q => q.children != null).pop();
+
+  if (nextNodeInBranch) {
+    // children are being merged by recursive application of the same procedure.
+    const existingSrcBranch = lookup.get(nextNodeInBranch.id);
+    const nestedSrc = existingSrcBranch ? existingSrcBranch.children : null;
+
+    nextNodeInBranch.children = mergeBranchRec(nextNodeInBranch, nestedSrc,
+      nextNodeInBranch.children, lookup);
+
+    // replace only trunk node (map) or add a new trunk (concat).
+    retVal = lookup.has(nextNodeInBranch.id)
+      ? retVal.map(q => q.id != nextNodeInBranch.id ? q : nextNodeInBranch)
+      : retVal.concat([nextNodeInBranch]);
+
+    lookup.set(nextNodeInBranch.id, nextNodeInBranch);
+  }
+  // Don't update non-essential but already
+  // existing nodes (they're in the lookup).
+  retVal = retVal.concat(newBranch
+    .filter(q => !lookup.has(q.id)).map(q => {
+      lookup.set(q.id, q);
+      return q;
+    }));
+  return retVal;
+}
+
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
 @Injectable()
@@ -115,7 +195,7 @@ export class BrowserService {
     if (!curChildren || forceRefresh) {
       this.setBusyIndicator(populateChildren(this._http, parent))
         .subscribe(children => {
-          children = this.mergeChildrenSubsets(curChildren, children);
+          children = this.mergeNewChildrenSet(curChildren, children);
           if (parent) {
             parent.children = children;
           } else {
@@ -126,7 +206,7 @@ export class BrowserService {
     }
   }
 
-  private mergeChildrenSubsets(oldCh: Array<ITreeNode>, ch: Array<ITreeNode>)
+  private mergeNewChildrenSet(oldCh: Array<ITreeNode>, ch: Array<ITreeNode>)
     : Array<ITreeNode>
   {
     ch = ch.filter(n => !this._id2Node.has(n.id));
@@ -148,96 +228,13 @@ export class BrowserService {
   */
   private mergeBranch(newBranchRoot: ITreeNode) {
     let lookup = new Map<number, ITreeNode>();
-    BrowserService.makeSliceToMerge(this.rootNodes,
-      [newBranchRoot], lookup);
-    let newNodes = BrowserService.mergeBranch0(null, this.rootNodes,
-      [newBranchRoot], lookup);
+    makeSliceToMerge(this.rootNodes, [newBranchRoot], lookup);
+    let newNodes = mergeBranchRec(null, this.rootNodes, [newBranchRoot], lookup);
     let newId2Node = new Map<number, ITreeNode>(this._id2Node);
     lookup.forEach((v, k) => newId2Node.set(k, v));
     this.rootNodes = newNodes;
     this.rootNodesChanged.emit(this.rootNodes);
     this._id2Node = newId2Node;
-  }
-
-  /**
-  * Builds a set of nodes that should be kept intact during mergeBranch procedure
-  * Basically, it's all the nodes that already exist in the tree,
-  * but nave intersection with the branch.
-  *
-  * @param src of the nodes that already exist in one level of hiererchy
-  * @param newBranch branch we're merging with
-  * @param lookup the procedure will store its output here.
-  * we can't make it a return value because this function it recursive and uses
-  * this as accumulator shared between all its recursive contexts.
-  */
-  private static makeSliceToMerge(src: Array<ITreeNode>,
-    newBranch: Array<ITreeNode>, lookup: Map<number, ITreeNode>)
-  {
-    src.forEach(n => lookup.set(n.id, n));
-    const nextNodeInBranch = newBranch.filter(n => n.children).pop();
-    if (nextNodeInBranch) {
-      let srcNested : Array<ITreeNode> = [];
-      {
-        const src0 = lookup.get(nextNodeInBranch.id);
-        if (src0)
-          srcNested = src0.children ? src0.children : [];
-      }
-      BrowserService.makeSliceToMerge(srcNested, nextNodeInBranch.children, lookup);
-    }
-  }
-
-  /**
-  * Merges a new branch into a tree, most likely a lazily initiated tree and
-  * its eagerly initiated branch just received from the server.
-  *
-  * @param parent the root branch from where we start merging.
-  * Server currently give a whole branch growing from the root,
-  * so this parameter is supposed to be null.
-  * _But_ this recursive function uses this parameter internally
-  * for merging sub-branches.
-  *
-  * @param src collection of exinting nodes on a branch
-  *
-  * @param newBranch collection of new nodes we merge with.
-  * This algorithm assumes that newBranch have caterpillar tree structure.
-  *
-  * @returns src collection merged with new nodes
-  */
-  private static mergeBranch0(parent: ITreeNode, src: Array<ITreeNode>,
-    newBranch: Array<ITreeNode>, lookup: Map<number, ITreeNode>): Array<ITreeNode>
-  {
-    let retVal : Array<ITreeNode> = src != null ? src : [];
-    newBranch.forEach(q => { q.parent = parent });
-
-    // because the branch we're merging with has caterpillar structure,
-    // next node in it is the only one having children.
-    let nextNodeInBranch: ITreeNode =
-      newBranch.filter(q => q.children != null).pop();
-
-    if (nextNodeInBranch) {
-      // children are being merged by recursive application of the same procedure.
-      const existingSrcBranch = lookup.get(nextNodeInBranch.id);
-      const nestedSrc = existingSrcBranch ? existingSrcBranch.children : null;
-
-      nextNodeInBranch.children =
-        this.mergeBranch0(nextNodeInBranch, nestedSrc,
-            nextNodeInBranch.children, lookup);
-
-      // replace only trunk node (map) or add a new trunk (concat).
-      retVal = lookup.has(nextNodeInBranch.id)
-        ? retVal.map(q => q.id != nextNodeInBranch.id ? q : nextNodeInBranch)
-        : retVal.concat([nextNodeInBranch]);
-
-      lookup.set(nextNodeInBranch.id, nextNodeInBranch);
-    }
-    // Don't update non-essential but already
-    // existing nodes (they're in the lookup).
-    retVal = retVal.concat(newBranch
-      .filter(q => !lookup.has(q.id)).map(q => {
-        lookup.set(q.id, q);
-        return q;
-      }));
-    return retVal;
   }
 
  /**
