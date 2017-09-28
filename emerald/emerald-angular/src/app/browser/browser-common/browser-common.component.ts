@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { BrowserService } from '../browser.service'
+import { RegionEditorService } from '../../img-region-editor/region-editor.service'
 import { ITreeNode, NodeType } from '../../backend/entities/tree-node'
 import { IImageMeta } from '../../backend/entities/image-meta'
 import { BrowserView } from '../browser-view'
@@ -15,7 +16,8 @@ export class BrowserCommonComponent implements OnInit {
 
   @Input() view: BrowserView;
 
-  constructor(private _context: BrowserService)
+  constructor(private _context: BrowserService,
+              private _regionEditor: RegionEditorService)
   { }
 
   ngOnInit() {}
@@ -31,8 +33,8 @@ export class BrowserCommonComponent implements OnInit {
       switch (view) {
         case BrowserView.Selections:
           return ['./selections', {
-            page: this._context.pageRange.page,
-            count: this._context.pageRange.count
+            page: this._regionEditor.pageRange.page,
+            count: this._regionEditor.pageRange.count
           }];
         default:
           return ['../'];

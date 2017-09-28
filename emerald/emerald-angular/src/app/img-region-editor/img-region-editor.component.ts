@@ -16,77 +16,6 @@ import rotateCCW from '../backend/rotateCCW';
 import metaFromNode from '../backend/metaFromNode';
 import assignRegionsAndUpdate from '../backend/assignRegionsAndUpdate';
 
-function a2r(arg: Array<IArea>, scale: number): Array<IImageRegion> {
-  return arg.map(
-    q => {
-      let href: string = null;
-      if (q.attachment && q.attachment.href) {
-        href = q.attachment.href;
-      }
-      const retVal: IImageRegion = {
-        x: q.x * scale,
-        y: q.y * scale,
-        width: q.width * scale,
-        height: q.height * scale,
-        text: q.text,
-        href: href
-      }
-      return retVal;
-    }
-  );
-}
-
-function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
-  return arg.map(
-    q => {
-      const retVal: IArea = {
-        x: q.x * scale,
-        y: q.y * scale,
-        width: q.width * scale,
-        height: q.height * scale,
-        text: q.text,
-        attachment: {
-          href: q.href,
-        }
-      }
-      return retVal;
-    }
-  );
-}
-
-/**
- * The image dimensions isn't stored at backend, but involved in calculations
- * of the data being sent to the backend, so it's convinient to make a method
- * in the service acting as if they were stored.
- *
- * @param arg meta object being updated - changes won't be sent to backend,
- * but this method will return result as Observable instance.
- *
- * @param naturalWidth image.naturalWidth field extracted from dimensionProbe.
- * @param naturalHeight image.naturalHeigh field extracted from dimensionProbe.
- * @param clientWidth image.clientWidth field extracted from dimensionProbe.
- * @param clientHeight image.clientHeight field extracted from dimensionProbe.
- *
- * @returns Observable of the updated meta object.
- */
-function assignDimensions(arg: IImageMeta, naturalWidth: number, naturalHeight: number,
-  clientWidth: number, clientHeight: number): Observable<IImageMeta>
-{
-  const retVal: IImageMeta = {
-    href: arg.href,
-    aquamarineId: arg.aquamarineId,
-    mimeType: arg.mimeType,
-    contentLength: arg.contentLength,
-    naturalWidth: naturalWidth,
-    naturalHeight: naturalHeight,
-    clientWidth: clientWidth,
-    clientHeight: clientHeight,
-    rotation: arg.rotation,
-    regions: arg.regions
-  };
-  return Observable.of(retVal);
-}
-
 @Component({
   selector: 'app-img-region-editor',
   templateUrl: './img-region-editor.component.html',
@@ -167,4 +96,75 @@ export class ImgRegionEditorComponent implements OnChanges {
     this.imageMeta = arg;
     this.imageMetaChange.emit(this.imageMeta);
   }
+}
+
+function a2r(arg: Array<IArea>, scale: number): Array<IImageRegion> {
+  return arg.map(
+    q => {
+      let href: string = null;
+      if (q.attachment && q.attachment.href) {
+        href = q.attachment.href;
+      }
+      const retVal: IImageRegion = {
+        x: q.x * scale,
+        y: q.y * scale,
+        width: q.width * scale,
+        height: q.height * scale,
+        text: q.text,
+        href: href
+      }
+      return retVal;
+    }
+  );
+}
+
+function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
+  return arg.map(
+    q => {
+      const retVal: IArea = {
+        x: q.x * scale,
+        y: q.y * scale,
+        width: q.width * scale,
+        height: q.height * scale,
+        text: q.text,
+        attachment: {
+          href: q.href,
+        }
+      }
+      return retVal;
+    }
+  );
+}
+
+/**
+ * The image dimensions isn't stored at backend, but involved in calculations
+ * of the data being sent to the backend, so it's convinient to make a method
+ * in the service acting as if they were stored.
+ *
+ * @param arg meta object being updated - changes won't be sent to backend,
+ * but this method will return result as Observable instance.
+ *
+ * @param naturalWidth image.naturalWidth field extracted from dimensionProbe.
+ * @param naturalHeight image.naturalHeigh field extracted from dimensionProbe.
+ * @param clientWidth image.clientWidth field extracted from dimensionProbe.
+ * @param clientHeight image.clientHeight field extracted from dimensionProbe.
+ *
+ * @returns Observable of the updated meta object.
+ */
+function assignDimensions(arg: IImageMeta, naturalWidth: number, naturalHeight: number,
+  clientWidth: number, clientHeight: number): Observable<IImageMeta>
+{
+  const retVal: IImageMeta = {
+    href: arg.href,
+    aquamarineId: arg.aquamarineId,
+    mimeType: arg.mimeType,
+    contentLength: arg.contentLength,
+    naturalWidth: naturalWidth,
+    naturalHeight: naturalHeight,
+    clientWidth: clientWidth,
+    clientHeight: clientHeight,
+    rotation: arg.rotation,
+    regions: arg.regions
+  };
+  return Observable.of(retVal);
 }

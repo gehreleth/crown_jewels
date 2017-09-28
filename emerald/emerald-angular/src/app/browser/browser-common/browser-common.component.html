@@ -19,11 +19,11 @@
           </li>
         </ul>
       </div>
-      <div *ngIf="_context.rightPaneSelection; else nometa">
+      <div *ngIf="_regionEditor.rightPaneSelection; else nometa">
         <div [ngSwitch]="view">
           <div *ngSwitchCase="browserView.Overview">
             <app-img-region-editor
-              [(imageMeta)]="_context.rightPaneSelection">
+              [(imageMeta)]="_regionEditor.rightPaneSelection">
             </app-img-region-editor>
           </div>
           <div *ngSwitchCase="browserView.Selections">

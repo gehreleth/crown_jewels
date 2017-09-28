@@ -9,6 +9,7 @@ import { AngularFontAwesomeModule } from 'angular-font-awesome/angular-font-awes
 import { AppComponent } from './app.component';
 import { UploadFormComponent } from './upload-form/upload-form.component';
 import { BrowserService } from './browser/browser.service';
+import { RegionEditorService } from './img-region-editor/region-editor.service';
 import { TreeView } from './tree-view/tree-view.component'
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
@@ -64,6 +65,7 @@ const routes: Routes = [
     RouterModule.forRoot(routes)
   ],
   providers: [ BrowserService,
+               RegionEditorService,
              { provide: LocationStrategy, useClass: HashLocationStrategy },
              { provide: APP_BASE_HREF, useValue: '/' }],
   bootstrap: [ AppComponent ]
