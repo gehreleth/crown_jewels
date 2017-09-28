@@ -1,6 +1,7 @@
 import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Headers, RequestOptions, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
+
 import 'rxjs/add/operator/catch';
 import "rxjs/add/observable/of";
 import 'rxjs/add/observable/forkJoin';
@@ -87,12 +88,6 @@ export class BrowserService {
     });
     this.busyIndicator = this.busyIndicator.then(() => pr);
     return Observable.fromPromise(pr);
-  }
-
-  private get _defReqOpts() : RequestOptions {
-    let headers = new Headers();
-    headers.append('Content-Type', 'application/json;charset=UTF-8');
-    return new RequestOptions({ headers: headers });
   }
 
   requestNodes(parent: ITreeNode, forceRefresh: boolean) {

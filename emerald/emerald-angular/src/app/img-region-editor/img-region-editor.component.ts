@@ -8,6 +8,7 @@ import { IArea } from '../ire-main-area/area'
 import { ITreeNode, NodeType } from '../backend/entities/tree-node'
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
+import { HttpSettingsService } from '../http-settings.service';
 
 import 'rxjs/add/observable/of';
 
@@ -30,7 +31,9 @@ export class ImgRegionEditorComponent implements OnChanges {
 
   @ViewChild('dimensionProbe') private dimensionProbe: ElementRef;
 
-  constructor(private _sanitizer: DomSanitizer, private _http: Http)
+  constructor(private _sanitizer: DomSanitizer,
+              private _http: Http,
+              private _httpSettings: HttpSettingsService)
   { }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -46,12 +49,6 @@ export class ImgRegionEditorComponent implements OnChanges {
         }
       }
     }, 0);
-  }
-
-  private get _defReqOpts() : RequestOptions {
-    let headers = new Headers();
-    headers.append('Content-Type', 'application/json;charset=UTF-8');
-    return new RequestOptions({ headers: headers });
   }
 
   private updateDimensions(naturalWidth: number, naturalHeight: number,
@@ -76,18 +73,18 @@ export class ImgRegionEditorComponent implements OnChanges {
   }
 
   private onRotateCW(event:any): void {
-    rotateCW(this._http, this._defReqOpts, this.imageMeta)
+    rotateCW(this._http, this._httpSettings.DefReqOpts, this.imageMeta)
       .subscribe(im => this.update(im));
   }
 
   private onRotateCCW(event:any): void {
-    rotateCCW(this._http, this._defReqOpts, this.imageMeta)
+    rotateCCW(this._http, this._httpSettings.DefReqOpts, this.imageMeta)
       .subscribe(im => this.update(im));
   }
 
   private onSaveRegions(event: any) : void {
     const scale = this.imageMeta.naturalWidth / this.imageMeta.clientWidth;
-    assignRegionsAndUpdate(this._http, this._defReqOpts, this.imageMeta,
+    assignRegionsAndUpdate(this._http, this._httpSettings.DefReqOpts, this.imageMeta,
       a2r(this._updatedAreas, scale))
         .subscribe(im => this.update(im));
   }

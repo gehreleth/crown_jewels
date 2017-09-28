@@ -3,6 +3,7 @@ import { Http, Headers, RequestOptions, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
 import { BrowserService } from '../browser/browser.service';
+import { HttpSettingsService } from '../http-settings.service';
 import { IPageRange } from '../backend/entities/page-range';
 
 import 'rxjs/add/operator/catch';
@@ -23,8 +24,8 @@ export class RegionEditorService {
 
   selectionsSemicolonPageRange: EventEmitter<any> = new EventEmitter<any>();
 
-  rightPaneSelection: IImageMeta = null;
-  rightPaneSelectionChanged: EventEmitter<IImageMeta> = new EventEmitter<IImageMeta>();
+  imageMeta: IImageMeta = null;
+  imageMetaChanged: EventEmitter<IImageMeta> = new EventEmitter<IImageMeta>();
 
   pageRange: IPageRange = RegionEditorService._defPageRange;
   pageRangeChanged: EventEmitter<IPageRange> = new EventEmitter<IPageRange>();
@@ -33,7 +34,8 @@ export class RegionEditorService {
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
 
   constructor(private _http: Http,
-              private _browserService: BrowserService)
+              private _browserService: BrowserService,
+              private _httpSettings: HttpSettingsService)
   {
     this._browserService.treePaneSelectionChanged.subscribe((node: ITreeNode) =>
       this.handleSelectedNodeChanged(node));
@@ -41,16 +43,10 @@ export class RegionEditorService {
     this.selectionsSemicolonPageRange.subscribe((pageRangeDict: any) =>
       this.handlePageRange(pageRangeDict));
 
-    this.rightPaneSelectionChanged.subscribe(() => {
+    this.imageMetaChanged.subscribe(() => {
       this.pageRange = RegionEditorService._defPageRange;
       this.pageRangeChanged.emit(this.pageRange);
     });
-  }
-
-  private get _defReqOpts() : RequestOptions {
-    let headers = new Headers();
-    headers.append('Content-Type', 'application/json;charset=UTF-8');
-    return new RequestOptions({ headers: headers });
   }
 
   private handlePageRange(pageRangeDict: any) {
@@ -69,14 +65,15 @@ export class RegionEditorService {
 
   private handleSelectedNodeChanged(node: ITreeNode) {
     if (node.type === NodeType.Image) {
-      this.setBusyIndicator(metaFromNode(this._http, this._defReqOpts, node))
-        .subscribe((imageMeta: IImageMeta) => {
-          this.rightPaneSelection = imageMeta;
-          this.rightPaneSelectionChanged.emit(this.rightPaneSelection);
-        });
+      this.setBusyIndicator(metaFromNode(this._http,
+        this._httpSettings.DefReqOpts, node))
+          .subscribe((imageMeta: IImageMeta) => {
+            this.imageMeta = imageMeta;
+            this.imageMetaChanged.emit(this.imageMeta);
+          });
     } else {
-      this.rightPaneSelection = null;
-      this.rightPaneSelectionChanged.emit(this.rightPaneSelection);
+      this.imageMeta = null;
+      this.imageMetaChanged.emit(this.imageMeta);
     }
   }
 
