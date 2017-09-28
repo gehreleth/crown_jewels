@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { EmeraldBackendStorageService } from '../emerald-backend-storage.service'
+import { BrowserService } from './browser.service'
 
 @Component({
   selector: 'app-browser',
@@ -9,11 +9,11 @@ import { EmeraldBackendStorageService } from '../emerald-backend-storage.service
 })
 export class BrowserComponent implements OnInit {
   constructor(private _activatedRoute: ActivatedRoute,
-              private _storageService : EmeraldBackendStorageService)
+              private _context: BrowserService)
   { }
 
   ngOnInit() {
     this._activatedRoute.params.subscribe((params: Params) =>
-      this._storageService.browseSlashId.emit(params['id']));
+      this._context.browseSlashId.emit(params['id']));
   }
 }

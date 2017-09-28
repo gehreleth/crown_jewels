@@ -1,7 +1,7 @@
 import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Headers, RequestOptions, Response } from '@angular/http';
-import { ITreeNode, NodeType } from './backend/entities/tree-node';
-import { IImageMeta } from './backend/entities/image-meta';
+import { ITreeNode, NodeType } from '../backend/entities/tree-node';
+import { IImageMeta } from '../backend/entities/image-meta';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/catch';
@@ -11,14 +11,14 @@ import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 
-import populateChildren from './backend/populateChildren';
-import populateBranchByTerminalNodeId from './backend/populateBranchByTerminalNodeId';
-import metaFromNode from './backend/metaFromNode';
+import populateChildren from '../backend/populateChildren';
+import populateBranchByTerminalNodeId from '../backend/populateBranchByTerminalNodeId';
+import metaFromNode from '../backend/metaFromNode';
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
 @Injectable()
-export class EmeraldBackendStorageService {
+export class BrowserService {
   newRoots: EventEmitter<void> = new EventEmitter<void>();
   browseSlashId: EventEmitter<string> = new EventEmitter<string>();
 
@@ -146,9 +146,9 @@ export class EmeraldBackendStorageService {
   */
   private mergeBranch(newBranchRoot: ITreeNode) {
     let lookup = new Map<number, ITreeNode>();
-    EmeraldBackendStorageService.makeSliceToMerge(this.rootNodes,
+    BrowserService.makeSliceToMerge(this.rootNodes,
       [newBranchRoot], lookup);
-    let newNodes = EmeraldBackendStorageService.mergeBranch0(null, this.rootNodes,
+    let newNodes = BrowserService.mergeBranch0(null, this.rootNodes,
       [newBranchRoot], lookup);
     let newId2Node = new Map<number, ITreeNode>(this._id2Node);
     lookup.forEach((v, k) => newId2Node.set(k, v));
@@ -180,8 +180,7 @@ export class EmeraldBackendStorageService {
         if (src0)
           srcNested = src0.children ? src0.children : [];
       }
-      EmeraldBackendStorageService
-        .makeSliceToMerge(srcNested, nextNodeInBranch.children, lookup);
+      BrowserService.makeSliceToMerge(srcNested, nextNodeInBranch.children, lookup);
     }
   }
 

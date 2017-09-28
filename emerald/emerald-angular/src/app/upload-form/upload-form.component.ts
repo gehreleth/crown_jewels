@@ -3,7 +3,7 @@ import { Component,
          ViewChild,
          OnInit } from '@angular/core';
 import { Http, Response } from '@angular/http';
-import { EmeraldBackendStorageService } from '../emerald-backend-storage.service'
+import { BrowserService } from '../browser/browser.service'
 
 @Component({
   selector: 'app-upload-form',
@@ -11,7 +11,7 @@ import { EmeraldBackendStorageService } from '../emerald-backend-storage.service
   styleUrls: ['./upload-form.component.scss']
 })
 export class UploadFormComponent implements OnInit {
-  constructor(private storage: EmeraldBackendStorageService) { }
+  constructor(private _storage: BrowserService) { }
   @ViewChild("fileInput") fileInput: ElementRef;
 
   ngOnInit() {}
@@ -19,7 +19,7 @@ export class UploadFormComponent implements OnInit {
   onUpload() {
     let files = this.fileInput.nativeElement['files'] as FileList;
     if (files.length == 1) {
-      this.storage.upload(files[0]);
+      this._storage.upload(files[0]);
     }
   }
 }

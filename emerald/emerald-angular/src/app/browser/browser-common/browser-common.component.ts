@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { EmeraldBackendStorageService } from '../../emerald-backend-storage.service'
+import { BrowserService } from '../browser.service'
 import { ITreeNode, NodeType } from '../../backend/entities/tree-node'
 import { IImageMeta } from '../../backend/entities/image-meta'
 import { BrowserView } from '../browser-view'
@@ -15,7 +15,7 @@ export class BrowserCommonComponent implements OnInit {
 
   @Input() view: BrowserView;
 
-  constructor(private _storageService : EmeraldBackendStorageService)
+  constructor(private _context: BrowserService)
   { }
 
   ngOnInit() {}

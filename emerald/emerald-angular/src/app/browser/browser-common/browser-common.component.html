@@ -1,5 +1,5 @@
-<div *ngIf="_storageService.treePaneSelection; else noselection">
-  <div [ngSwitch]="_storageService.treePaneSelection.type">
+<div *ngIf="_context.treePaneSelection; else noselection">
+  <div [ngSwitch]="_context.treePaneSelection.type">
     <div *ngSwitchCase="nodeType.Zip">
       <p>Zip file</p>
     </div>
@@ -19,11 +19,11 @@
           </li>
         </ul>
       </div>
-      <div *ngIf="_storageService.rightPaneSelection; else nometa">
+      <div *ngIf="_context.rightPaneSelection; else nometa">
         <div [ngSwitch]="view">
           <div *ngSwitchCase="browserView.Overview">
             <app-img-region-editor
-              [(imageMeta)]="_storageService.rightPaneSelection">
+              [(imageMeta)]="_context.rightPaneSelection">
             </app-img-region-editor>
           </div>
           <div *ngSwitchCase="browserView.Selections">

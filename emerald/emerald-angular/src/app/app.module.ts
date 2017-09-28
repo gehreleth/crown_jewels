@@ -8,7 +8,7 @@ import { LocationStrategy,
 import { AngularFontAwesomeModule } from 'angular-font-awesome/angular-font-awesome';
 import { AppComponent } from './app.component';
 import { UploadFormComponent } from './upload-form/upload-form.component';
-import { EmeraldBackendStorageService } from './emerald-backend-storage.service';
+import { BrowserService } from './browser/browser.service';
 import { TreeView } from './tree-view/tree-view.component'
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
@@ -63,7 +63,7 @@ const routes: Routes = [
     BusyModule,
     RouterModule.forRoot(routes)
   ],
-  providers: [ EmeraldBackendStorageService,
+  providers: [ BrowserService,
              { provide: LocationStrategy, useClass: HashLocationStrategy },
              { provide: APP_BASE_HREF, useValue: '/' }],
   bootstrap: [ AppComponent ]
