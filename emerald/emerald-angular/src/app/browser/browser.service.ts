@@ -20,7 +20,9 @@ enum TrackingStatus { PENDING, SUCCESS, FAIL };
 @Injectable()
 export class BrowserService {
   newRoots: EventEmitter<void> = new EventEmitter<void>();
-  browseSlashId: EventEmitter<string> = new EventEmitter<string>();
+
+  browseSlashId: EventEmitter<any> = new EventEmitter<any>();
+  browseSelectionsCommaPageRange: EventEmitter<any> = new EventEmitter<any>();
 
   rootNodes: Array<ITreeNode> = null;
   rootNodesChanged: EventEmitter<Array<ITreeNode>> = new EventEmitter<Array<ITreeNode>>();
@@ -31,7 +33,7 @@ export class BrowserService {
   rightPaneSelection: IImageMeta = null;
   rightPaneSelectionChanged: EventEmitter<IImageMeta> = new EventEmitter<IImageMeta>();
 
-  pendingPromise: Promise<any> = Promise.resolve(1);
+  busyIndicator: Promise<any> = Promise.resolve(1);
 
   private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
@@ -47,7 +49,7 @@ export class BrowserService {
 
   private handleSelectedNodeChanged(node: ITreeNode) {
     if (node.type === NodeType.Image) {
-      this.wait(metaFromNode(this._http, this._defReqOpts, node))
+      this.setBusyIndicator(metaFromNode(this._http, this._defReqOpts, node))
         .subscribe((imageMeta: IImageMeta) => {
           this.rightPaneSelection = imageMeta;
           this.rightPaneSelectionChanged.emit(this.rightPaneSelection);
@@ -69,7 +71,7 @@ export class BrowserService {
     if (this._id2Node.has(id)) {
       this.expandBranch(this._id2Node.get(id));
     } else {
-      this.wait(populateBranchByTerminalNodeId(this._http, id))
+      this.setBusyIndicator(populateBranchByTerminalNodeId(this._http, id))
         .subscribe((branchRoot: ITreeNode) => {
           this.mergeBranch(branchRoot);
           this.expandBranch(this._id2Node.get(id));
@@ -87,7 +89,7 @@ export class BrowserService {
     this.treePaneSelectionChanged.emit(this.treePaneSelection);
   }
 
-  private wait<Q>(arg: Observable<Q>, logObj?: any): Observable<Q> {
+  private setBusyIndicator<Q>(arg: Observable<Q>, logObj?: any): Observable<Q> {
     let pr = new Promise<Q>((resolve, reject) => {
       arg.subscribe((q: Q) => {
         if (logObj) { console.log("SUCCESS", logObj); }
@@ -98,7 +100,7 @@ export class BrowserService {
         reject(err);
       });
     });
-    this.pendingPromise = this.pendingPromise.then(() => pr);
+    this.busyIndicator = this.busyIndicator.then(() => pr);
     return Observable.fromPromise(pr);
   }
 
@@ -111,7 +113,7 @@ export class BrowserService {
   requestNodes(parent: ITreeNode, forceRefresh: boolean) {
     const curChildren = parent ? parent.children : this.rootNodes;
     if (!curChildren || forceRefresh) {
-      this.wait(populateChildren(this._http, parent))
+      this.setBusyIndicator(populateChildren(this._http, parent))
         .subscribe(children => {
           children = this.mergeChildrenSubsets(curChildren, children);
           if (parent) {

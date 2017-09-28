@@ -1,13 +1,11 @@
 <div class="container-fluid">
   <div class="row">
     <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
-      <div [ngBusy]="_context.pendingPromise"></div>
-      <div>
-        <tree-view [(Nodes)]="_context.rootNodes"
-                   [(SelectedNode)]="_context.treePaneSelection"
-                   (onRequestNodes)="_context.requestNodes($event)">
-        </tree-view>
-      </div>
+      <div class="busy-container" [ngBusy]="_context.busyIndicator"></div>
+      <tree-view [(Nodes)]="_context.rootNodes"
+                 [(SelectedNode)]="_context.treePaneSelection"
+                 (onRequestNodes)="_context.requestNodes($event)">
+      </tree-view>
       <hr>
       <app-upload-form></app-upload-form>
     </nav>
