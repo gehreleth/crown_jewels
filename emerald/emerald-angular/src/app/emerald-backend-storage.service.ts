@@ -1,7 +1,7 @@
 import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Headers, RequestOptions, Response } from '@angular/http';
-import { ITreeNode, NodeType } from './tree-node';
-import { IImageMeta } from './image-meta';
+import { ITreeNode, NodeType } from './backend/entities/tree-node';
+import { IImageMeta } from './backend/entities/image-meta';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/catch';

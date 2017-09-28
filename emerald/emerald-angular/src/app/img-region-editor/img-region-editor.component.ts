@@ -5,9 +5,9 @@ import { ViewChild, ElementRef } from '@angular/core';
 import { OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 import { IArea } from '../ire-main-area/area'
-import { ITreeNode, NodeType } from '../tree-node'
-import { IImageMeta, Rotation } from '../image-meta';
-import { IImageRegion } from '../image-region';
+import { ITreeNode, NodeType } from '../backend/entities/tree-node'
+import { IImageMeta, Rotation } from '../backend/entities/image-meta';
+import { IImageRegion } from '../backend/entities/image-region';
 
 import 'rxjs/add/observable/of';
 

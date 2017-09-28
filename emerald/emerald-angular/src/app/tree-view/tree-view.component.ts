@@ -1,5 +1,5 @@
 import {Component, Input, Output, EventEmitter} from "@angular/core";
-import {ITreeNode, NodeType} from '../tree-node'
+import {ITreeNode, NodeType} from '../backend/entities/tree-node'
 
 @Component({
 	selector: "tree-view",

@@ -1,6 +1,7 @@
 import { Http, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { ITreeNode } from '../tree-node';
+
+import { ITreeNode } from './entities/tree-node';
 
 /**
  * @param parent parent node (a ITreeNode instance, not id) or null for root

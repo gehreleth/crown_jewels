@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { EmeraldBackendStorageService } from '../../emerald-backend-storage.service'
-import { ITreeNode, NodeType } from '../../tree-node'
-import { IImageMeta } from '../../image-meta'
+import { ITreeNode, NodeType } from '../../backend/entities/tree-node'
+import { IImageMeta } from '../../backend/entities/image-meta'
 import { BrowserView } from '../browser-view'
 
 @Component({

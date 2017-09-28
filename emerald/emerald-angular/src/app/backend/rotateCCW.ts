@@ -1,8 +1,9 @@
 import { Http, RequestOptions, Response } from '@angular/http';
-import { ITreeNode, NodeType } from '../tree-node';
-import { IImageMeta, Rotation } from '../image-meta';
-import { IImageRegion } from '../image-region'
 import { Observable } from 'rxjs/Observable';
+
+import { ITreeNode, NodeType } from './entities/tree-node';
+import { IImageMeta, Rotation } from './entities/image-meta';
+import { IImageRegion } from './entities/image-region'
 
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/concatMap';
