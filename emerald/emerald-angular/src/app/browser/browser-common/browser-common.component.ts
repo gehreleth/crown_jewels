@@ -30,7 +30,10 @@ export class BrowserCommonComponent implements OnInit {
     } else {
       switch (view) {
         case BrowserView.Selections:
-          return ['./selections', {page: 0, count: 10}];
+          return ['./selections', {
+            page: this._context.pageRange.page,
+            count: this._context.pageRange.count
+          }];
         default:
           return ['../'];
       }

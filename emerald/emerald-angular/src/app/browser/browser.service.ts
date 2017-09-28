@@ -1,8 +1,7 @@
 import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Headers, RequestOptions, Response } from '@angular/http';
-import { ITreeNode, NodeType } from '../backend/entities/tree-node';
-import { IImageMeta } from '../backend/entities/image-meta';
 import { Observable } from 'rxjs/Observable';
+import { IPageRange } from '../backend/entities/page-range';
 
 import 'rxjs/add/operator/catch';
 import "rxjs/add/observable/of";
@@ -11,6 +10,8 @@ import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 
+import { ITreeNode, NodeType } from '../backend/entities/tree-node';
+import { IImageMeta } from '../backend/entities/image-meta';
 import populateChildren from '../backend/populateChildren';
 import populateBranchByTerminalNodeId from '../backend/populateBranchByTerminalNodeId';
 import metaFromNode from '../backend/metaFromNode';
@@ -102,7 +103,7 @@ export class BrowserService {
   newRoots: EventEmitter<void> = new EventEmitter<void>();
 
   browseSlashId: EventEmitter<any> = new EventEmitter<any>();
-  browseSelectionsCommaPageRange: EventEmitter<any> = new EventEmitter<any>();
+  selectionsSemicolonPageRange: EventEmitter<any> = new EventEmitter<any>();
 
   rootNodes: Array<ITreeNode> = null;
   rootNodesChanged: EventEmitter<Array<ITreeNode>> = new EventEmitter<Array<ITreeNode>>();
@@ -113,10 +114,14 @@ export class BrowserService {
   rightPaneSelection: IImageMeta = null;
   rightPaneSelectionChanged: EventEmitter<IImageMeta> = new EventEmitter<IImageMeta>();
 
+  pageRange: IPageRange = BrowserService._defPageRange;
+  pageRangeChanged: EventEmitter<IPageRange> = new EventEmitter<IPageRange>();
+
   busyIndicator: Promise<any> = Promise.resolve(1);
 
   private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
+  private static readonly _defPageRange: IPageRange = { page: 0, count: 10 };
 
   constructor(private _http: Http)
   {
@@ -124,6 +129,12 @@ export class BrowserService {
     this.treePaneSelectionChanged.subscribe((node: ITreeNode) =>
       this.handleSelectedNodeChanged(node));
     this.browseSlashId.subscribe(id => this.handleBrowseSlashId(id));
+    this.selectionsSemicolonPageRange.subscribe((pageRangeDict: any) =>
+      this.handlePageRange(pageRangeDict));
+    this.rightPaneSelectionChanged.subscribe(() => {
+      this.pageRange = BrowserService._defPageRange;
+      this.pageRangeChanged.emit(this.pageRange);
+    });
     this.newRoots.emit();
   }
 
@@ -157,6 +168,20 @@ export class BrowserService {
           this.expandBranch(this._id2Node.get(id));
         });
     }
+  }
+
+  private handlePageRange(pageRangeDict: any) {
+    let newPageRange: IPageRange = this.pageRange;
+    if (pageRangeDict.page && this._isNumberRe.test(pageRangeDict.page)) {
+      newPageRange.page = parseInt(pageRangeDict.page);
+    }
+
+    if (pageRangeDict.count && this._isNumberRe.test(pageRangeDict.count)) {
+      newPageRange.count = parseInt(pageRangeDict.count);
+    }
+
+    this.pageRange = newPageRange;
+    this.pageRangeChanged.emit(this.pageRange);
   }
 
   private expandBranch(terminalNode: ITreeNode) {

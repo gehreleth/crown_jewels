@@ -18,7 +18,7 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._subscription = this._activatedRoute.params.subscribe((params: Params) => {
-      this._context.browseSelectionsCommaPageRange.emit({
+      this._context.selectionsSemicolonPageRange.emit({
         page: params['page'],
         count: params['count']
       });
