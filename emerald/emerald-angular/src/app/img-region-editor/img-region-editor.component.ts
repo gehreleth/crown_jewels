@@ -19,6 +19,7 @@ import { Subscription } from 'rxjs/Subscription';
 })
 export class ImgRegionEditorComponent implements OnChanges {
   @Input() imageMeta: IImageMeta;
+  @Input() imageHref: string;
   @Input() regions: Array<IImageRegion>;
   @Input() dimensions: IDimensions;
 
@@ -32,6 +33,15 @@ export class ImgRegionEditorComponent implements OnChanges {
   { }
 
   ngOnChanges(changes: SimpleChanges) {
+    const ihChange = changes['imageHref'];
+    if (ihChange) {
+      const curHref = ihChange.currentValue;
+      const prevHref = !ihChange.firstChange ? ihChange.previousValue : null;
+      if (curHref !== prevHref) {
+        this._regionEditor.dimensions = {};
+        this._regionEditor.dimensionsChanged.emit(this._regionEditor.dimensions);
+      }
+    }
     this._cacheValid = false;
     setTimeout(() => {
       if (this.dimensionProbe) {
@@ -77,10 +87,8 @@ export class ImgRegionEditorComponent implements OnChanges {
     this._cachedAreas = arg;
   }
 
-  private get aquamarineBlobHref(): SafeUrl {
-    return this._sanitizer.bypassSecurityTrustUrl('/emerald/blobs/'
-      + `${this.imageMeta.aquamarineId}`
-      + `?rot=${Rotation[this.imageMeta.rotation]}`);
+  private get safeImageHref(): SafeUrl {
+    return this._sanitizer.bypassSecurityTrustUrl(this.imageHref);
   }
 
   private onRotateCW(event:any): void {

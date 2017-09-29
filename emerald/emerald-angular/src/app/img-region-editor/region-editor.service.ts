@@ -15,7 +15,7 @@ import 'rxjs/add/operator/map';
 
 import { IDimensions } from './dimensions'
 import { ITreeNode, NodeType } from '../backend/entities/tree-node';
-import { IImageMeta } from '../backend/entities/image-meta';
+import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 
 import metaFromNode from '../backend/metaFromNode';
@@ -83,6 +83,11 @@ export class RegionEditorService {
       this.imageMeta = null;
       this.imageMetaChanged.emit(this.imageMeta);
     }
+  }
+
+  get imageHref(): string {
+    return '/emerald/blobs/' + `${this.imageMeta.aquamarineId}`
+      + `?rot=${Rotation[this.imageMeta.rotation]}`
   }
 
   rotateCW(): void {
