@@ -12,10 +12,10 @@
       <i class="nodeicon fa fa-floppy-o"></i>
     </button>
   </div>
-  <app-ire-main-area *ngIf="imageMeta.clientWidth; else nodimensions"
+  <app-ire-main-area *ngIf="dimensions.clientWidth; else nodimensions"
                      [imageHref]="aquamarineBlobHref"
-                     [width]="imageMeta.clientWidth"
-                     [height]="imageMeta.clientHeight"
+                     [width]="dimensions.clientWidth"
+                     [height]="dimensions.clientHeight"
                      [areas] = "_areas"
                      (areasChanged)=areasChanged($event)>
   </app-ire-main-area>

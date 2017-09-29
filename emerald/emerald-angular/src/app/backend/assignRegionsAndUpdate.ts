@@ -42,10 +42,6 @@ export default function assignRegionsAndUpdate(http: Http,
              aquamarineId: arg.aquamarineId,
              mimeType: arg.mimeType,
              contentLength: arg.contentLength,
-             naturalWidth: arg.naturalWidth,
-             naturalHeight: arg.naturalHeight,
-             clientWidth: arg.clientWidth,
-             clientHeight: arg.clientHeight,
              rotation: rotation,
              regions: updatedRegions
            };

@@ -26,10 +26,6 @@ export default function rotateCW(http: Http, requestOptions: RequestOptions,
     aquamarineId: arg.aquamarineId,
     mimeType: arg.mimeType,
     contentLength: arg.contentLength,
-    naturalWidth: null, // This will trigger rescale to fit rotated image
-    naturalHeight: null,
-    clientWidth: null,
-    clientHeight: null,
     rotation: updRotation,
     regions: arg.regions
   }

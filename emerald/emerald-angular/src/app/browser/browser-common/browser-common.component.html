@@ -23,7 +23,9 @@
         <div [ngSwitch]="view">
           <div *ngSwitchCase="browserView.Overview">
             <app-img-region-editor
-              [(imageMeta)]="_regionEditor.imageMeta">
+              [imageMeta]="_regionEditor.imageMeta"
+              [regions]="_regionEditor.imageMeta.regions"
+              [dimensions]="_regionEditor.dimensions">
             </app-img-region-editor>
           </div>
           <div *ngSwitchCase="browserView.Selections">

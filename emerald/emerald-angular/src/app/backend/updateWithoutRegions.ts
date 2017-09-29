@@ -34,10 +34,6 @@ export default function updateWithoutRegions(http: Http, requestOptions: Request
          aquamarineId: arg.aquamarineId,
          mimeType: arg.mimeType,
          contentLength: arg.contentLength,
-         naturalWidth: arg.naturalWidth,
-         naturalHeight: arg.naturalHeight,
-         clientWidth: arg.clientWidth,
-         clientHeight: arg.clientHeight,
          rotation: rotation,
          regions: arg.regions
        }

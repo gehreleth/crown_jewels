@@ -1,21 +1,16 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Http, Headers, RequestOptions } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
+
+import { IDimensions } from './dimensions'
 import { IArea } from '../ire-main-area/area'
 import { ITreeNode, NodeType } from '../backend/entities/tree-node'
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
-import { HttpSettingsService } from '../http-settings.service';
 
-import 'rxjs/add/observable/of';
-
-import rotateCW from '../backend/rotateCW';
-import rotateCCW from '../backend/rotateCCW';
-import metaFromNode from '../backend/metaFromNode';
-import assignRegionsAndUpdate from '../backend/assignRegionsAndUpdate';
+import { RegionEditorService } from './region-editor.service'
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-img-region-editor',
@@ -23,21 +18,22 @@ import assignRegionsAndUpdate from '../backend/assignRegionsAndUpdate';
   styleUrls: ['./img-region-editor.component.scss']
 })
 export class ImgRegionEditorComponent implements OnChanges {
-  @Input() imageMeta : IImageMeta = null;
-  @Output() imageMetaChange = new EventEmitter<IImageMeta>();
+  @Input() imageMeta: IImageMeta;
+  @Input() regions: Array<IImageRegion>;
+  @Input() dimensions: IDimensions;
 
-  private _areas: Array<IArea> = [];
-  private _updatedAreas: Array<IArea> = [];
+  private _cacheValid: boolean;
+  private _cachedAreas: Array<IArea>;
 
   @ViewChild('dimensionProbe') private dimensionProbe: ElementRef;
 
   constructor(private _sanitizer: DomSanitizer,
-              private _http: Http,
-              private _httpSettings: HttpSettingsService)
+              private _regionEditor: RegionEditorService)
   { }
 
   ngOnChanges(changes: SimpleChanges) {
-    setTimeout(()=>{
+    this._cacheValid = false;
+    setTimeout(() => {
       if (this.dimensionProbe) {
         const el = this.dimensionProbe.nativeElement;
         if (el.complete) {
@@ -51,19 +47,34 @@ export class ImgRegionEditorComponent implements OnChanges {
     }, 0);
   }
 
+  private get _areas(): Array<IArea> {
+    if (!this._cacheValid) {
+      if (this.dimensions && this.dimensions.clientWidth) {
+        const naturalWidth = this.dimensions.naturalWidth;
+        const clientWidth = this.dimensions.clientWidth;
+        this._cachedAreas = r2a(this.regions, clientWidth / naturalWidth);
+        this._cacheValid = true;
+      } else {
+        this._cachedAreas = []; // Cache still invalid
+      }
+    }
+    return this._cachedAreas;
+  }
+
   private updateDimensions(naturalWidth: number, naturalHeight: number,
     clientWidth: number, clientHeight: number)
   {
-    const scale = clientWidth / naturalWidth;
-    this._updatedAreas = r2a(this.imageMeta.regions, scale);
-    this._areas = this._updatedAreas;
-    assignDimensions(this.imageMeta, naturalWidth,
-      naturalHeight, clientWidth, clientHeight)
-        .subscribe(im => this.update(im));
+    this._regionEditor.dimensions = {
+       naturalWidth: naturalWidth,
+       naturalHeight: naturalHeight,
+       clientWidth: clientWidth,
+       clientHeight: clientHeight
+    };
+    this._regionEditor.dimensionsChanged.emit(this._regionEditor.dimensions);
   }
 
   private areasChanged(arg: Array<IArea>) {
-    this._updatedAreas = arg;
+    this._cachedAreas = arg;
   }
 
   private get aquamarineBlobHref(): SafeUrl {
@@ -73,25 +84,17 @@ export class ImgRegionEditorComponent implements OnChanges {
   }
 
   private onRotateCW(event:any): void {
-    rotateCW(this._http, this._httpSettings.DefReqOpts, this.imageMeta)
-      .subscribe(im => this.update(im));
+    this._regionEditor.rotateCW();
   }
 
   private onRotateCCW(event:any): void {
-    rotateCCW(this._http, this._httpSettings.DefReqOpts, this.imageMeta)
-      .subscribe(im => this.update(im));
+    this._regionEditor.rotateCCW();
   }
 
   private onSaveRegions(event: any) : void {
-    const scale = this.imageMeta.naturalWidth / this.imageMeta.clientWidth;
-    assignRegionsAndUpdate(this._http, this._httpSettings.DefReqOpts, this.imageMeta,
-      a2r(this._updatedAreas, scale))
-        .subscribe(im => this.update(im));
-  }
-
-  private update(arg: IImageMeta) :void {
-    this.imageMeta = arg;
-    this.imageMetaChange.emit(this.imageMeta);
+    const naturalWidth = this.dimensions.naturalWidth;
+    const clientWidth = this.dimensions.clientWidth;
+    this._regionEditor.saveRegions(a2r(this._areas, naturalWidth / clientWidth));
   }
 }
 
@@ -131,37 +134,4 @@ function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
       return retVal;
     }
   );
-}
-
-/**
- * The image dimensions isn't stored at backend, but involved in calculations
- * of the data being sent to the backend, so it's convinient to make a method
- * in the service acting as if they were stored.
- *
- * @param arg meta object being updated - changes won't be sent to backend,
- * but this method will return result as Observable instance.
- *
- * @param naturalWidth image.naturalWidth field extracted from dimensionProbe.
- * @param naturalHeight image.naturalHeigh field extracted from dimensionProbe.
- * @param clientWidth image.clientWidth field extracted from dimensionProbe.
- * @param clientHeight image.clientHeight field extracted from dimensionProbe.
- *
- * @returns Observable of the updated meta object.
- */
-function assignDimensions(arg: IImageMeta, naturalWidth: number, naturalHeight: number,
-  clientWidth: number, clientHeight: number): Observable<IImageMeta>
-{
-  const retVal: IImageMeta = {
-    href: arg.href,
-    aquamarineId: arg.aquamarineId,
-    mimeType: arg.mimeType,
-    contentLength: arg.contentLength,
-    naturalWidth: naturalWidth,
-    naturalHeight: naturalHeight,
-    clientWidth: clientWidth,
-    clientHeight: clientHeight,
-    rotation: arg.rotation,
-    regions: arg.regions
-  };
-  return Observable.of(retVal);
 }

@@ -13,10 +13,15 @@ import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 
+import { IDimensions } from './dimensions'
 import { ITreeNode, NodeType } from '../backend/entities/tree-node';
 import { IImageMeta } from '../backend/entities/image-meta';
+import { IImageRegion } from '../backend/entities/image-region';
 
 import metaFromNode from '../backend/metaFromNode';
+import rotateCW from '../backend/rotateCW';
+import rotateCCW from '../backend/rotateCCW';
+import assignRegionsAndUpdate from '../backend/assignRegionsAndUpdate';
 
 @Injectable()
 export class RegionEditorService {
@@ -29,6 +34,9 @@ export class RegionEditorService {
 
   pageRange: IPageRange = RegionEditorService._defPageRange;
   pageRangeChanged: EventEmitter<IPageRange> = new EventEmitter<IPageRange>();
+
+  dimensions: IDimensions = { };
+  dimensionsChanged: EventEmitter<IDimensions> = new EventEmitter<IDimensions>();
 
   private static readonly _defPageRange: IPageRange = { page: 0, count: 10 };
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
@@ -75,6 +83,37 @@ export class RegionEditorService {
       this.imageMeta = null;
       this.imageMetaChanged.emit(this.imageMeta);
     }
+  }
+
+  rotateCW(): void {
+    this.setBusyIndicator(rotateCW(this._http,
+                                   this._httpSettings.DefReqOpts,
+                                   this.imageMeta))
+      .subscribe(im => {
+        this.imageMeta = im;
+        this.imageMetaChanged.emit(this.imageMeta);
+      });
+  }
+
+  rotateCCW(): void {
+    this.setBusyIndicator(rotateCCW(this._http,
+                                    this._httpSettings.DefReqOpts,
+                                    this.imageMeta))
+      .subscribe(im => {
+        this.imageMeta = im;
+        this.imageMetaChanged.emit(this.imageMeta);
+      });
+  }
+
+  saveRegions(regions: Array<IImageRegion>): void {
+    this.setBusyIndicator(assignRegionsAndUpdate(this._http,
+                                                 this._httpSettings.DefReqOpts,
+                                                 this.imageMeta,
+                                                 regions))
+      .subscribe(im => {
+        this.imageMeta = im;
+        this.imageMetaChanged.emit(this.imageMeta);
+      });
   }
 
   private setBusyIndicator<Q>(arg: Observable<Q>, logObj?: any): Observable<Q> {
