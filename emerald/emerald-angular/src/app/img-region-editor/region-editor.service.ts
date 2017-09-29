@@ -121,6 +121,18 @@ export class RegionEditorService {
       });
   }
 
+  updateDimensions(naturalWidth?: number, naturalHeight?: number,
+    clientWidth?: number, clientHeight?: number)
+  {
+    this.dimensions = {
+       naturalWidth: naturalWidth,
+       naturalHeight: naturalHeight,
+       clientWidth: clientWidth,
+       clientHeight: clientHeight
+    };
+    this.dimensionsChanged.emit(this.dimensions);
+  }
+
   private setBusyIndicator<Q>(arg: Observable<Q>, logObj?: any): Observable<Q> {
     let pr = new Promise<Q>((resolve, reject) => {
       arg.subscribe((q: Q) => {

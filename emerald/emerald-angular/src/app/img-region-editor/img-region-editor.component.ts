@@ -38,8 +38,8 @@ export class ImgRegionEditorComponent implements OnChanges {
       const curHref = ihChange.currentValue;
       const prevHref = !ihChange.firstChange ? ihChange.previousValue : null;
       if (curHref !== prevHref) {
-        this._regionEditor.dimensions = {};
-        this._regionEditor.dimensionsChanged.emit(this._regionEditor.dimensions);
+        this._regionEditor.updateDimensions(undefined, undefined,
+          undefined, undefined);
       }
     }
     this._cacheValid = false;
@@ -47,10 +47,10 @@ export class ImgRegionEditorComponent implements OnChanges {
       if (this.dimensionProbe) {
         const el = this.dimensionProbe.nativeElement;
         if (el.complete) {
-          this.updateDimensions(el.naturalWidth,
+          this._regionEditor.updateDimensions(el.naturalWidth,
             el.naturalHeight, el.clientWidth, el.clientHeight);
         } else {
-          el.onload = () => this.updateDimensions(el.naturalWidth,
+          el.onload = () => this._regionEditor.updateDimensions(el.naturalWidth,
             el.naturalHeight, el.clientWidth, el.clientHeight);
         }
       }
@@ -71,17 +71,6 @@ export class ImgRegionEditorComponent implements OnChanges {
     return this._cachedAreas;
   }
 
-  private updateDimensions(naturalWidth: number, naturalHeight: number,
-    clientWidth: number, clientHeight: number)
-  {
-    this._regionEditor.dimensions = {
-       naturalWidth: naturalWidth,
-       naturalHeight: naturalHeight,
-       clientWidth: clientWidth,
-       clientHeight: clientHeight
-    };
-    this._regionEditor.dimensionsChanged.emit(this._regionEditor.dimensions);
-  }
 
   private areasChanged(arg: Array<IArea>) {
     this._cachedAreas = arg;
