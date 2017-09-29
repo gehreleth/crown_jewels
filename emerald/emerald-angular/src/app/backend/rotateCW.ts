@@ -26,8 +26,7 @@ export default function rotateCW(http: Http, requestOptions: RequestOptions,
     aquamarineId: arg.aquamarineId,
     mimeType: arg.mimeType,
     contentLength: arg.contentLength,
-    rotation: updRotation,
-    regions: arg.regions
+    rotation: updRotation
   }
   return updateWithoutRegions(http, requestOptions, im);
 }

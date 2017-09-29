@@ -21,7 +21,8 @@ import { IImageRegion } from '../backend/entities/image-region';
 import metaFromNode from '../backend/metaFromNode';
 import rotateCW from '../backend/rotateCW';
 import rotateCCW from '../backend/rotateCCW';
-import assignRegionsAndUpdate from '../backend/assignRegionsAndUpdate';
+import allRegions from '../backend/allRegions';
+import updateRegions from '../backend/updateRegions';
 
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
@@ -41,6 +42,9 @@ export class RegionEditorService implements IBusyIndicatorHolder {
   dimensions: IDimensions = { };
   dimensionsChanged: EventEmitter<IDimensions> = new EventEmitter<IDimensions>();
 
+  overviewRegions: Array<IImageRegion> = [];
+  overviewRegionsChanged: EventEmitter<Array<IImageRegion>> = new EventEmitter<Array<IImageRegion>>();
+
   private static readonly _defPageRange: IPageRange = { page: 0, count: 10 };
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
 
@@ -54,10 +58,23 @@ export class RegionEditorService implements IBusyIndicatorHolder {
     this.selectionsSemicolonPageRange.subscribe((pageRangeDict: any) =>
       this.handlePageRange(pageRangeDict));
 
-    this.imageMetaChanged.subscribe(() => {
-      this.pageRange = RegionEditorService._defPageRange;
-      this.pageRangeChanged.emit(this.pageRange);
-    });
+    this.imageMetaChanged.subscribe((imageMeta: IImageMeta) =>
+      this.handleImageMetaChange(imageMeta));
+  }
+
+  private handleImageMetaChange(imageMeta: IImageMeta) {
+    this.pageRange = RegionEditorService._defPageRange;
+    this.pageRangeChanged.emit(this.pageRange);
+
+    this.overviewRegions = [];
+    this.overviewRegionsChanged.emit(this.overviewRegions);
+    if (imageMeta) {
+      setBusyIndicator(this, allRegions(this._http, imageMeta))
+        .subscribe((regions: Array<IImageRegion>) => {
+          this.overviewRegions = regions;
+          this.overviewRegionsChanged.emit(this.overviewRegions);
+        });
+    }
   }
 
   private handlePageRange(pageRangeDict: any) {
@@ -114,14 +131,13 @@ export class RegionEditorService implements IBusyIndicatorHolder {
   }
 
   saveRegions(regions: Array<IImageRegion>): void {
-    setBusyIndicator(this, assignRegionsAndUpdate(this._http,
-                                                 this._httpSettings.DefReqOpts,
-                                                 this.imageMeta,
-                                                 regions))
-      .subscribe(im => {
-        this.imageMeta = im;
-        this.imageMetaChanged.emit(this.imageMeta);
-      });
+    const scope = () => allRegions(this._http, this.imageMeta);
+    setBusyIndicator(this, updateRegions(this._http, this._httpSettings.DefReqOpts,
+      this.imageMeta, scope, regions))
+        .subscribe(regions => {
+          this.overviewRegions = regions;
+          this.overviewRegionsChanged.emit(this.overviewRegions);
+        });
   }
 
   updateDimensions(naturalWidth?: number, naturalHeight?: number,

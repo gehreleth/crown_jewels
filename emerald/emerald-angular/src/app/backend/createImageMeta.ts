@@ -27,7 +27,6 @@ export default function createImageMeta(http: Http, requestOptions: RequestOptio
         mimeType: imageNode.mimeType,
         contentLength: imageNode.contentLength,
         rotation: rotation,
-        regions: []
       }
       return retVal;
     });

@@ -30,5 +30,4 @@ export interface IImageMeta {
   readonly mimeType: string;
   readonly contentLength: number;
   readonly rotation: Rotation;
-  readonly regions: Array<IImageRegion>;
 }

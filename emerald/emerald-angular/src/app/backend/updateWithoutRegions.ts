@@ -34,8 +34,7 @@ export default function updateWithoutRegions(http: Http, requestOptions: Request
          aquamarineId: arg.aquamarineId,
          mimeType: arg.mimeType,
          contentLength: arg.contentLength,
-         rotation: rotation,
-         regions: arg.regions
+         rotation: rotation
        }
        return retVal;
      });

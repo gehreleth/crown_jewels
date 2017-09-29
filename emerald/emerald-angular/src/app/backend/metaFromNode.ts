@@ -17,23 +17,18 @@ export default function metaFromNode(http: Http, requestOptions: RequestOptions,
   if (imageNode.type === NodeType.Image) {
     return http.get('/emerald/rest-jpa/image-metadata/search/'
                   + `findOneByStorageNodeId?storage_node_id=${imageNode.id}`)
-      .concatMap((rsp: Response) => {
+      .map((rsp: Response) => {
         const dict = rsp.json()
         const rotation = Rotation[dict['rotation'] as string];
         const selfHref = new URL(dict._links.self.href).pathname;
-        const regionsHref = new URL(dict._links.regions.href).pathname;
-        return http.get(regionsHref).map((rsp: Response) => {
-          const regions = IImageRegion.jsonToRegionArray(rsp.json());
-          const retVal: IImageMeta = {
-            href : selfHref,
-            aquamarineId: imageNode.aquamarineId,
-            mimeType: imageNode.mimeType,
-            contentLength: imageNode.contentLength,
-            rotation: rotation,
-            regions: regions
-          }
-          return retVal;
-        });
+        const retVal: IImageMeta = {
+          href : selfHref,
+          aquamarineId: imageNode.aquamarineId,
+          mimeType: imageNode.mimeType,
+          contentLength: imageNode.contentLength,
+          rotation: rotation
+        }
+        return retVal;
       })
       .catch((err: Error) => {
         return createIfNone
