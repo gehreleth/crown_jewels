@@ -17,8 +17,11 @@ import populateBranchByTerminalNodeId from '../backend/populateBranchByTerminalN
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
+import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
+import setBusyIndicator from '../util/setBusyIndicator';
+
 @Injectable()
-export class BrowserService {
+export class BrowserService implements IBusyIndicatorHolder {
   newRoots: EventEmitter<void> = new EventEmitter<void>();
 
   browseSlashId: EventEmitter<any> = new EventEmitter<any>();
@@ -51,7 +54,7 @@ export class BrowserService {
     if (this._id2Node.has(id)) {
       this.expandBranch(this._id2Node.get(id));
     } else {
-      this.setBusyIndicator(populateBranchByTerminalNodeId(this._http, id))
+      setBusyIndicator(this, populateBranchByTerminalNodeId(this._http, id))
         .subscribe((branchRoot: ITreeNode) => {
           this.mergeBranch(branchRoot);
           this.expandBranch(this._id2Node.get(id));
@@ -75,25 +78,10 @@ export class BrowserService {
     this.treePaneSelectionChanged.emit(this.treePaneSelection);
   }
 
-  private setBusyIndicator<Q>(arg: Observable<Q>, logObj?: any): Observable<Q> {
-    let pr = new Promise<Q>((resolve, reject) => {
-      arg.subscribe((q: Q) => {
-        if (logObj) { console.log("SUCCESS", logObj); }
-        resolve(q);
-      },
-      (err: Error) => {
-        if (logObj) { console.log("FAIL", logObj); }
-        reject(err);
-      });
-    });
-    this.busyIndicator = this.busyIndicator.then(() => pr);
-    return Observable.fromPromise(pr);
-  }
-
   requestNodes(parent: ITreeNode, forceRefresh: boolean) {
     const curChildren = parent ? parent.children : this.rootNodes;
     if (!curChildren || forceRefresh) {
-      this.setBusyIndicator(populateChildren(this._http, parent))
+      setBusyIndicator(this, populateChildren(this._http, parent))
         .subscribe(children => {
           children = this.mergeNewChildrenSet(curChildren, children);
           if (parent) {

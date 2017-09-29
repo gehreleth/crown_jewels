@@ -33,6 +33,7 @@ export class ImgRegionEditorComponent implements OnChanges {
   { }
 
   ngOnChanges(changes: SimpleChanges) {
+    this._cacheValid = false;
     const ihChange = changes['imageHref'];
     if (ihChange) {
       const curHref = ihChange.currentValue;
@@ -42,7 +43,6 @@ export class ImgRegionEditorComponent implements OnChanges {
           undefined, undefined);
       }
     }
-    this._cacheValid = false;
     setTimeout(() => {
       if (this.dimensionProbe) {
         const el = this.dimensionProbe.nativeElement;

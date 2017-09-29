@@ -23,8 +23,11 @@ import rotateCW from '../backend/rotateCW';
 import rotateCCW from '../backend/rotateCCW';
 import assignRegionsAndUpdate from '../backend/assignRegionsAndUpdate';
 
+import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
+import setBusyIndicator from '../util/setBusyIndicator';
+
 @Injectable()
-export class RegionEditorService {
+export class RegionEditorService implements IBusyIndicatorHolder {
   busyIndicator: Promise<any> = Promise.resolve(1);
 
   selectionsSemicolonPageRange: EventEmitter<any> = new EventEmitter<any>();
@@ -73,7 +76,7 @@ export class RegionEditorService {
 
   private handleSelectedNodeChanged(node: ITreeNode) {
     if (node.type === NodeType.Image) {
-      this.setBusyIndicator(metaFromNode(this._http,
+      setBusyIndicator(this, metaFromNode(this._http,
         this._httpSettings.DefReqOpts, node))
           .subscribe((imageMeta: IImageMeta) => {
             this.imageMeta = imageMeta;
@@ -91,7 +94,7 @@ export class RegionEditorService {
   }
 
   rotateCW(): void {
-    this.setBusyIndicator(rotateCW(this._http,
+    setBusyIndicator(this, rotateCW(this._http,
                                    this._httpSettings.DefReqOpts,
                                    this.imageMeta))
       .subscribe(im => {
@@ -101,7 +104,7 @@ export class RegionEditorService {
   }
 
   rotateCCW(): void {
-    this.setBusyIndicator(rotateCCW(this._http,
+    setBusyIndicator(this, rotateCCW(this._http,
                                     this._httpSettings.DefReqOpts,
                                     this.imageMeta))
       .subscribe(im => {
@@ -111,7 +114,7 @@ export class RegionEditorService {
   }
 
   saveRegions(regions: Array<IImageRegion>): void {
-    this.setBusyIndicator(assignRegionsAndUpdate(this._http,
+    setBusyIndicator(this, assignRegionsAndUpdate(this._http,
                                                  this._httpSettings.DefReqOpts,
                                                  this.imageMeta,
                                                  regions))
@@ -131,20 +134,5 @@ export class RegionEditorService {
        clientHeight: clientHeight
     };
     this.dimensionsChanged.emit(this.dimensions);
-  }
-
-  private setBusyIndicator<Q>(arg: Observable<Q>, logObj?: any): Observable<Q> {
-    let pr = new Promise<Q>((resolve, reject) => {
-      arg.subscribe((q: Q) => {
-        if (logObj) { console.log("SUCCESS", logObj); }
-        resolve(q);
-      },
-      (err: Error) => {
-        if (logObj) { console.log("FAIL", logObj); }
-        reject(err);
-      });
-    });
-    this.busyIndicator = this.busyIndicator.then(() => pr);
-    return Observable.fromPromise(pr);
   }
 }
