@@ -3,8 +3,6 @@ package org.diamond.controller;
 import com.google.common.cache.*;
 import java.awt.Rectangle;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import org.apache.commons.io.FileUtils;
@@ -20,15 +18,12 @@ import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import javax.sql.DataSource;
 import java.io.*;
-import java.net.URI;
 import java.sql.*;
 import java.util.*;
 
@@ -51,94 +46,6 @@ public class Blobs {
 
     private static final Set<String> KNOWN_IMAGE_FORMATS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("image/jpeg", "image/png")));
-
-
-    @GetMapping(value = "")
-    public ResponseEntity<String> list(RequestEntity<String> req,
-                                       @RequestParam(value="page", required=false) Integer page,
-                                       @RequestParam(value="size", required=false) Integer size)
-    {
-        URI url = req.getUrl();
-        String path = url.getScheme() + ":" + "//" + url.getAuthority() + url.getPath();
-        ResponseEntity<String> retVal;
-        int page0 = page != null ? page : 0;
-        int size0 = size != null ? size : DEF_PAGE_SIZE;
-        try (Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(false);
-            int totalCount;
-            try (Statement stmt = conn.createStatement()) {
-                try (ResultSet rs = stmt.executeQuery("select count(*) as totalCount from blob_storage")) {
-                    if (rs.next()) {
-                        totalCount = rs.getInt("totalCount");
-                    } else {
-                        throw new RuntimeException("Shouldn't be here");
-                    }
-                }
-            }
-            retVal = list0(conn, path, page0, size0, totalCount);
-        } catch (Exception e) {
-            LOGGER.error("listContent", e);
-            retVal = ResponseEntity.notFound().build();
-        }
-        return retVal;
-    }
-
-    private ResponseEntity<String> list0(Connection conn, String path, int page, int size, int totalElements) throws SQLException {
-        ResponseEntity<String> retVal;
-        try (PreparedStatement stmt = conn.prepareStatement("select guid, mime_type, get_lo_size(content)" +
-                " as content_length from blob_storage limit ? offset ?"))
-        {
-            stmt.setInt(1, size);
-            stmt.setInt(2, size * page);
-            JsonArray embedded = new JsonArray();
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    JsonObject bje = new JsonObject();
-                    String guid = rs.getString("guid");
-                    bje.addProperty("guid", guid);
-                    bje.addProperty("mimeType", rs.getString("mime_type"));
-                    bje.addProperty("contentLength", rs.getLong("content_length"));
-                    JsonObject links = new JsonObject();
-                    links.add("self", makeSelfLink(path, guid));
-                    bje.add("_links", links);
-                    embedded.add(bje);
-                }
-            }
-            JsonObject root = new JsonObject();
-            root.add("_embedded", embedded);
-            JsonObject links = new JsonObject();
-            int lastPage = (totalElements / size) - (totalElements % size != 0 ? 0 : 1);
-            links.add("first", makePageLink(path, 0, size, totalElements));
-            if (page > 0) {
-                links.add("prev", makePageLink(path, page - 1, size, totalElements));
-            }
-            if (page < lastPage) {
-                links.add("next", makePageLink(path, page + 1, size, totalElements));
-            }
-            links.add("last", makePageLink(path, lastPage, size, totalElements));
-            root.add("_links", links);
-            JsonObject pageSummary = new JsonObject();
-            pageSummary.addProperty("size", size);
-            pageSummary.addProperty("totalElements", totalElements);
-            pageSummary.addProperty("totalPages", lastPage + 1);
-            pageSummary.addProperty("number", page);
-            root.add("page", pageSummary);
-            retVal = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(root.toString());
-        }
-        return retVal;
-    }
-
-    private static JsonObject makeSelfLink(String path, String guid) {
-        JsonObject retVal = new JsonObject();
-        retVal.addProperty("href", path + "/" + guid);
-        return retVal;
-    }
-
-    private static JsonObject makePageLink(String path, int page, int size, int totalCount) {
-        JsonObject retVal = new JsonObject();
-        retVal.addProperty("href", path + "?page=" + page + "&size=" + size);
-        return retVal;
-    }
 
     /**
      * Return blob from internal storage. Perform server-side JPEG rotation&cropping if additional parameters are
