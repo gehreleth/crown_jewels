@@ -28,11 +28,12 @@ public class ImageRegion {
     @Column(name = "width")
     private double width;
 
+    @Column(name = "height")
+    private double height;
+
     @Column(name = "status", nullable = false)
     private ImageRegionStatus status = ImageRegionStatus.Default;
 
-    @Column(name = "height")
-    private double height;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "tag_region",

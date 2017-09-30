@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.hateoas.config.EnableEntityLinks;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -22,6 +23,7 @@ import java.util.concurrent.Executor;
 @EnableWebMvc
 @EnableAsync
 @EnableHypermediaSupport(type= {HypermediaType.HAL})
+@EnableEntityLinks
 @ComponentScan(basePackages = "org.diamond")
 public class MycuneiConfiguration  extends WebMvcConfigurerAdapter implements ApplicationContextAware {
 	private ApplicationContext applicationContext;
