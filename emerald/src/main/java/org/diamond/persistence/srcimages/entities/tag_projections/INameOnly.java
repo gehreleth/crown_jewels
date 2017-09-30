@@ -5,5 +5,5 @@ import org.springframework.data.rest.core.config.Projection;
 
 @Projection(name = "name_only", types = Tag.class)
 public interface INameOnly {
-    String getTag();
+    String getName();
 }
