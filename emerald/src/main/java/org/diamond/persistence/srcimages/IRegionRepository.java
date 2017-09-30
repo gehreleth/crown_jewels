@@ -21,5 +21,5 @@ public interface IRegionRepository extends JpaRepository<ImageRegion, Long> {
             " WHERE r0.imageMetadata.id = ?1" +
             " AND EXISTS (SELECT 1 FROM ImageRegion r JOIN r.tags t WHERE r.id = r0.id AND t.name IN(?2))" +
             " ORDER BY r0.y, r0.x")
-    List<ImageRegion> findRegionsWithTag(@Param("image-metadata-id") Long imageMetadataId, @Param("tag") Set<String> tags);
+    List<ImageRegion> findRegionsByMetaWithTag(@Param("image-metadata-id") Long imageMetadataId, @Param("tag") Set<String> tags);
 }

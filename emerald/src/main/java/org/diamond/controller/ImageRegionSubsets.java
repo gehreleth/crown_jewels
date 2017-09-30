@@ -34,7 +34,7 @@ public class ImageRegionSubsets {
                 tagsSet.addAll(Arrays.asList(tags));
                 List<ImageRegion> resultSet;
                 if (imageMetadataId != null) {
-                    resultSet = regionRepository.findRegionsWithTag(imageMetadataId, tagsSet);
+                    resultSet = regionRepository.findRegionsByMetaWithTag(imageMetadataId, tagsSet);
                 } else {
                     resultSet = regionRepository.findRegionsWithTag(tagsSet);
                 }
