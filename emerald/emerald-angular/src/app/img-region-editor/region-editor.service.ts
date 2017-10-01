@@ -4,7 +4,6 @@ import { Observable } from 'rxjs/Observable';
 
 import { BrowserService } from '../browser/browser.service';
 import { HttpSettingsService } from '../http-settings.service';
-import { IPageRange } from '../backend/entities/page-range';
 
 import 'rxjs/add/operator/catch';
 import "rxjs/add/observable/of";
@@ -17,6 +16,7 @@ import { IDimensions } from './dimensions'
 import { ITreeNode, NodeType } from '../backend/entities/tree-node';
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
+import { IPageRange } from '../backend/entities/page-range';
 
 import metaFromNode from '../backend/metaFromNode';
 import rotateCW from '../backend/rotateCW';

@@ -30,7 +30,12 @@
             </app-img-region-editor>
           </div>
           <div *ngSwitchCase="browserView.Selections">
-            <p>TODO: Selections view</p>
+            <app-img-region-editor-bysel
+              [imageMeta]="_regionEditor.imageMeta"
+              [regions]="_regionEditor.overviewRegions"
+              [imageHref]="_regionEditor.imageHref"
+              [pageRange]="_regionEditor.pageRange">
+            </app-img-region-editor-bysel>
           </div>
         </div>
       </div>
