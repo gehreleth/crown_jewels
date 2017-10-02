@@ -26,7 +26,51 @@ export class ImgRegionEditorByselComponent implements OnInit {
 
   constructor() { }
 
-  ngOnInit() {
+  ngOnInit() {}
+
+  private get _prevPageLink(): any {
+    if (this.pageRange.page > 0) {
+      return { 'class': 'page-item',
+               'link': ['../selections', { page: this.pageRange.page - 1,
+                                           count: this.pageRange.count }],
+               'enabled': true};
+    } else {
+      return { 'class': 'page-item disabled',
+               'link': ['./'],
+               'enabled': false};
+    }
   }
 
+  private get _nextPageLink(): any {
+    if (this.pageRange.page < Math.floor(this.regions.length / this.pageRange.count)) {
+      return { 'class': 'page-item',
+               'link': ['../selections', { page: this.pageRange.page + 1,
+                                           count: this.pageRange.count }],
+               'enabled': true };
+    } else {
+      return { 'class': 'page-item disabled',
+               'link': ['./'],
+               'enabled': false };
+    }
+  }
+
+  private get _pageLinks(): any[] {
+    let retVal: Array<any> = [];
+    const numPages = Math.ceil(this.regions.length / this.pageRange.count);
+    for (let i = 0; i < numPages; ++i) {
+      if (i !== this.pageRange.page) {
+        retVal.push({ 'class': 'page-item',
+                      'caption': '' + (i + 1),
+                      'link':  ['../selections', { page: i,
+                                                   count: this.pageRange.count }]
+                    });
+      } else {
+        retVal.push({ 'class': 'page-item active',
+                      'caption': '' + (i + 1),
+                      'link': ['./']
+                    });
+      }
+    }
+    return retVal;
+  }
 }
