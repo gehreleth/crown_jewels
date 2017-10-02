@@ -70,48 +70,54 @@ export class RegionEditorService implements IBusyIndicatorHolder {
   }
 
   private handleImageMetaChange(imageMeta: IImageMeta) {
-    this.pageRange = RegionEditorService._defPageRange;
-    this.pageRangeChanged.emit(this.pageRange);
+    setBusyIndicator(this, Observable.of(1)).subscribe(() => {
+      this.pageRange = RegionEditorService._defPageRange;
+      this.pageRangeChanged.emit(this.pageRange);
 
-    this.overviewRegions = [];
-    this.overviewRegionsChanged.emit(this.overviewRegions);
-    if (imageMeta) {
-      setBusyIndicator(this, allRegions(this._http, imageMeta))
-        .subscribe((regions: Array<IImageRegion>) => {
-          this.overviewRegions = regions;
-          this.overviewRegionsChanged.emit(this.overviewRegions);
-        });
-    }
+      this.overviewRegions = [];
+      this.overviewRegionsChanged.emit(this.overviewRegions);
+      if (imageMeta) {
+        setBusyIndicator(this, allRegions(this._http, imageMeta))
+          .subscribe((regions: Array<IImageRegion>) => {
+            this.overviewRegions = regions;
+            this.overviewRegionsChanged.emit(this.overviewRegions);
+          });
+      }
+    });
   }
 
   private handlePageRange(pageRangeDict: any) {
-    let newPageRange: IPageRange = this.pageRange;
-    if (pageRangeDict.page && this._isNumberRe.test(pageRangeDict.page)) {
-      newPageRange.page = parseInt(pageRangeDict.page);
-    }
+    setBusyIndicator(this, Observable.of(1)).subscribe(() => {
+      let newPageRange: IPageRange = this.pageRange;
+      if (pageRangeDict.page && this._isNumberRe.test(pageRangeDict.page)) {
+        newPageRange.page = parseInt(pageRangeDict.page);
+      }
 
-    if (pageRangeDict.count && this._isNumberRe.test(pageRangeDict.count)) {
-      newPageRange.count = parseInt(pageRangeDict.count);
-    }
+      if (pageRangeDict.count && this._isNumberRe.test(pageRangeDict.count)) {
+        newPageRange.count = parseInt(pageRangeDict.count);
+      }
 
-    newPageRange.numPages = Math.ceil(this.overviewRegions.length / this.pageRange.count);
+      newPageRange.numPages = Math.ceil(this.overviewRegions.length / this.pageRange.count);
 
-    this.pageRange = newPageRange;
-    this.pageRangeChanged.emit(this.pageRange);
+      this.pageRange = newPageRange;
+      this.pageRangeChanged.emit(this.pageRange);
+    });
   }
 
   private handleSelectedNodeChanged(node: ITreeNode) {
-    if (node.type === NodeType.Image) {
-      setBusyIndicator(this, metaFromNode(this._http,
-        this._httpSettings.DefReqOpts, node))
-          .subscribe((imageMeta: IImageMeta) => {
-            this.imageMeta = imageMeta;
-            this.imageMetaChanged.emit(this.imageMeta);
-          });
-    } else {
-      this.imageMeta = null;
-      this.imageMetaChanged.emit(this.imageMeta);
-    }
+    setBusyIndicator(this, Observable.of(1)).subscribe(() => {
+      if (node.type === NodeType.Image) {
+        setBusyIndicator(this, metaFromNode(this._http,
+          this._httpSettings.DefReqOpts, node))
+            .subscribe((imageMeta: IImageMeta) => {
+              this.imageMeta = imageMeta;
+              this.imageMetaChanged.emit(this.imageMeta);
+            });
+      } else {
+        this.imageMeta = null;
+        this.imageMetaChanged.emit(this.imageMeta);
+      }
+    });
   }
 
   get imageHref(): string {
@@ -152,12 +158,14 @@ export class RegionEditorService implements IBusyIndicatorHolder {
   updateDimensions(naturalWidth?: number, naturalHeight?: number,
     clientWidth?: number, clientHeight?: number)
   {
-    this.dimensions = {
-       naturalWidth: naturalWidth,
-       naturalHeight: naturalHeight,
-       clientWidth: clientWidth,
-       clientHeight: clientHeight
-    };
-    this.dimensionsChanged.emit(this.dimensions);
+    setBusyIndicator(this, Observable.of(1)).subscribe(() => {
+      this.dimensions = {
+         naturalWidth: naturalWidth,
+         naturalHeight: naturalHeight,
+         clientWidth: clientWidth,
+         clientHeight: clientHeight
+      };
+      this.dimensionsChanged.emit(this.dimensions);
+    });
   }
 }
