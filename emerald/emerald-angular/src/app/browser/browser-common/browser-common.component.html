@@ -19,25 +19,21 @@
           </li>
         </ul>
       </div>
-      <div *ngIf="_regionEditor.imageMeta; else nometa">
-        <div [ngSwitch]="view">
-          <div *ngSwitchCase="browserView.Overview">
-            <app-img-region-editor
-              [imageMeta]="_regionEditor.imageMeta"
-              [regions]="_regionEditor.overviewRegions"
-              [dimensions]="_regionEditor.dimensions"
-              [imageHref]="_regionEditor.imageHref">
-            </app-img-region-editor>
-          </div>
-          <div *ngSwitchCase="browserView.Selections">
-            <app-img-region-editor-bysel
-              [imageMeta]="_regionEditor.imageMeta"
-              [regions]="_regionEditor.regionsBySel"
-              [imageHref]="_regionEditor.imageHref"
-              [pageRange]="_regionEditor.pageRange">
-            </app-img-region-editor-bysel>
-          </div>
-        </div>
+      <div *ngIf="_regionEditor.imageMeta; else nometa"
+           [ngSwitch]="view"
+           [ngBusy]="_regionEditor.busyIndicator">
+        <app-img-region-editor *ngSwitchCase="browserView.Overview"
+          [imageMeta]="_regionEditor.imageMeta"
+          [regions]="_regionEditor.overviewRegions"
+          [dimensions]="_regionEditor.dimensions"
+          [imageHref]="_regionEditor.imageHref">
+        </app-img-region-editor>
+        <app-img-region-editor-bysel *ngSwitchCase="browserView.Selections"
+          [imageMeta]="_regionEditor.imageMeta"
+          [regions]="_regionEditor.regionsBySel"
+          [imageHref]="_regionEditor.imageHref"
+          [pageRange]="_regionEditor.pageRange">
+        </app-img-region-editor-bysel>
       </div>
       <ng-template #nometa>
         <p>Loading ...</p>
