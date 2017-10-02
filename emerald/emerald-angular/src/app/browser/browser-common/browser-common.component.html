@@ -32,7 +32,7 @@
           <div *ngSwitchCase="browserView.Selections">
             <app-img-region-editor-bysel
               [imageMeta]="_regionEditor.imageMeta"
-              [regions]="_regionEditor.overviewRegions"
+              [regions]="_regionEditor.regionsBySel"
               [imageHref]="_regionEditor.imageHref"
               [pageRange]="_regionEditor.pageRange">
             </app-img-region-editor-bysel>

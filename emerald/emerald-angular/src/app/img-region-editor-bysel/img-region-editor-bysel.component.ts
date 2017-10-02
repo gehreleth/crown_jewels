@@ -42,8 +42,7 @@ export class ImgRegionEditorByselComponent implements OnInit {
   }
 
   private get _nextPageLink(): any {
-    const numPages = Math.ceil(this.regions.length / this.pageRange.count);
-    if (this.pageRange.page < numPages) {
+    if (this.pageRange.page < (this.pageRange.numPages - 1)) {
       return { 'class': 'page-item',
                'link': ['../selections', { page: this.pageRange.page + 1,
                                            count: this.pageRange.count }],
@@ -57,8 +56,7 @@ export class ImgRegionEditorByselComponent implements OnInit {
 
   private get _pageLinks(): any[] {
     let retVal: Array<any> = [];
-    const numPages = Math.ceil(this.regions.length / this.pageRange.count);
-    for (let i = 0; i < numPages; ++i) {
+    for (let i = 0; i < this.pageRange.numPages; ++i) {
       if (i !== this.pageRange.page) {
         retVal.push({ 'class': 'page-item',
                       'caption': '' + (i + 1),

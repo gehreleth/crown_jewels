@@ -45,6 +45,13 @@ export class RegionEditorService implements IBusyIndicatorHolder {
   overviewRegions: Array<IImageRegion> = [];
   overviewRegionsChanged: EventEmitter<Array<IImageRegion>> = new EventEmitter<Array<IImageRegion>>();
 
+  get regionsBySel(): Array<IImageRegion> {
+    const lbound = this.pageRange.page * this.pageRange.count;
+    let ubound = lbound + this.pageRange.count;
+    ubound = Math.min(ubound, this.overviewRegions.length);
+    return this.overviewRegions.slice(lbound, ubound);
+  }
+
   private static readonly _defPageRange: IPageRange = { page: 0, count: 10 };
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
 
@@ -86,6 +93,8 @@ export class RegionEditorService implements IBusyIndicatorHolder {
     if (pageRangeDict.count && this._isNumberRe.test(pageRangeDict.count)) {
       newPageRange.count = parseInt(pageRangeDict.count);
     }
+
+    newPageRange.numPages = Math.ceil(this.overviewRegions.length / this.pageRange.count);
 
     this.pageRange = newPageRange;
     this.pageRangeChanged.emit(this.pageRange);

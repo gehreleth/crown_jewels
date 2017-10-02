@@ -2,23 +2,23 @@
   <li *ngFor="let region of regions">
     {{region.x}}/{{region.y}}/{{region.width}}/{{region.height}}
   </li>
-  <div id="outer">
-    <nav id="inner" aria-label="Region editor by selection pages">
-      <ul class="pagination">
-        <li [ngClass]="_prevPageLink.class">
-          <a class="page-link"
-             [routerLink]="_prevPageLink.link"
-             tabindex="{{_prevPageLink.enabled?-1:0}}">Previous</a>
-        </li>
-        <li *ngFor="let pl of _pageLinks" [ngClass]="pl.class">
-          <a class="page-link" [routerLink]="pl.link">{{pl.caption}}</a>
-        </li>
-        <li [ngClass]="_nextPageLink.class">
-          <a class="page-link"
-             [routerLink]="_nextPageLink.link"
-             tabindex="{{_nextPageLink.enabled?-1:0}">Next</a>
-        </li>
-      </ul>
-    </nav>
-  </div>
 </ol>
+<div id="pages-outer">
+  <nav id="pages-inner" aria-label="Region editor by selection pages">
+    <ul class="pagination">
+      <li [ngClass]="_prevPageLink.class">
+        <a class="page-link"
+           [routerLink]="_prevPageLink.link"
+           tabindex="{{_prevPageLink.enabled?-1:0}}">Previous</a>
+      </li>
+      <li *ngFor="let pl of _pageLinks" [ngClass]="pl.class">
+        <a class="page-link" [routerLink]="pl.link">{{pl.caption}}</a>
+      </li>
+      <li [ngClass]="_nextPageLink.class">
+        <a class="page-link"
+           [routerLink]="_nextPageLink.link"
+           tabindex="{{_nextPageLink.enabled?-1:0}">Next</a>
+      </li>
+    </ul>
+  </nav>
+</div>
