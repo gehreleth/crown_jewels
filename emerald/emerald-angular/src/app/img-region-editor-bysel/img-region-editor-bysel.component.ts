@@ -12,17 +12,13 @@ import { IPageRange } from '../backend/entities/page-range';
   styleUrls: ['./img-region-editor-bysel.component.scss']
 })
 export class ImgRegionEditorByselComponent implements OnInit {
-  @Input()
-  imageMeta: IImageMeta;
+  @Input() imageMeta: IImageMeta;
 
-  @Input()
-  pageRange: IPageRange;
+  @Input() pageRange: IPageRange;
 
-  @Input()
-  regions: Array<IImageRegion>;
+  @Input() regions: Array<IImageRegion>;
 
-  @Input()
-  imageHref: string;
+  @Input() imageHref: string;
 
   constructor() { }
 
@@ -33,11 +29,9 @@ export class ImgRegionEditorByselComponent implements OnInit {
       return { 'class': 'page-item',
                'link': ['../selections', { page: this.pageRange.page - 1,
                                            count: this.pageRange.count }],
-               'enabled': true};
+               'tabindex': 0 };
     } else {
-      return { 'class': 'page-item disabled',
-               'link': ['./'],
-               'enabled': false};
+      return { 'class': 'page-item disabled', 'link': ['./'], 'tabindex': -1 };
     }
   }
 
@@ -46,11 +40,9 @@ export class ImgRegionEditorByselComponent implements OnInit {
       return { 'class': 'page-item',
                'link': ['../selections', { page: this.pageRange.page + 1,
                                            count: this.pageRange.count }],
-               'enabled': true };
+               'tabindex': 0 };
     } else {
-      return { 'class': 'page-item disabled',
-               'link': ['./'],
-               'enabled': false };
+      return { 'class': 'page-item disabled', 'link': ['./'], 'tabindex': -1 };
     }
   }
 
@@ -61,13 +53,9 @@ export class ImgRegionEditorByselComponent implements OnInit {
         retVal.push({ 'class': 'page-item',
                       'caption': '' + (i + 1),
                       'link':  ['../selections', { page: i,
-                                                   count: this.pageRange.count }]
-                    });
+                                                   count: this.pageRange.count }]});
       } else {
-        retVal.push({ 'class': 'page-item active',
-                      'caption': '' + (i + 1),
-                      'link': ['./']
-                    });
+        retVal.push({ 'class': 'page-item active', 'caption': '' + (i + 1), 'link': ['./']});
       }
     }
     return retVal;

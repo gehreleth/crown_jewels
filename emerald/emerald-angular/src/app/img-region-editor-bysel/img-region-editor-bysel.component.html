@@ -9,7 +9,7 @@
       <li [ngClass]="_prevPageLink.class">
         <a class="page-link"
            [routerLink]="_prevPageLink.link"
-           tabindex="{{_prevPageLink.enabled?-1:0}}">Previous</a>
+           tabindex="{{_prevPageLink.tabindex}}">Previous</a>
       </li>
       <li *ngFor="let pl of _pageLinks" [ngClass]="pl.class">
         <a class="page-link" [routerLink]="pl.link">{{pl.caption}}</a>
@@ -17,7 +17,7 @@
       <li [ngClass]="_nextPageLink.class">
         <a class="page-link"
            [routerLink]="_nextPageLink.link"
-           tabindex="{{_nextPageLink.enabled?-1:0}">Next</a>
+           tabindex="{{_nextPageLink.tabindex}}">Next</a>
       </li>
     </ul>
   </nav>
