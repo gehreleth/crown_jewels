@@ -42,7 +42,8 @@ export class ImgRegionEditorByselComponent implements OnInit {
   }
 
   private get _nextPageLink(): any {
-    if (this.pageRange.page < Math.floor(this.regions.length / this.pageRange.count)) {
+    const numPages = Math.ceil(this.regions.length / this.pageRange.count);
+    if (this.pageRange.page < numPages) {
       return { 'class': 'page-item',
                'link': ['../selections', { page: this.pageRange.page + 1,
                                            count: this.pageRange.count }],
