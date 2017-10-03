@@ -1,8 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
-import { IArea } from '../ire-main-area/area'
-import { ITreeNode, NodeType } from '../backend/entities/tree-node'
-import { IImageMeta, Rotation } from '../backend/entities/image-meta';
+import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 import { IPageRange } from '../backend/entities/page-range';
 

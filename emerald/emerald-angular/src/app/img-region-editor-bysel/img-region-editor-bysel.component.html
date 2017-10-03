@@ -1,8 +1,9 @@
-<ol>
-  <li *ngFor="let region of regions">
-    {{region.x}}/{{region.y}}/{{region.width}}/{{region.height}}
-  </li>
-</ol>
+<div id="main-area">
+  <app-img-region-editor-bysel-sel *ngFor="let region of regions"
+    [imageMeta]="imageMeta"
+    [region]="region">
+  </app-img-region-editor-bysel-sel>
+</div>
 <div id="pages-outer">
   <nav id="pages-inner" aria-label="Region editor by selection pages">
     <ul class="pagination">
