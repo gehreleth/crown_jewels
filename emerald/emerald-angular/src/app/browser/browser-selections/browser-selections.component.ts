@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { RegionEditorService } from '../../img-region-editor/region-editor.service'
+import { RegionEditorService } from '../browser-common/region-editor.service'
 import { BrowserView } from '../browser-view'
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';

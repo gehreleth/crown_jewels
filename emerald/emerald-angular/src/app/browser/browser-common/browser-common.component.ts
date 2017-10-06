@@ -1,9 +1,9 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { BrowserService } from '../browser.service'
-import { RegionEditorService } from '../../img-region-editor/region-editor.service'
-import { ITreeNode, NodeType } from '../../backend/entities/tree-node'
-import { IImageMeta } from '../../backend/entities/image-meta'
-import { BrowserView } from '../browser-view'
+import { BrowserService } from '../browser.service';
+import { RegionEditorService } from './region-editor.service';
+import { ITreeNode, NodeType } from '../../backend/entities/tree-node';
+import { IImageMeta } from '../../backend/entities/image-meta';
+import { BrowserView } from '../browser-view';
 
 @Component({
   selector: 'app-browser-common',

@@ -10,7 +10,7 @@ import { AppComponent } from './app.component';
 import { UploadFormComponent } from './upload-form/upload-form.component';
 import { BrowserService } from './browser/browser.service';
 import { HttpSettingsService } from './http-settings.service';
-import { RegionEditorService } from './img-region-editor/region-editor.service';
+import { RegionEditorService } from './browser/browser-common/region-editor.service';
 import { TreeView } from './tree-view/tree-view.component'
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
