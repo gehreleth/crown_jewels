@@ -3,14 +3,13 @@ import { ViewChild, ElementRef } from '@angular/core';
 import { OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 
-import { IDimensions } from '../browser/dimensions'
+import { IDimensions } from '../util/dimensions'
 import { IArea } from '../ire-main-area/area'
 import { ITreeNode, NodeType } from '../backend/entities/tree-node'
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 
 import { RegionEditorService } from '../browser/browser-common/region-editor.service'
-
 
 @Component({
   selector: 'app-img-region-editor',

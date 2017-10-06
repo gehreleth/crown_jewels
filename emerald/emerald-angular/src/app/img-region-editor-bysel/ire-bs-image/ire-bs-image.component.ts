@@ -2,8 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 
 import { IImageMeta } from '../../backend/entities/image-meta';
 import { IImageRegion } from '../../backend/entities/image-region';
-
-import { IDimensions } from '../../browser/dimensions';
+import { IDimensions } from '../../util/dimensions';
 
 interface ICroppedArea {
   x: number, y: number, width: number, height: number

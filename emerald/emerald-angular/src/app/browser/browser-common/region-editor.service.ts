@@ -9,7 +9,7 @@ import "rxjs/add/observable/of";
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 
-import { IDimensions } from '../dimensions'
+import { IDimensions } from '../../util/dimensions'
 import { ITreeNode, NodeType } from '../../backend/entities/tree-node';
 import { IImageMeta, Rotation } from '../../backend/entities/image-meta';
 import { IImageRegion } from '../../backend/entities/image-region';
@@ -20,6 +20,7 @@ import rotateCW from '../../backend/rotateCW';
 import rotateCCW from '../../backend/rotateCCW';
 import allRegions from '../../backend/allRegions';
 import updateRegions from '../../backend/updateRegions';
+import getBlobUrl from '../../util/getBlobUrl';
 
 import { IBusyIndicatorHolder } from '../../util/busy-indicator-holder';
 import setBusyIndicator from '../../util/setBusyIndicator';
@@ -183,8 +184,7 @@ export class RegionEditorService implements IBusyIndicatorHolder {
 
   get imageHref(): string {
     const that = this._context;
-    return '/emerald/blobs/' + `${that.imageMeta.aquamarineId}`
-      + `?rot=${Rotation[that.imageMeta.rotation]}`
+    return that ? getBlobUrl(that.imageMeta) : null;
   }
 
   rotateCW(): void {

@@ -1,9 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
-
 import { IImageMeta } from '../../backend/entities/image-meta';
 import { IImageRegion } from '../../backend/entities/image-region';
-
-import { IDimensions } from '../../browser/dimensions';
+import { IDimensions } from '../../util/dimensions';
 
 @Component({
   selector: 'app-img-region-editor-bysel-sel',

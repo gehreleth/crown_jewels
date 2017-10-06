@@ -4,7 +4,7 @@ import { ViewChild, ElementRef } from '@angular/core';
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 import { IPageRange } from '../backend/entities/page-range';
-import { IDimensions } from '../browser/dimensions';
+import { IDimensions } from '../util/dimensions';
 import { RegionEditorService } from '../browser/browser-common/region-editor.service'
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 
