@@ -3,7 +3,7 @@ import { Component,
          ViewChild,
          OnInit } from '@angular/core';
 import { Http, Response } from '@angular/http';
-import { BrowserService } from '../browser/browser.service'
+import { BrowserService } from '../services/browser.service'
 
 @Component({
   selector: 'app-upload-form',

@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { IImageMeta } from '../../backend/entities/image-meta';
 import { IImageRegion } from '../../backend/entities/image-region';
 import { IDimensions } from '../../util/dimensions';
+import { RegionEditorService } from '../../services/region-editor.service'
 
 @Component({
   selector: 'app-img-region-editor-bysel-sel',
@@ -11,9 +12,8 @@ import { IDimensions } from '../../util/dimensions';
 export class ImgRegionEditorByselSelComponent implements OnInit {
   @Input() imageMeta: IImageMeta;
   @Input() region: IImageRegion;
-  @Input() dimensions: IDimensions;
 
-  constructor() { }
+  constructor(private _regionEditorService: RegionEditorService) { }
 
   ngOnInit() {
   }

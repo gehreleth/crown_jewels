@@ -2,28 +2,27 @@ import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Headers, RequestOptions, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 
-import { BrowserService } from '../browser.service';
-import { HttpSettingsService } from '../../http-settings.service';
+import { BrowserService } from './browser.service';
+import { HttpSettingsService } from './http-settings.service';
 
 import "rxjs/add/observable/of";
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 
-import { IDimensions } from '../../util/dimensions'
-import { ITreeNode, NodeType } from '../../backend/entities/tree-node';
-import { IImageMeta, Rotation } from '../../backend/entities/image-meta';
-import { IImageRegion } from '../../backend/entities/image-region';
-import { IPageRange } from '../../backend/entities/page-range';
+import { IDimensions } from '../util/dimensions'
+import { ITreeNode, NodeType } from '../backend/entities/tree-node';
+import { IImageMeta, Rotation } from '../backend/entities/image-meta';
+import { IImageRegion } from '../backend/entities/image-region';
+import { IPageRange } from '../backend/entities/page-range';
 
-import metaFromNode from '../../backend/metaFromNode';
-import rotateCW from '../../backend/rotateCW';
-import rotateCCW from '../../backend/rotateCCW';
-import allRegions from '../../backend/allRegions';
-import updateRegions from '../../backend/updateRegions';
-import getBlobUrl from '../../util/getBlobUrl';
+import metaFromNode from '../backend/metaFromNode';
+import rotateCW from '../backend/rotateCW';
+import rotateCCW from '../backend/rotateCCW';
+import allRegions from '../backend/allRegions';
+import updateRegions from '../backend/updateRegions';
 
-import { IBusyIndicatorHolder } from '../../util/busy-indicator-holder';
-import setBusyIndicator from '../../util/setBusyIndicator';
+import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
+import setBusyIndicator from '../util/setBusyIndicator';
 
 interface IRegionEditorServiceState {
   readonly node: ITreeNode;
@@ -182,11 +181,6 @@ export class RegionEditorService implements IBusyIndicatorHolder {
     });
   }
 
-  get imageHref(): string {
-    const that = this._context;
-    return that ? getBlobUrl(that.imageMeta) : null;
-  }
-
   rotateCW(): void {
     const that = this._context;
     setBusyIndicator(this, rotateCW(this._http,
@@ -220,17 +214,11 @@ export class RegionEditorService implements IBusyIndicatorHolder {
         });
   }
 
-  updateDimensions(naturalWidth?: number, naturalHeight?: number,
-    clientWidth?: number, clientHeight?: number)
+  updateDimensions(dimensions: IDimensions)
   {
     const that = this._context;
     setBusyIndicator(this, Observable.of(1)).subscribe(() => {
-      that.dimensions = {
-         naturalWidth: naturalWidth,
-         naturalHeight: naturalHeight,
-         clientWidth: clientWidth,
-         clientHeight: clientHeight
-      };
+      that.dimensions = dimensions;
       that.dimensionsChanged.emit(that.dimensions);
     });
   }

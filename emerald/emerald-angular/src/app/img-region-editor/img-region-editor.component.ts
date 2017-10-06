@@ -1,6 +1,4 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
-import { ViewChild, ElementRef } from '@angular/core';
-import { OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 
 import { IDimensions } from '../util/dimensions'
@@ -9,52 +7,25 @@ import { ITreeNode, NodeType } from '../backend/entities/tree-node'
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 
-import { RegionEditorService } from '../browser/browser-common/region-editor.service'
+import { RegionEditorService } from '../services/region-editor.service'
+import getBlobUrl from '../util/getBlobUrl';
 
 @Component({
   selector: 'app-img-region-editor',
   templateUrl: './img-region-editor.component.html',
   styleUrls: ['./img-region-editor.component.scss']
 })
-export class ImgRegionEditorComponent implements OnChanges {
+export class ImgRegionEditorComponent {
   @Input() imageMeta: IImageMeta;
-  @Input() imageHref: string;
   @Input() regions: Array<IImageRegion>;
   @Input() dimensions: IDimensions;
 
   private _cacheValid: boolean;
   private _cachedAreas: Array<IArea>;
 
-  @ViewChild('dimensionProbe') private dimensionProbe: ElementRef;
-
   constructor(private _sanitizer: DomSanitizer,
               private _regionEditor: RegionEditorService)
   { }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this._cacheValid = false;
-    const ihChange = changes['imageHref'];
-    if (ihChange) {
-      const curHref = ihChange.currentValue;
-      const prevHref = !ihChange.firstChange ? ihChange.previousValue : null;
-      if (curHref !== prevHref) {
-        this._regionEditor.updateDimensions(undefined, undefined,
-          undefined, undefined);
-      }
-    }
-    setTimeout(() => {
-      if (this.dimensionProbe) {
-        const el = this.dimensionProbe.nativeElement;
-        if (el.complete) {
-          this._regionEditor.updateDimensions(el.naturalWidth,
-            el.naturalHeight, el.clientWidth, el.clientHeight);
-        } else {
-          el.onload = () => this._regionEditor.updateDimensions(el.naturalWidth,
-            el.naturalHeight, el.clientWidth, el.clientHeight);
-        }
-      }
-    }, 0);
-  }
 
   private get _areas(): Array<IArea> {
     if (!this._cacheValid) {
@@ -70,13 +41,12 @@ export class ImgRegionEditorComponent implements OnChanges {
     return this._cachedAreas;
   }
 
-
   private areasChanged(arg: Array<IArea>) {
     this._cachedAreas = arg;
   }
 
   private get safeImageHref(): SafeUrl {
-    return this._sanitizer.bypassSecurityTrustUrl(this.imageHref);
+    return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(this.imageMeta));
   }
 
   private onRotateCW(event:any): void {

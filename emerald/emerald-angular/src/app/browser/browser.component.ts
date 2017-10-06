@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { BrowserService } from './browser.service'
+import { BrowserService } from '../services/browser.service'
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({
