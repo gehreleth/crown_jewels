@@ -5,14 +5,11 @@ import { Observable } from 'rxjs/Observable';
 import { BrowserService } from '../browser.service';
 import { HttpSettingsService } from '../../http-settings.service';
 
-import 'rxjs/add/operator/catch';
 import "rxjs/add/observable/of";
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/map';
 
-import { IDimensions } from './dimensions'
+import { IDimensions } from '../dimensions'
 import { ITreeNode, NodeType } from '../../backend/entities/tree-node';
 import { IImageMeta, Rotation } from '../../backend/entities/image-meta';
 import { IImageRegion } from '../../backend/entities/image-region';

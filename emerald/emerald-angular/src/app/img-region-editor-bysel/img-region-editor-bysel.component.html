@@ -1,9 +1,13 @@
-<div id="main-area">
+<div id="main-area" *ngIf="dimensions.clientWidth; else nodimensions">
   <app-img-region-editor-bysel-sel *ngFor="let region of regions"
     [imageMeta]="imageMeta"
-    [region]="region">
+    [region]="region"
+    [dimensions]="dimensions">
   </app-img-region-editor-bysel-sel>
 </div>
+<ng-template #nodimensions>
+  <img #dimensionProbe [src]="safeImageHref" class="img-fluid">
+</ng-template>
 <div id="pages-outer">
   <nav id="pages-inner" aria-label="Region editor by selection pages">
     <ul class="pagination">

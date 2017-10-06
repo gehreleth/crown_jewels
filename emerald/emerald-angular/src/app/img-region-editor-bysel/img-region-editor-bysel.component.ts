@@ -1,26 +1,60 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-
+import { Component, OnInit, Input } from '@angular/core';
+import { OnChanges, SimpleChanges } from '@angular/core';
+import { ViewChild, ElementRef } from '@angular/core';
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 import { IPageRange } from '../backend/entities/page-range';
+import { IDimensions } from '../browser/dimensions';
+import { RegionEditorService } from '../browser/browser-common/region-editor.service'
+import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-img-region-editor-bysel',
   templateUrl: './img-region-editor-bysel.component.html',
   styleUrls: ['./img-region-editor-bysel.component.scss']
 })
-export class ImgRegionEditorByselComponent implements OnInit {
+export class ImgRegionEditorByselComponent implements OnInit, OnChanges {
   @Input() imageMeta: IImageMeta;
-
   @Input() pageRange: IPageRange;
-
   @Input() regions: Array<IImageRegion>;
-
   @Input() imageHref: string;
+  @Input() dimensions: IDimensions;
 
-  constructor() { }
+  @ViewChild('dimensionProbe') private dimensionProbe: ElementRef;
+
+  constructor(private _regionEditor: RegionEditorService,
+              private _sanitizer: DomSanitizer)
+  { }
 
   ngOnInit() {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    const ihChange = changes['imageHref'];
+    if (ihChange) {
+      const curHref = ihChange.currentValue;
+      const prevHref = !ihChange.firstChange ? ihChange.previousValue : null;
+      if (curHref !== prevHref) {
+        this._regionEditor.updateDimensions(undefined, undefined,
+          undefined, undefined);
+      }
+    }
+    setTimeout(() => {
+      if (this.dimensionProbe) {
+        const el = this.dimensionProbe.nativeElement;
+        if (el.complete) {
+          this._regionEditor.updateDimensions(el.naturalWidth,
+            el.naturalHeight, el.clientWidth, el.clientHeight);
+        } else {
+          el.onload = () => this._regionEditor.updateDimensions(el.naturalWidth,
+            el.naturalHeight, el.clientWidth, el.clientHeight);
+        }
+      }
+    }, 0);
+  }
+
+  private get safeImageHref(): SafeUrl {
+    return this._sanitizer.bypassSecurityTrustUrl(this.imageHref);
+  }
 
   private get _prevPageLink(): any {
     if (this.pageRange.page > 0) {

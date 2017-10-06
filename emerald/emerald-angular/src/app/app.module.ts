@@ -29,6 +29,7 @@ import { IreMainAreaHandlersComponent } from './ire-main-area/ire-main-area-hand
 import { IreMainAreaDeleteComponent } from './ire-main-area/ire-main-area-delete/ire-main-area-delete.component';
 import { ImgRegionEditorByselComponent } from './img-region-editor-bysel/img-region-editor-bysel.component';
 import { ImgRegionEditorByselSelComponent } from './img-region-editor-bysel/img-region-editor-bysel-sel/img-region-editor-bysel-sel.component';
+import { IreBsImageComponent } from './img-region-editor-bysel/ire-bs-image/ire-bs-image.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -58,7 +59,8 @@ const routes: Routes = [
     BrowserSelectionsComponent,
     BrowserCommonComponent,
     ImgRegionEditorByselComponent,
-    ImgRegionEditorByselSelComponent
+    ImgRegionEditorByselSelComponent,
+    IreBsImageComponent
   ],
   imports: [
     BrowserModule,
