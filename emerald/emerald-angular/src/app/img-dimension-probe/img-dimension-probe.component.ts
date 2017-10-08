@@ -5,8 +5,10 @@ import { IDimensions } from '../util/dimensions';
 
 @Component({
   selector: 'app-img-dimension-probe',
-  styles : [`#dimprobe { opacity: 0; }`],
-  template: `<img #dimensionProbe id="dimprobe" [src]="href" class="img-fluid">`
+  styles : [`img {
+    opacity: 0;
+  }`],
+  template: `<img #dimensionProbe class="img-fluid" [src]="href">`
 })
 export class ImgDimensionProbeComponent implements AfterViewInit {
   @Input() href: SafeUrl;
