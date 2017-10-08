@@ -1,14 +1,13 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { ViewChild, ElementRef } from '@angular/core';
-import { OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 import { BrowserService } from '../../services/browser.service';
-import { RegionEditorService } from '../../services/region-editor.service';
+import { BrowserView } from '../browser-view';
+
+import { IDimensions } from '../../util/dimensions';
 import { ITreeNode, NodeType } from '../../backend/entities/tree-node';
 import { IImageMeta } from '../../backend/entities/image-meta';
-import { BrowserView } from '../browser-view';
-import { IDimensions } from '../../util/dimensions';
+import { IImageMetaEditor } from '../../services/image-meta-editor';
 
-import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 import getBlobUrl from '../../util/getBlobUrl';
 
 @Component({
@@ -16,55 +15,34 @@ import getBlobUrl from '../../util/getBlobUrl';
   templateUrl: './browser-common.component.html',
   styleUrls: ['./browser-common.component.scss']
 })
-export class BrowserCommonComponent implements OnChanges {
+export class BrowserCommonComponent {
   public nodeType = NodeType;
   public browserView = BrowserView;
 
   @Input() view: BrowserView;
-  @Input() dimensions: IDimensions;
-
-  @ViewChild('dimensionProbe') private dimensionProbe: ElementRef;
+  private _dimensions: IDimensions;
 
   constructor(private _sanitizer: DomSanitizer,
-              private _browserService: BrowserService,
-              private _regionEditor: RegionEditorService)
+              private _browserService: BrowserService)
   { }
 
-  ngOnChanges(changes: SimpleChanges) {
-    setTimeout(() => {
-      if (this.dimensionProbe) {
-        const el = this.dimensionProbe.nativeElement;
-        const f = function (that: BrowserCommonComponent, el: any) {
-          that._regionEditor.updateDimensions({naturalWidth: el.naturalWidth,
-            naturalHeight: el.naturalHeight, clientWidth: el.clientWidth,
-            clientHeight: el.clientHeight});
-        }
-        if (el.complete) {
-          f(this, el);
-        } else {
-          el.onload = () => f(this, el);
-        }
-      }
-    }, 0);
-  }
-
-  private get safeImageHref(): SafeUrl {
-    return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(this._regionEditor.imageMeta));
+  private probeHref(editor: IImageMetaEditor): SafeUrl {
+    return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(editor.imageMeta));
   }
 
   private _navLinkClass(view: BrowserView): string {
     return 'nav-link' + ((view === this.view) ? ' active' : '');
   }
 
-  private _routerLink(view: BrowserView): any[] {
+  private _routerLink(view: BrowserView, editor: IImageMetaEditor): any[] {
     if (view === this.view) {
       return ['./'];
     } else {
       switch (view) {
         case BrowserView.Selections:
           return ['./selections', {
-            page: this._regionEditor.pageRange.page,
-            count: this._regionEditor.pageRange.count
+            page: editor.pageRange.page,
+            count: editor.pageRange.count
           }];
         default:
           return ['../'];

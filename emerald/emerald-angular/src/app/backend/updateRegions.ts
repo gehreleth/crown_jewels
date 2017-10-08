@@ -9,6 +9,8 @@ import { IQuery } from './query'
 
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/concatMap';
+import 'rxjs/add/observable/forkJoin';
+
 
 /**
 * Assigns new regions collection to the image meta object and performs deep

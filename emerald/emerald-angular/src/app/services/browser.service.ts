@@ -1,17 +1,12 @@
 import { Injectable, Input, Output, EventEmitter} from '@angular/core';
 import { Http, Headers, RequestOptions, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-
-import 'rxjs/add/operator/catch';
-import "rxjs/add/observable/of";
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/operator/concatMap';
-import 'rxjs/add/observable/fromPromise';
-import 'rxjs/add/operator/map';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import { ITreeNode, NodeType } from '../backend/entities/tree-node';
 import { IImageMeta } from '../backend/entities/image-meta';
 
+import metaFromNode from '../backend/metaFromNode';
 import populateChildren from '../backend/populateChildren';
 import populateBranchByTerminalNodeId from '../backend/populateBranchByTerminalNodeId';
 
@@ -20,11 +15,16 @@ enum TrackingStatus { PENDING, SUCCESS, FAIL };
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
 
+import { IImageMetaEditor } from './image-meta-editor';
+import { ImageMetaEditorImpl } from './image-meta-editor-impl';
+import { HttpSettingsService } from './http-settings.service';
+
 @Injectable()
 export class BrowserService implements IBusyIndicatorHolder {
   newRoots: EventEmitter<void> = new EventEmitter<void>();
 
   browseSlashId: EventEmitter<any> = new EventEmitter<any>();
+  semicolonSlashPageRange: EventEmitter<any> = new EventEmitter<any>();
 
   rootNodes: Array<ITreeNode> = null;
   rootNodesChanged: EventEmitter<Array<ITreeNode>> = new EventEmitter<Array<ITreeNode>>();
@@ -37,8 +37,11 @@ export class BrowserService implements IBusyIndicatorHolder {
   private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
 
-  constructor(private _http: Http)
+  private _imageMetaEditor: BehaviorSubject<IImageMetaEditor>;
+
+  constructor(private _http: Http, private _httpSettings: HttpSettingsService)
   {
+    this._imageMetaEditor = new BehaviorSubject<IImageMetaEditor>(null);
     this.newRoots.subscribe(() => this.requestNodes(null, true));
     this.treePaneSelectionChanged.subscribe((node: ITreeNode) =>
       this.handleSelectedNodeChanged(node));
@@ -46,9 +49,14 @@ export class BrowserService implements IBusyIndicatorHolder {
     this.newRoots.emit();
   }
 
+  get imageMetaEditor(): Observable<IImageMetaEditor> {
+    return this._imageMetaEditor.filter(e => e ? true : false);
+  }
+
   private handleBrowseSlashId(idStr: string) {
-    if (!this._isNumberRe.test(idStr))
+    if (!this._isNumberRe.test(idStr)) {
       return;
+    }
 
     const id: number = parseInt(idStr);
     if (this._id2Node.has(id)) {
@@ -63,6 +71,15 @@ export class BrowserService implements IBusyIndicatorHolder {
   }
 
   private handleSelectedNodeChanged(node: ITreeNode) {
+    if (node.type === NodeType.Image) {
+      const o = metaFromNode(this._http, this._httpSettings.DefReqOpts, node);
+      setBusyIndicator(this, o).subscribe((imageMeta: IImageMeta) => {
+        const nv = new ImageMetaEditorImpl(this._http, this._httpSettings, imageMeta);
+        this._imageMetaEditor.next(nv);
+      });
+    } else {
+      this._imageMetaEditor.next(null);
+    }
     if (node.type === NodeType.Zip || node.type === NodeType.Folder) {
       this.requestNodes(node, false);
     }

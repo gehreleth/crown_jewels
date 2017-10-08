@@ -10,7 +10,6 @@ import { AppComponent } from './app.component';
 import { UploadFormComponent } from './upload-form/upload-form.component';
 import { BrowserService } from './services/browser.service';
 import { HttpSettingsService } from './services/http-settings.service';
-import { RegionEditorService } from './services/region-editor.service';
 import { TreeView } from './tree-view/tree-view.component'
 import { RouterModule, Routes } from '@angular/router';
 import { BrowserComponent } from './browser/browser.component';
@@ -30,6 +29,7 @@ import { IreMainAreaDeleteComponent } from './ire-main-area/ire-main-area-delete
 import { ImgRegionEditorByselComponent } from './img-region-editor-bysel/img-region-editor-bysel.component';
 import { ImgRegionEditorByselSelComponent } from './img-region-editor-bysel/img-region-editor-bysel-sel/img-region-editor-bysel-sel.component';
 import { IreBsImageComponent } from './img-region-editor-bysel/ire-bs-image/ire-bs-image.component';
+import { ImgDimensionProbeComponent } from './img-dimension-probe/img-dimension-probe.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -60,7 +60,8 @@ const routes: Routes = [
     BrowserCommonComponent,
     ImgRegionEditorByselComponent,
     ImgRegionEditorByselSelComponent,
-    IreBsImageComponent
+    IreBsImageComponent,
+    ImgDimensionProbeComponent
   ],
   imports: [
     BrowserModule,
@@ -72,7 +73,6 @@ const routes: Routes = [
     RouterModule.forRoot(routes)
   ],
   providers: [ BrowserService,
-               RegionEditorService,
                HttpSettingsService,
              { provide: LocationStrategy, useClass: HashLocationStrategy },
              { provide: APP_BASE_HREF, useValue: '/' }],

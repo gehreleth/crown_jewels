@@ -6,8 +6,8 @@ import { IArea } from '../ire-main-area/area'
 import { ITreeNode, NodeType } from '../backend/entities/tree-node'
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
+import { IImageMetaEditor } from '../services/image-meta-editor';
 
-import { RegionEditorService } from '../services/region-editor.service'
 import getBlobUrl from '../util/getBlobUrl';
 
 @Component({
@@ -16,15 +16,14 @@ import getBlobUrl from '../util/getBlobUrl';
   styleUrls: ['./img-region-editor.component.scss']
 })
 export class ImgRegionEditorComponent {
-  @Input() imageMeta: IImageMeta;
-  @Input() regions: Array<IImageRegion>;
+  @Input() editor: IImageMetaEditor
   @Input() dimensions: IDimensions;
+  @Input() regions: Array<IImageRegion>;
 
   private _cacheValid: boolean;
   private _cachedAreas: Array<IArea>;
 
-  constructor(private _sanitizer: DomSanitizer,
-              private _regionEditor: RegionEditorService)
+  constructor(private _sanitizer: DomSanitizer)
   { }
 
   private get _areas(): Array<IArea> {
@@ -46,21 +45,21 @@ export class ImgRegionEditorComponent {
   }
 
   private get safeImageHref(): SafeUrl {
-    return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(this.imageMeta));
+    return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(this.editor.imageMeta));
   }
 
   private onRotateCW(event:any): void {
-    this._regionEditor.rotateCW();
+    this.editor.rotateCW();
   }
 
   private onRotateCCW(event:any): void {
-    this._regionEditor.rotateCCW();
+    this.editor.rotateCCW();
   }
 
   private onSaveRegions(event: any) : void {
     const naturalWidth = this.dimensions.naturalWidth;
     const clientWidth = this.dimensions.clientWidth;
-    this._regionEditor.saveRegions(a2r(this._areas, naturalWidth / clientWidth));
+    this.editor.saveRegions(a2r(this._areas, naturalWidth / clientWidth));
   }
 }
 
