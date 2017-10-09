@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component, OnChanges, Input } from '@angular/core';
+import { SecurityContext } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 
 import { IImageMeta } from '../../backend/entities/image-meta';
@@ -10,36 +11,147 @@ import getBlobUrl from '../../util/getBlobUrl';
 
 @Component({
   selector: 'app-ire-bs-image',
+  styles : [`
+.select-areas-overlay {
+  background-color: #000;
+  overflow: hidden;
+  position: absolute;
+}
+
+.select-areas-outline {
+	background: #fff url('data:image/gif;base64,R0lGODlhCAAIAJECAAAAAP///wAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFBgACACwAAAAACAAIAAACDYQhKadrzVRMB9FZ5SwAIfkECQYAAgAsAAAAAAgACAAAAgeUj6nL7V0AACH5BAUGAAIALAAAAAAIAAgAAAIPFA6imGrnXlvQocjspbUAACH5BAkGAAIALAAAAAAIAAgAAAIHlI+py+1dAAAh+QQFBgACACwAAAAACAAIAAACD5SAYJeb6tBi0LRYaX2iAAAh+QQJBgACACwAAAAACAAIAAACB5SPqcvtXQAAIfkEBQYAAgAsAAAAAAgACAAAAg+UgWCSernaYmjCWLF7qAAAIfkEBQYAAgAsAAAAAAEAAQAAAgJUAQAh+QQJBgACACwAAAAACAAIAAACB5SPqcvtXQAAIfkEBQYAAgAsAAAAAAgACAAAAg2UBQmna81UTAfRWeUsACH5BAkGAAIALAAAAAAIAAgAAAIHlI+py+1dAAAh+QQFBgACACwAAAAACAAIAAACD4QuoJhq515b0KHI7KW1AAAh+QQJBgACACwAAAAACAAIAAACB5SPqcvtXQAAIfkEBQYAAgAsAAAAAAgACAAAAg8EhGKXm+rQYtC0WGl9oAAAIfkEBQ0AAgAsAAAAAAEAAQAAAgJUAQA7');
+	overflow: hidden;
+}
+`],
   template: `
-    <img [src]="_fragmentHref" width="{{_width}}" height="{{_height}}">
+<div [ngStyle]="_topLevelStyles">
+  <img [src]="_fragmentHref"
+       [ngStyle]="_imgStyles"
+       [width]="width"
+       [height]="height">
+  <div class="select-areas-overlay" [ngStyle]="_overlayStyles"></div>
+  <div [ngStyle]="_backgroundStyles"></div>
+  <div class="select-areas-outline" [ngStyle]="_outlineStyles"></div>
+  <div class="select-areas-background-area"
+       [style.background]="_sanitizedAreaBackgroundStyles"
+       [ngStyle]="_areaBackgroundOtherStyles">
+  </div>
+</div>
   `
 })
-export class IreBsImageComponent {
-  static readonly _WIDTH = 300;
-  static readonly _HEIGHT = 300;
-
-  private readonly _width = IreBsImageComponent._WIDTH;
-  private readonly _height = IreBsImageComponent._HEIGHT;
-
+export class IreBsImageComponent implements OnChanges {
   @Input() imageMeta: IImageMeta;
   @Input() region: IImageRegion;
   @Input() dimensions: IDimensions;
 
+  @Input() width: number;
+  @Input() height: number;
+
+  private _croppedAreaCached: IRect;
+  private _selectionAreaCached: IRect;
+  private _fragmentHrefCached: SafeUrl;
+  private _sanitizedAreaBackgroundStylesCached: SafeStyle;
+
   constructor(private _sanitizer: DomSanitizer)
   { }
 
+  ngOnChanges() {
+    this._croppedAreaCached = null;
+    this._selectionAreaCached = null;
+    this._fragmentHrefCached = null;
+    this._sanitizedAreaBackgroundStylesCached = null;
+  }
+
   private get _fragmentHref(): SafeUrl {
-    return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(this.imageMeta, this._croppedArea));
+    if (!this._fragmentHrefCached) {
+      this._fragmentHrefCached = this._sanitizer.bypassSecurityTrustUrl(
+        getBlobUrl(this.imageMeta, this._croppedArea))
+    }
+    return this._fragmentHrefCached;
   }
 
   private get _croppedArea(): IRect {
-    const retVal: IRect = {
-      x: getCropX(this.region, this.dimensions),
-      y: getCropY(this.region, this.dimensions),
-      width: getCropWidth(this.region, this.dimensions),
-      height: getCropHeight(this.region, this.dimensions)
-    };
-    return retVal;
+    if (!this._croppedAreaCached) {
+      const val: IRect = {
+        x: getCropX(this.region, this.dimensions),
+        y: getCropY(this.region, this.dimensions),
+        width: getCropWidth(this.region, this.dimensions),
+        height: getCropHeight(this.region, this.dimensions)
+      };
+      this._croppedAreaCached = val;
+    }
+    return this._croppedAreaCached;
+  }
+
+  private get _selectionArea(): IRect {
+    if (!this._selectionAreaCached) {
+      const val: IRect = {
+        x: 10,
+        y: 10,
+        width: 100,
+        height: 100
+      };
+      this._selectionAreaCached = val;
+    }
+    return this._selectionAreaCached;
+  }
+
+  private get _topLevelStyles(): any {
+    return {   'position': 'relative',
+               'width': `${this.width}px`,
+               'height': `${this.height}px` };
+  }
+
+  private get _imgStyles(): any {
+    return {   'position': 'absolute' };
+  }
+
+  private get _overlayStyles(): any {
+    return {   'opacity': 0.2,
+               'position': 'absolute',
+               'width': `${this.width}px`,
+               'height': `${this.height}px`,
+               'display': 'block' };
+  }
+
+  private get _backgroundStyles(): any {
+    return {   'background-color': 'rgb(0, 0, 0)',
+               'opacity': 0,
+               'position': 'absolute',
+               'width': `${this.width}px`,
+               'height': `${this.height}px` };
+  }
+
+  private get _outlineStyles(): any {
+    return {   'opacity': 0.5,
+               'position': 'absolute',
+               'cursor': 'default',
+               'width': `${this._selectionArea.width}px`,
+               'height': `${this._selectionArea.height}px`,
+               'left': `${this._selectionArea.x}px`,
+               'top': `${this._selectionArea.y}px`,
+               'z-index': 0 };
+  }
+
+  private get _sanitizedAreaBackgroundStyles() : SafeStyle {
+    if (!this._sanitizedAreaBackgroundStylesCached) {
+      const val = this._sanitizer.bypassSecurityTrustStyle('rgb(255, 255, 255)'
+        + ` url("${getBlobUrl(this.imageMeta, this._croppedArea)}")`
+        + ` no-repeat scroll -${this._selectionArea.x + 1}px`
+        + ` -${this._selectionArea.y + 1}px`
+        + ` / ${this.width}px ${this.height}px`);
+      this._sanitizedAreaBackgroundStylesCached = val;
+    }
+    return this._sanitizedAreaBackgroundStylesCached;
+  }
+
+  private get _areaBackgroundOtherStyles(): any {
+    return {   'position': 'absolute',
+               'left': `${this._selectionArea.x + 1}px`,
+               'top': `${this._selectionArea.y + 1}px`,
+               'width': `${this._selectionArea.width - 2}px`,
+               'height': `${this._selectionArea.height - 2}px`,
+               'z-index': 2 };
   }
 }
 
@@ -60,11 +172,9 @@ function getCropY(region: IImageRegion, dimensions: IDimensions): number {
 }
 
 function getCropWidth(region: IImageRegion, dimensions: IDimensions): number {
-  const factor = IreBsImageComponent._WIDTH / IreBsImageComponent._HEIGHT;
-  return Math.floor(Math.max(region.width, region.height) * factor * 1.2);
+  return Math.floor(Math.max(region.width, region.height) * 1.2);
 }
 
 function getCropHeight(region: IImageRegion, dimensions: IDimensions): number {
-  const factor = IreBsImageComponent._HEIGHT / IreBsImageComponent._WIDTH;
-  return Math.floor(Math.max(region.width, region.height) * factor * 1.2);
+  return Math.floor(Math.max(region.width, region.height) * 1.2);
 }
