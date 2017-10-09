@@ -12,6 +12,12 @@ import getBlobUrl from '../../util/getBlobUrl';
 @Component({
   selector: 'app-ire-bs-image',
   styles : [`
+#outer {
+  width: auto;
+  height: auto;
+  overflow: hidden;
+}
+
 .select-areas-overlay {
   background-color: #000;
   overflow: hidden;
@@ -36,9 +42,9 @@ import getBlobUrl from '../../util/getBlobUrl';
        [style.background]="_sanitizedAreaBackgroundStyles"
        [ngStyle]="_areaBackgroundOtherStyles">
   </div>
+  <div class="border border-primary" [ngStyle]="_borderStyles"></div>
 </div>
-  `
-})
+`})
 export class IreBsImageComponent implements OnChanges {
   @Input() imageMeta: IImageMeta;
   @Input() region: IImageRegion;
@@ -100,7 +106,8 @@ export class IreBsImageComponent implements OnChanges {
   }
 
   private get _topLevelStyles(): any {
-    return {   'position': 'relative',
+    return {   'display': 'inline-block',
+               'position': 'relative',
                'width': `${this.width}px`,
                'height': `${this.height}px` };
   }
@@ -154,7 +161,19 @@ export class IreBsImageComponent implements OnChanges {
                'top': `${this._selectionArea.y + 1}px`,
                'width': `${this._selectionArea.width - 2}px`,
                'height': `${this._selectionArea.height - 2}px`,
-               'z-index': 2 };
+               'z-index': 2
+    };
+  }
+
+  private get _borderStyles(): any {
+    return {
+      'position': 'absolute',
+      'left': '0px',
+      'top': '0px',
+      'width': `${this.width}px`,
+      'height': `${this.height}px`,
+      'z-index': 3
+    };
   }
 }
 
