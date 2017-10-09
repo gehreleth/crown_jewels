@@ -12,6 +12,7 @@ import populateBranchByTerminalNodeId from '../backend/populateBranchByTerminalN
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
+import { IPageRange } from '../util/page-range';
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
 
@@ -23,8 +24,8 @@ import { HttpSettingsService } from './http-settings.service';
 export class BrowserService implements IBusyIndicatorHolder {
   newRoots: EventEmitter<void> = new EventEmitter<void>();
 
-  browseSlashId: EventEmitter<any> = new EventEmitter<any>();
-  semicolonSlashPageRange: EventEmitter<any> = new EventEmitter<any>();
+  routeBrowseId: EventEmitter<any> = new EventEmitter<any>();
+  routeSelections: EventEmitter<any> = new EventEmitter<any>();
 
   rootNodes: Array<ITreeNode> = null;
   rootNodesChanged: EventEmitter<Array<ITreeNode>> = new EventEmitter<Array<ITreeNode>>();
@@ -45,7 +46,9 @@ export class BrowserService implements IBusyIndicatorHolder {
     this.newRoots.subscribe(() => this.requestNodes(null, true));
     this.treePaneSelectionChanged.subscribe((node: ITreeNode) =>
       this.handleSelectedNodeChanged(node));
-    this.browseSlashId.subscribe(id => this.handleBrowseSlashId(id));
+    this.routeBrowseId.subscribe(idParam => this.handleRouteBrowseId(idParam));
+    this.routeSelections.subscribe(pageRangeParam =>
+      this.handleRouteSelections(pageRangeParam));
     this.newRoots.emit();
   }
 
@@ -53,12 +56,12 @@ export class BrowserService implements IBusyIndicatorHolder {
     return this._imageMetaEditor.filter(e => e ? true : false);
   }
 
-  private handleBrowseSlashId(idStr: string) {
-    if (!this._isNumberRe.test(idStr)) {
+  private handleRouteBrowseId(idParam: any) {
+    if (!this._isNumberRe.test(idParam)) {
       return;
     }
 
-    const id: number = parseInt(idStr);
+    const id: number = parseInt(idParam);
     if (this._id2Node.has(id)) {
       this.expandBranch(this._id2Node.get(id));
     } else {
@@ -68,6 +71,26 @@ export class BrowserService implements IBusyIndicatorHolder {
           this.expandBranch(this._id2Node.get(id));
         });
     }
+  }
+
+  private handleRouteSelections(pageRangeParam: any) {
+    setBusyIndicator(this, this.imageMetaEditor).subscribe((editor: IImageMetaEditor) => {
+      if (!pageRangeParam) {
+        return;
+      }
+
+      let pageRange: IPageRange = { page: 0, count: 10 };
+
+      if (pageRangeParam.page && this._isNumberRe.test(pageRangeParam.page)) {
+        pageRange.page = parseInt(pageRangeParam.page);
+      }
+
+      if (pageRangeParam.count && this._isNumberRe.test(pageRangeParam.count)) {
+        pageRange.count = parseInt(pageRangeParam.count);
+      }
+      
+      editor.paginatorLink(pageRange);
+    });
   }
 
   private handleSelectedNodeChanged(node: ITreeNode) {

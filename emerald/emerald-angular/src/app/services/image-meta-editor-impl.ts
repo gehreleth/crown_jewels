@@ -16,7 +16,7 @@ import "rxjs/add/operator/filter";
 import { IDimensions } from '../util/dimensions'
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
-import { IPageRange } from '../backend/entities/page-range';
+import { IPageRange } from '../util/page-range';
 
 import rotateCW from '../backend/rotateCW';
 import rotateCCW from '../backend/rotateCCW';
@@ -105,21 +105,15 @@ export class ImageMetaEditorImpl implements IImageMetaEditor {
         });
   }
 
-  handlePageRange(pageRangeDict: any) {
+  paginatorLink(pageRange: IPageRange) {
     setBusyIndicator(this, this.regionsInScope).subscribe((regions: Array<IImageRegion>) => {
-      let newPageRange: IPageRange = this.pageRange;
-      if (pageRangeDict.page && this._isNumberRe.test(pageRangeDict.page)) {
-        newPageRange.page = parseInt(pageRangeDict.page);
-      }
-      if (pageRangeDict.count && this._isNumberRe.test(pageRangeDict.count)) {
-        newPageRange.count = parseInt(pageRangeDict.count);
-      }
-      newPageRange.numPages = Math.ceil(regions.length / this.pageRange.count);
-      this.pageRange = newPageRange;
+      pageRange.numPages = Math.ceil(regions.length / this.pageRange.count);
+      this.pageRange = pageRange;
+      this.pageRangeChanged.emit(this.pageRange);
     });
   }
 
-  updateDimensions(dimensions: IDimensions)
+  initDimensions(dimensions: IDimensions)
   {
     setBusyIndicator(this, Observable.of(1)).subscribe(() => {
       this._dimensions.next(dimensions);

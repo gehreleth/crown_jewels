@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { IDimensions } from '../util/dimensions'
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
-import { IPageRange } from '../backend/entities/page-range';
+import { IPageRange } from '../util/page-range';
 
 import rotateCW from '../backend/rotateCW';
 import rotateCCW from '../backend/rotateCCW';
@@ -24,6 +24,6 @@ export interface IImageMetaEditor extends IBusyIndicatorHolder {
   rotateCW(): void;
   rotateCCW(): void;
   saveRegions(regions: Array<IImageRegion>): void;
-  handlePageRange(pageRangeDict: any): void;
-  updateDimensions(dimensions: IDimensions): void;
+  paginatorLink(pageRange: IPageRange): void;
+  initDimensions(dimensions: IDimensions): void;
 };

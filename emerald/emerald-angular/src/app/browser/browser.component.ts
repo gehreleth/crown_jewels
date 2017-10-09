@@ -17,7 +17,7 @@ export class BrowserComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._subscription = this._activatedRoute.params.subscribe((params: Params) =>
-      this._context.browseSlashId.emit(params['id']));
+      this._context.routeBrowseId.emit(params['id']));
   }
 
   ngOnDestroy() {

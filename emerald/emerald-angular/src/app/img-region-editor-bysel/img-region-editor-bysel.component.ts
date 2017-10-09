@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
-import { IPageRange } from '../backend/entities/page-range';
+import { IPageRange } from '../util/page-range';
 import { IDimensions } from '../util/dimensions'
 import { IImageMetaEditor } from '../services/image-meta-editor';
 
@@ -19,6 +19,13 @@ export class ImgRegionEditorByselComponent implements OnInit {
   { }
 
   ngOnInit() {}
+
+  private get _regionsOnPage(): Array<IImageRegion> {
+    const pageRange = this.editor.pageRange;
+    const start = pageRange.page * pageRange.count;
+    const end = start + pageRange.count;
+    return this.regions.slice(start, end);
+  }
 
   private get _prevPageLink(): any {
     const pageRange = this.editor.pageRange;

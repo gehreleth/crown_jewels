@@ -20,7 +20,7 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._subscription = this._activatedRoute.params.subscribe((params: Params) => {
-      this._browserService.semicolonSlashPageRange.emit({
+      this._browserService.routeSelections.emit({
         page: params['page'], count: params['count']
       });
     });
