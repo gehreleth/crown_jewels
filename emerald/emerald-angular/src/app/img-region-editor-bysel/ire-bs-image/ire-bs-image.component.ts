@@ -12,12 +12,6 @@ import getBlobUrl from '../../util/getBlobUrl';
 @Component({
   selector: 'app-ire-bs-image',
   styles : [`
-#outer {
-  width: auto;
-  height: auto;
-  overflow: hidden;
-}
-
 .select-areas-overlay {
   background-color: #000;
   overflow: hidden;
