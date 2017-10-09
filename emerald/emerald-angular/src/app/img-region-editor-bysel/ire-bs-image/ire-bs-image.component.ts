@@ -85,11 +85,14 @@ export class IreBsImageComponent implements OnChanges {
 
   private get _selectionArea(): IRect {
     if (!this._selectionAreaCached) {
+      const outer = this._croppedArea;
+      const scaleX = this.width / outer.width;
+      const scaleY = this.height / outer.height;
       const val: IRect = {
-        x: 10,
-        y: 10,
-        width: 100,
-        height: 100
+        x: Math.floor(scaleX * (this.region.x - outer.x)),
+        y: Math.floor(scaleY * (this.region.y - outer.y)),
+        width: Math.floor(scaleX * this.region.width),
+        height: Math.floor(scaleY * this.region.height)
       };
       this._selectionAreaCached = val;
     }
