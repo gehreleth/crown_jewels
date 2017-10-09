@@ -10,8 +10,9 @@ import getBlobUrl from '../../util/getBlobUrl';
 
 @Component({
   selector: 'app-ire-bs-image',
-  templateUrl: './ire-bs-image.component.html',
-  styleUrls: ['./ire-bs-image.component.scss']
+  template: `
+    <img [src]="_fragmentHref" width="{{_width}}" height="{{_height}}">
+  `
 })
 export class IreBsImageComponent {
   static readonly _WIDTH = 300;
