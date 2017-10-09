@@ -11,6 +11,7 @@ import { IDimensions } from '../../util/dimensions';
 export class ImgRegionEditorByselSelComponent implements OnInit {
   @Input() imageMeta: IImageMeta;
   @Input() region: IImageRegion;
+  @Input() dimensions: IDimensions;
 
   constructor() { }
 

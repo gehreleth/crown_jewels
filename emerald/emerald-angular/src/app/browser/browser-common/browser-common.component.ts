@@ -3,9 +3,7 @@ import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 import { BrowserService } from '../../services/browser.service';
 import { BrowserView } from '../browser-view';
 
-import { IDimensions } from '../../util/dimensions';
-import { ITreeNode, NodeType } from '../../backend/entities/tree-node';
-import { IImageMeta } from '../../backend/entities/image-meta';
+import { NodeType } from '../../backend/entities/tree-node';
 import { IImageMetaEditor } from '../../services/image-meta-editor';
 
 import getBlobUrl from '../../util/getBlobUrl';
@@ -20,7 +18,6 @@ export class BrowserCommonComponent {
   public browserView = BrowserView;
 
   @Input() view: BrowserView;
-  private _dimensions: IDimensions;
 
   constructor(private _sanitizer: DomSanitizer,
               private _browserService: BrowserService)
