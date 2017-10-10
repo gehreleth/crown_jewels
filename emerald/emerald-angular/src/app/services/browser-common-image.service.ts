@@ -35,7 +35,6 @@ export class BrowserCommonImageService {
   { }
 
   setNode(node: ITreeNode, busy?: IBusyIndicatorHolder): void {
-    console.log("setNode", node);
     let obs = metaFromNode(this._http, this._httpSettings.DefReqOpts, node, true);
     obs = busy ? setBusyIndicator(busy, obs) : obs;
     obs.subscribe((imageMeta: IImageMeta) => {

@@ -53,12 +53,6 @@ export class BrowserCommonImageComponent implements OnInit, OnChanges, OnDestroy
     return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(imageMeta));
   }
 
-  private _setDimensions(dimensions: IDimensions) {
-    setTimeout(() =>{
-      this._imageService.setDimensions(dimensions); 
-    }, 0)
-  }
-
   private _navLinkClass(view: BrowserView): string {
     return 'nav-link' + ((view === this.view) ? ' active' : '');
   }

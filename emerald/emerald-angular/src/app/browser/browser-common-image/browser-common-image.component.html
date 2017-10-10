@@ -25,7 +25,7 @@
   <ng-template #nodimensions>
     <app-img-dimension-probe
       [href]="_probeHref(imageMeta)"
-      (output)="_setDimensions($event)">
+      (output)="_imageService.setDimensions($event)">
     </app-img-dimension-probe>
   </ng-template>
 </div>

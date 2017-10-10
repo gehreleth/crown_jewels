@@ -23,11 +23,11 @@ export class ImgDimensionProbeComponent implements AfterViewInit {
         naturalHeight: el.naturalHeight, clientWidth: el.clientWidth,
         clientHeight: el.clientHeight});
     } else {
-      el.onload = () => {
+      el.onload = () => setTimeout(()=>{
         this.output.emit({naturalWidth: el.naturalWidth,
           naturalHeight: el.naturalHeight, clientWidth: el.clientWidth,
           clientHeight: el.clientHeight});
-      };
+      }, 0);
     }
   }
 }
