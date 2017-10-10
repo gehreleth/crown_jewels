@@ -16,61 +16,8 @@ interface IActionContext {
 
 @Component({
   selector: 'app-ire-main-area',
-  styles : [`
-.select-areas-overlay {
-	background-color: #000;
-	overflow: hidden;
-	position: absolute;
-}
-`],
-  template: `
-<div [ngStyle]="topLevelStyles">
-  <div *ngIf="atLeastOneSelection; else noselection">
-    <img [src]="_safeImageHref"
-         [ngStyle]="imgStyles"
-         [width]="width"
-         [height]="height">
-    <div class="select-areas-overlay" [ngStyle]="overlayStyles"></div>
-    <div [ngStyle]="backgroundStyles"
-         (mousedown) = "onNewSelectionStart($event)">
-    </div>
-  </div>
-  <ng-template #noselection>
-    <img [src]="_safeImageHref"
-         [width]="width"
-         [height]="height"
-         [ngStyle]="imgNoSelectionStyles"
-         (mousedown) = "onNewSelectionStart($event)">
-  </ng-template>
-  <div *ngFor="let area of areas; let ix = index">
-    <app-ire-main-area-sel
-         [imageHref] ="imageHref"
-         [area] = "area"
-         [action]="currentAction"
-         [outerWidth] = "width"
-         [outerHeight] = "height"
-         (mousedown) = "onSelectionDragStart($event, ix)">
-    </app-ire-main-area-sel>
-    <i *ngIf="showHandles(ix)">
-      <app-ire-main-area-handlers
-          [area]="area"
-          (onScale) = "onScaleStart($event, ix)">
-      </app-ire-main-area-handlers>
-      <app-ire-main-area-delete
-          [area]="area"
-          (click) = "onDelete($event, ix)">
-      </app-ire-main-area-delete>
-    </i>
-  </div>
-  <app-ire-main-area-action-layer
-         [outerWidth]="width"
-         [outerHeight]="height"
-         [action]="currentAction"
-         (mousedown)="onActionLayerMouseDown($event)"
-         (mousemove)="onActionLayerMouseMove($event)"
-         (mouseup)="onActionLayerMouseUp($event)">
-  </app-ire-main-area-action-layer>
-</div>`
+  templateUrl: './ire-main-area.component.html',
+  styleUrls: ['./ire-main-area.component.scss'],
 })
 export class IreMainAreaComponent implements OnChanges {
   private readonly NoAction = Action.NoAction;
