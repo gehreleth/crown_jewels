@@ -24,7 +24,7 @@ import { Subscription } from 'rxjs/Subscription';
 
 interface ScopeSubj {
   scope: IQuery<Array<IImageRegion>>,
-  ambientBusy?: IBusyIndicatorHolder
+  busy?: IBusyIndicatorHolder
 };
 
 @Injectable()
@@ -39,17 +39,16 @@ export class RegionEditorService {
 
   constructor(private _http: Http, private _httpSettings: HttpSettingsService) {
     let obs = this._scopeSubj.filter(s => s !== undefined);
-    this._subscription = obs.subscribe(q => this._newScope(q.scope, q.ambientBusy));
+    this._subscription = obs.subscribe(q => this._changeScope(q.scope, q.busy));
   }
 
   get scope(): Observable<IQuery<Array<IImageRegion>>> {
     return this._scopeSubj.filter(s => s !== undefined).map(q => q.scope);
   }
 
-  setAllRegionsScope(imageMeta: IImageMeta, ambientBusy?: IBusyIndicatorHolder) {
+  setAllRegionsScope(imageMeta: IImageMeta, busy?: IBusyIndicatorHolder) {
     this._scopeSubj.next({
-      scope: () => allRegions(this._http, imageMeta),
-      ambientBusy: ambientBusy
+      scope: () => allRegions(this._http, imageMeta), busy: busy
     });
   }
 
@@ -57,7 +56,7 @@ export class RegionEditorService {
     return this._regions.filter(arr => arr !== undefined);
   }
 
-  updateRegionsInScope(imageMeta: IImageMeta, regions: Array<IImageRegion>,
+  saveRegions(imageMeta: IImageMeta, regions: Array<IImageRegion>,
     busy?: IBusyIndicatorHolder)
   {
     this.scope.first().subscribe((scope: IQuery<Array<IImageRegion>>) => {
@@ -70,7 +69,7 @@ export class RegionEditorService {
     });
   }
 
-  private _newScope(scope: IQuery<Array<IImageRegion>>, busy?: IBusyIndicatorHolder) {
+  private _changeScope(scope: IQuery<Array<IImageRegion>>, busy?: IBusyIndicatorHolder) {
     let obs = scope();
     obs = busy ? setBusyIndicator(busy, obs) : obs;
     obs.subscribe(regions => this._regions.next(regions));

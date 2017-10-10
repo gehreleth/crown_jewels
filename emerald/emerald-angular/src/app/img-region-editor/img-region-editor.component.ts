@@ -94,7 +94,7 @@ export class ImgRegionEditorComponent
     this._areas.first().subscribe((areas: Array<IArea>) => {
       const naturalWidth = this.dimensions.naturalWidth;
       const clientWidth = this.dimensions.clientWidth;
-      this._regionsService.updateRegionsInScope(this.imageMeta,
+      this._regionsService.saveRegions(this.imageMeta,
         a2r(areas, naturalWidth / clientWidth), this);
     });
   }
