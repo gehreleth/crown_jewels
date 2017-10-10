@@ -11,6 +11,8 @@ import { IDimensions } from '../../util/dimensions';
 import { BrowserCommonImageService } from '../../services/browser-common-image.service';
 import { BrowserPagesService } from '../../services/browser-pages.service';
 
+import { IBusyIndicatorHolder } from '../../util/busy-indicator-holder';
+
 import getBlobUrl from '../../util/getBlobUrl';
 
 @Component({
@@ -19,7 +21,10 @@ import getBlobUrl from '../../util/getBlobUrl';
   styleUrls: ['./browser-common-image.component.scss'],
   providers: [ BrowserCommonImageService ]
 })
-export class BrowserCommonImageComponent implements OnInit, OnChanges, OnDestroy {
+export class BrowserCommonImageComponent
+  implements IBusyIndicatorHolder, OnInit, OnChanges, OnDestroy {
+
+  busyIndicator: Promise<any> = Promise.resolve(1);
   public readonly browserView = BrowserView;
 
   @Input() node: ITreeNode;
@@ -33,7 +38,8 @@ export class BrowserCommonImageComponent implements OnInit, OnChanges, OnDestroy
   { }
 
   ngOnInit() {
-    this._subscription = this._imageService.imageMeta.subscribe((imageMeta: IImageMeta) => {
+    let o = this._imageService.imageMeta;
+    this._subscription = o.subscribe((imageMeta: IImageMeta) => {
       this._imageService.clearDimensions();
     });
   }
@@ -41,7 +47,8 @@ export class BrowserCommonImageComponent implements OnInit, OnChanges, OnDestroy
   ngOnChanges(changes: SimpleChanges) {
     const nodeChange = changes.node;
     if (nodeChange) {
-      this._imageService.setNode(nodeChange.currentValue as ITreeNode);
+      const node = nodeChange.currentValue as ITreeNode;
+      this._imageService.setNode(node, this);
     }
   }
 

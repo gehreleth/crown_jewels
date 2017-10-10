@@ -14,6 +14,8 @@ import { IArea } from '../ire-main-area/area'
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 
+import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
+
 import getBlobUrl from '../util/getBlobUrl';
 
 @Component({
@@ -22,7 +24,11 @@ import getBlobUrl from '../util/getBlobUrl';
   styleUrls: ['./img-region-editor.component.scss'],
   providers: [ RegionEditorService ]
 })
-export class ImgRegionEditorComponent implements OnInit, OnDestroy {
+export class ImgRegionEditorComponent
+  implements IBusyIndicatorHolder, OnInit, OnDestroy {
+
+  busyIndicator: Promise<any> = Promise.resolve(1);
+
   @Input() imageMeta: IImageMeta;
   @Input() dimensions: IDimensions;
 
@@ -47,7 +53,8 @@ export class ImgRegionEditorComponent implements OnInit, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     const imChange = changes.imageMeta;
     if (imChange) {
-      this._regionsService.setAllRegionsScope(imChange.currentValue as IImageMeta);
+      const imageMeta = imChange.currentValue as IImageMeta;
+      this._regionsService.setAllRegionsScope(imageMeta, this);
     }
   }
 
@@ -76,11 +83,11 @@ export class ImgRegionEditorComponent implements OnInit, OnDestroy {
   }
 
   private _rotateCW(event: any): void {
-    this._imageService.rotateCW(this.imageMeta);
+    this._imageService.rotateCW(this.imageMeta, this);
   }
 
   private _rotateCCW(event:any): void {
-    this._imageService.rotateCCW(this.imageMeta);
+    this._imageService.rotateCCW(this.imageMeta, this);
   }
 
   private _saveRegions(event: any) : void {
@@ -88,7 +95,7 @@ export class ImgRegionEditorComponent implements OnInit, OnDestroy {
       const naturalWidth = this.dimensions.naturalWidth;
       const clientWidth = this.dimensions.clientWidth;
       this._regionsService.updateRegionsInScope(this.imageMeta,
-        a2r(areas, naturalWidth / clientWidth));
+        a2r(areas, naturalWidth / clientWidth), this);
     });
   }
 }

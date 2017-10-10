@@ -1,4 +1,4 @@
-<div class="container-fluid">
+<div class="container-fluid" [ngBusy]="busyIndicator">
   <div id="overview-buttons">
     <div class="btn-group" data-toggle="buttons">
       <button type="button" class="btn btn-primary" (click)="_rotateCCW($event)">
