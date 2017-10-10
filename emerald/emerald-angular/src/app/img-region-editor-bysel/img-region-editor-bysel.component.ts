@@ -3,7 +3,6 @@ import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 import { IPageRange } from '../util/page-range';
 import { IDimensions } from '../util/dimensions'
-import { IImageMetaEditor } from '../services/image-meta-editor';
 
 @Component({
   selector: 'app-img-region-editor-bysel',
@@ -11,9 +10,9 @@ import { IImageMetaEditor } from '../services/image-meta-editor';
   styleUrls: ['./img-region-editor-bysel.component.scss']
 })
 export class ImgRegionEditorByselComponent implements OnInit {
-  @Input() editor: IImageMetaEditor
+  @Input() imageMeta: IImageMeta;
   @Input() dimensions: IDimensions;
-  @Input() regions: Array<IImageRegion>;
+  @Input() pageRange: IPageRange;
 
   constructor()
   { }
@@ -21,18 +20,17 @@ export class ImgRegionEditorByselComponent implements OnInit {
   ngOnInit() {}
 
   private get _regionsOnPage(): Array<IImageRegion> {
-    const pageRange = this.editor.pageRange;
-    const start = pageRange.page * pageRange.count;
-    const end = start + pageRange.count;
-    return this.regions.slice(start, end);
+    const start = this.pageRange.page * this.pageRange.count;
+    const end = start + this.pageRange.count;
+    //return this.regions.slice(start, end);
+    return [];
   }
 
   private get _prevPageLink(): any {
-    const pageRange = this.editor.pageRange;
-    if (pageRange.page > 0) {
+    if (this.pageRange.page > 0) {
       return { 'class': 'page-item',
-               'link': ['../selections', { page: pageRange.page - 1,
-                                           count: pageRange.count }],
+               'link': ['../selections', { page: this.pageRange.page - 1,
+                                           count: this.pageRange.count }],
                'tabindex': 0 };
     } else {
       return { 'class': 'page-item disabled', 'link': ['./'], 'tabindex': -1 };
@@ -40,11 +38,10 @@ export class ImgRegionEditorByselComponent implements OnInit {
   }
 
   private get _nextPageLink(): any {
-    const pageRange = this.editor.pageRange;
-    if (pageRange.page < (pageRange.numPages - 1)) {
+    if (this.pageRange.page < (this.pageRange.numPages - 1)) {
       return { 'class': 'page-item',
-               'link': ['../selections', { page: pageRange.page + 1,
-                                           count: pageRange.count }],
+               'link': ['../selections', { page: this.pageRange.page + 1,
+                                           count: this.pageRange.count }],
                'tabindex': 0 };
     } else {
       return { 'class': 'page-item disabled', 'link': ['./'], 'tabindex': -1 };
@@ -52,13 +49,12 @@ export class ImgRegionEditorByselComponent implements OnInit {
   }
 
   private get _pageLinks(): any[] {
-    const pageRange = this.editor.pageRange;
     let retVal: Array<any> = [];
-    for (let i = 0; i < pageRange.numPages; ++i) {
-      if (i !== pageRange.page) {
+    for (let i = 0; i < this.pageRange.numPages; ++i) {
+      if (i !== this.pageRange.page) {
         retVal.push({ 'class': 'page-item',
                       'caption': '' + (i + 1),
-                      'link':  ['../selections', { page: i, count: pageRange.count }]});
+                      'link':  ['../selections', { page: i, count: this.pageRange.count }]});
       } else {
         retVal.push({ 'class': 'page-item active', 'caption': '' + (i + 1), 'link': ['./']});
       }

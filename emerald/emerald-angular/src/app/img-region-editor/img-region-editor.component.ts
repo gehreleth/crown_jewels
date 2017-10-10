@@ -1,65 +1,90 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
-import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+
+import { Observable } from 'rxjs/Observable';
+
+import { BrowserCommonImageService } from '../services/browser-common-image.service';
+import { RegionEditorService } from '../services/region-editor.service';
 
 import { IDimensions } from '../util/dimensions'
 import { IArea } from '../ire-main-area/area'
-import { ITreeNode, NodeType } from '../backend/entities/tree-node'
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
-import { IImageMetaEditor } from '../services/image-meta-editor';
 
 import getBlobUrl from '../util/getBlobUrl';
 
 @Component({
   selector: 'app-img-region-editor',
   templateUrl: './img-region-editor.component.html',
-  styleUrls: ['./img-region-editor.component.scss']
+  styleUrls: ['./img-region-editor.component.scss'],
+  providers: [ RegionEditorService ]
 })
-export class ImgRegionEditorComponent {
-  @Input() editor: IImageMetaEditor
+export class ImgRegionEditorComponent implements OnInit, OnDestroy {
+  @Input() imageMeta: IImageMeta;
   @Input() dimensions: IDimensions;
-  @Input() regions: Array<IImageRegion>;
 
-  private _cacheValid: boolean;
+  private _cachedAreasChanged: boolean;
   private _cachedAreas: Array<IArea>;
 
-  constructor(private _sanitizer: DomSanitizer)
+  constructor(private _imageService: BrowserCommonImageService,
+              private _regionsService: RegionEditorService)
   { }
 
-  private get _areas(): Array<IArea> {
-    if (!this._cacheValid) {
-      if (this.dimensions && this.dimensions.clientWidth) {
-        const naturalWidth = this.dimensions.naturalWidth;
-        const clientWidth = this.dimensions.clientWidth;
-        this._cachedAreas = r2a(this.regions, clientWidth / naturalWidth);
-        this._cacheValid = true;
-      } else {
-        this._cachedAreas = []; // Cache still invalid
-      }
-    }
-    return this._cachedAreas;
+  ngOnInit() {
+    this._clearCache();
+    this._regionsService.setAllRegionsScope(this.imageMeta);
   }
 
-  private areasChanged(arg: Array<IArea>) {
+  ngOnDestroy() { }
+
+  private get _width(): number {
+    return this.dimensions.clientWidth;
+  }
+
+  private get _height(): number {
+    return this.dimensions.clientHeight;
+  }
+
+  private get _areas(): Observable<Array<IArea>> {
+    if (!this._cachedAreasChanged) {
+      const naturalWidth = this.dimensions.naturalWidth;
+      const clientWidth = this.dimensions.clientWidth;
+      const func = (regions: Array<IImageRegion>) => r2a(regions, clientWidth / naturalWidth);
+      return this._regionsService.regions.map(func);
+    } else {
+      return Observable.of(this._cachedAreas);
+    }
+  }
+
+  private _areasChanged(arg: Array<IArea>) {
+    this._cachedAreasChanged = true;
     this._cachedAreas = arg;
   }
 
-  private get safeImageHref(): SafeUrl {
-    return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(this.editor.imageMeta));
+  private get _imageHref(): string {
+    return getBlobUrl(this.imageMeta);
   }
 
-  private onRotateCW(event:any): void {
-    this.editor.rotateCW();
+  private _rotateCW(event: any): void {
+    this._imageService.rotateCW(this.imageMeta);
   }
 
-  private onRotateCCW(event:any): void {
-    this.editor.rotateCCW();
+  private _rotateCCW(event:any): void {
+    this._imageService.rotateCCW(this.imageMeta);
   }
 
-  private onSaveRegions(event: any) : void {
-    const naturalWidth = this.dimensions.naturalWidth;
-    const clientWidth = this.dimensions.clientWidth;
-    this.editor.saveRegions(a2r(this._areas, naturalWidth / clientWidth));
+  private _saveRegions(event: any) : void {
+    if (this._cachedAreasChanged) {
+      const naturalWidth = this.dimensions.naturalWidth;
+      const clientWidth = this.dimensions.clientWidth;
+      this._regionsService.updateRegionsInScope(this.imageMeta,
+        a2r(this._cachedAreas, naturalWidth / clientWidth));
+      this._clearCache();
+    }
+  }
+
+  private _clearCache() {
+    this._cachedAreas = [];
+    this._cachedAreasChanged = false;
   }
 }
 

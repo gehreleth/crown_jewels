@@ -50,7 +50,7 @@ import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
 `
 })
 export class IreMainAreaSelComponent {
-  @Input() imageHref: SafeUrl;
+  @Input() imageHref: string;
   @Input() area: IArea;
   @Input() action: Action;
   @Input() outerWidth: number;
@@ -73,10 +73,9 @@ export class IreMainAreaSelComponent {
                'z-index': 0 };
   }
 
-  private get sanitizedAreaBackgroundStyles() : SafeStyle {
-    const url = this._sanitizer.sanitize(SecurityContext.URL, this.imageHref);
+  private get sanitizedAreaBackgroundStyles(): SafeStyle {
     return this._sanitizer.bypassSecurityTrustStyle('rgb(255, 255, 255)'
-      + ` url("${url}")`
+      + ` url("${this.imageHref}")`
       + ` no-repeat scroll -${this.area.x + 1}px -${this.area.y + 1}px`
       + ` / ${this.outerWidth}px ${this.outerHeight}px`);
   }

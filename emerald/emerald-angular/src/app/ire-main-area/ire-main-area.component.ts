@@ -26,7 +26,7 @@ interface IActionContext {
   template: `
 <div [ngStyle]="topLevelStyles">
   <div *ngIf="atLeastOneSelection; else noselection">
-    <img [src]="imageHref"
+    <img [src]="_safeImageHref"
          [ngStyle]="imgStyles"
          [width]="width"
          [height]="height">
@@ -36,7 +36,7 @@ interface IActionContext {
     </div>
   </div>
   <ng-template #noselection>
-    <img [src]="imageHref"
+    <img [src]="_safeImageHref"
          [width]="width"
          [height]="height"
          [ngStyle]="imgNoSelectionStyles"
@@ -93,7 +93,7 @@ export class IreMainAreaComponent implements OnChanges {
   @Input() selectedArea: number = 0;
   @Output() selectedAreaChanged: EventEmitter<number> = new EventEmitter<number>();
 
-  @Input() imageHref: SafeUrl;
+  @Input() imageHref: string;
   @Input() width: number;
   @Input() height: number;
 
@@ -102,24 +102,24 @@ export class IreMainAreaComponent implements OnChanges {
   constructor(private _sanitizer: DomSanitizer)
   { }
 
+  private get _safeImageHref(): SafeUrl {
+    return this._sanitizer.bypassSecurityTrustUrl(this.imageHref);
+  }
+
   // XXX: this construct is too verbose to do a basically simple thing
   // - to reset the current selection selection when source image is about to change.
   ngOnChanges(changes: SimpleChanges) {
     const imageHrefChange = changes['imageHref'];
     if (imageHrefChange) {
       const previousHref = !imageHrefChange.firstChange
-        ? this.sanitizeUrl(imageHrefChange.previousValue)
+        ? imageHrefChange.previousValue
         : null;
-      const currentHref = this.sanitizeUrl(imageHrefChange.currentValue);
+      const currentHref = imageHrefChange.currentValue;
       if (currentHref !== previousHref) {
         this.selectedArea = -1;
         this.selectedAreaChanged.emit(this.selectedArea);
       }
     }
-  }
-
-  private sanitizeUrl(arg: SafeUrl) : string {
-    return this._sanitizer.sanitize(SecurityContext.URL, arg);
   }
 
   private onNewSelectionStart(event: any): void {

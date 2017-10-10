@@ -1,67 +1,55 @@
-import { Injectable, Input, Output, EventEmitter} from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Http, Headers, RequestOptions, Response } from '@angular/http';
+
 import { Observable } from 'rxjs/Observable';
+
+import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/map';
+import "rxjs/add/operator/filter";
+
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import { ITreeNode, NodeType } from '../backend/entities/tree-node';
-import { IImageMeta } from '../backend/entities/image-meta';
 
-import metaFromNode from '../backend/metaFromNode';
 import populateChildren from '../backend/populateChildren';
 import populateBranchByTerminalNodeId from '../backend/populateBranchByTerminalNodeId';
 
 enum TrackingStatus { PENDING, SUCCESS, FAIL };
 
-import { IPageRange } from '../util/page-range';
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
 
-import { IImageMetaEditor } from './image-meta-editor';
-import { ImageMetaEditorImpl } from './image-meta-editor-impl';
 import { HttpSettingsService } from './http-settings.service';
 
 @Injectable()
 export class BrowserService implements IBusyIndicatorHolder {
-  newRoots: EventEmitter<void> = new EventEmitter<void>();
-
-  routeBrowseId: EventEmitter<any> = new EventEmitter<any>();
-  routeSelections: EventEmitter<any> = new EventEmitter<any>();
-
-  rootNodes: Array<ITreeNode> = null;
-  rootNodesChanged: EventEmitter<Array<ITreeNode>> = new EventEmitter<Array<ITreeNode>>();
-
-  treePaneSelection: ITreeNode = null;
-  treePaneSelectionChanged: EventEmitter<ITreeNode> = new EventEmitter<ITreeNode>();
-
   busyIndicator: Promise<any> = Promise.resolve(1);
+
+  private _selection: BehaviorSubject<ITreeNode> =
+    new BehaviorSubject<ITreeNode>(undefined);
+
+  private _rootNodes: BehaviorSubject<Array<ITreeNode>> =
+    new BehaviorSubject<Array<ITreeNode>>([]);
 
   private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
 
-  private _imageMetaEditor: BehaviorSubject<IImageMetaEditor>;
-
   constructor(private _http: Http, private _httpSettings: HttpSettingsService)
   {
-    this._imageMetaEditor = new BehaviorSubject<IImageMetaEditor>(null);
-    this.newRoots.subscribe(() => this.requestNodes(null, true));
-    this.treePaneSelectionChanged.subscribe((node: ITreeNode) =>
+    this.selection.subscribe((node: ITreeNode) =>
       this.handleSelectedNodeChanged(node));
-    this.routeBrowseId.subscribe(idParam => this.handleRouteBrowseId(idParam));
-    this.routeSelections.subscribe(pageRangeParam =>
-      this.handleRouteSelections(pageRangeParam));
-    this.newRoots.emit();
+    this.requestNodes(null, true);
   }
 
-  get imageMetaEditor(): Observable<IImageMetaEditor> {
-    return this._imageMetaEditor.filter(e => e ? true : false);
+  get selection(): Observable<ITreeNode> {
+    return this._selection.filter(n => n ? true : false);
   }
 
-  private handleRouteBrowseId(idParam: any) {
-    if (!this._isNumberRe.test(idParam)) {
-      return;
-    }
+  get rootNodes(): Observable<Array<ITreeNode>> {
+    return this._rootNodes;
+  }
 
-    const id: number = parseInt(idParam);
+  selectById(id: number) {
     if (this._id2Node.has(id)) {
       this.expandBranch(this._id2Node.get(id));
     } else {
@@ -73,39 +61,27 @@ export class BrowserService implements IBusyIndicatorHolder {
     }
   }
 
-  private handleRouteSelections(pageRangeParam: any) {
-    setBusyIndicator(this, this.imageMetaEditor).subscribe((editor: IImageMetaEditor) => {
-      if (!pageRangeParam) {
-        return;
-      }
-
-      let pageRange: IPageRange = { page: 0, count: 10 };
-
-      if (pageRangeParam.page && this._isNumberRe.test(pageRangeParam.page)) {
-        pageRange.page = parseInt(pageRangeParam.page);
-      }
-
-      if (pageRangeParam.count && this._isNumberRe.test(pageRangeParam.count)) {
-        pageRange.count = parseInt(pageRangeParam.count);
-      }
-      
-      editor.paginatorLink(pageRange);
-    });
-  }
-
   private handleSelectedNodeChanged(node: ITreeNode) {
-    if (node.type === NodeType.Image) {
-      const o = metaFromNode(this._http, this._httpSettings.DefReqOpts, node);
-      setBusyIndicator(this, o).subscribe((imageMeta: IImageMeta) => {
-        const nv = new ImageMetaEditorImpl(this._http, this._httpSettings, imageMeta);
-        this._imageMetaEditor.next(nv);
-      });
-    } else {
-      this._imageMetaEditor.next(null);
-    }
     if (node.type === NodeType.Zip || node.type === NodeType.Folder) {
       this.requestNodes(node, false);
     }
+  }
+
+  requestNodes(parent?: ITreeNode, forceRefresh?: boolean) {
+    const o = parent ? Observable.of(parent.children) : this.rootNodes;
+    setBusyIndicator(this, o).subscribe(curChildren => {
+      if (!curChildren || forceRefresh) {
+        setBusyIndicator(this, populateChildren(this._http, parent))
+          .subscribe(children => {
+            children = this.mergeNewChildrenSet(curChildren, children);
+            if (parent) {
+              parent.children = children;
+            } else {
+              this._rootNodes.next(children);
+            }
+          });
+      }
+    })
   }
 
   private expandBranch(terminalNode: ITreeNode) {
@@ -114,24 +90,7 @@ export class BrowserService implements IBusyIndicatorHolder {
       cur.isExpanded = true;
       cur = cur.parent;
     }
-    this.treePaneSelection = terminalNode;
-    this.treePaneSelectionChanged.emit(this.treePaneSelection);
-  }
-
-  requestNodes(parent: ITreeNode, forceRefresh: boolean) {
-    const curChildren = parent ? parent.children : this.rootNodes;
-    if (!curChildren || forceRefresh) {
-      setBusyIndicator(this, populateChildren(this._http, parent))
-        .subscribe(children => {
-          children = this.mergeNewChildrenSet(curChildren, children);
-          if (parent) {
-            parent.children = children;
-          } else {
-            this.rootNodes = children;
-            this.rootNodesChanged.emit(this.rootNodes);
-          }
-        });
-    }
+    this._selection.next(terminalNode);
   }
 
   private mergeNewChildrenSet(oldCh: Array<ITreeNode>, ch: Array<ITreeNode>)
@@ -155,14 +114,15 @@ export class BrowserService implements IBusyIndicatorHolder {
   * it should have caterpillar tree structure.
   */
   private mergeBranch(newBranchRoot: ITreeNode) {
-    let lookup = new Map<number, ITreeNode>();
-    makeSliceToMerge(this.rootNodes, [newBranchRoot], lookup);
-    let newNodes = mergeBranchRec(null, this.rootNodes, [newBranchRoot], lookup);
-    let newId2Node = new Map<number, ITreeNode>(this._id2Node);
-    lookup.forEach((v, k) => newId2Node.set(k, v));
-    this.rootNodes = newNodes;
-    this.rootNodesChanged.emit(this.rootNodes);
-    this._id2Node = newId2Node;
+    setBusyIndicator(this, this.rootNodes).subscribe(rootNodes => {
+      let lookup = new Map<number, ITreeNode>();
+      makeSliceToMerge(rootNodes, [newBranchRoot], lookup);
+      let newNodes = mergeBranchRec(null, rootNodes, [newBranchRoot], lookup);
+      let newId2Node = new Map<number, ITreeNode>(this._id2Node);
+      lookup.forEach((v, k) => newId2Node.set(k, v));
+      this._rootNodes.next(newNodes);
+      this._id2Node = newId2Node;
+    });
   }
 
  /**
@@ -191,7 +151,7 @@ export class BrowserService implements IBusyIndicatorHolder {
       const status = TrackingStatus[dict['status'] as string];
       switch (status) {
         case TrackingStatus.SUCCESS:
-          this.newRoots.emit();
+          this.requestNodes(null, true);
           break;
         case TrackingStatus.PENDING:
           setTimeout(() => this.trackBatchExecution(trackingId), 5000);

@@ -1,21 +1,24 @@
 <div class="container-fluid">
   <div id="overview-buttons">
     <div class="btn-group" data-toggle="buttons">
-      <button type="button" class="btn btn-primary" (click)="onRotateCCW($event)">
+      <button type="button" class="btn btn-primary" (click)="_rotateCCW($event)">
         <i class="nodeicon fa fa-rotate-left"></i>
       </button>
-      <button type="button" class="btn btn-primary" (click)="onRotateCW($event)">
+      <button type="button" class="btn btn-primary" (click)="_rotateCW($event)">
         <i class="nodeicon fa fa-rotate-right"></i>
       </button>
     </div>
-    <button type="button" class="btn btn-danger" (click)="onSaveRegions($event)">
+    <button type="button" class="btn btn-danger" (click)="_saveRegions($event)">
       <i class="nodeicon fa fa-floppy-o"></i>
     </button>
   </div>
-  <app-ire-main-area [imageHref]="safeImageHref"
-                     [width]="dimensions.clientWidth"
-                     [height]="dimensions.clientHeight"
-                     [areas] = "_areas"
-                     (areasChanged)=areasChanged($event)>
-  </app-ire-main-area>
+  <div *ngIf="_areas | async; else noareas; let areas">
+    <app-ire-main-area [imageHref]="_imageHref"
+      [width]="_width" [height]="_height"
+      [areas]="areas" (areasChanged)="_areasChanged($event)">
+    </app-ire-main-area>
+  </div>
+  <ng-template #noareas>
+    <p>Loading ...</p>
+  </ng-template>
 </div>

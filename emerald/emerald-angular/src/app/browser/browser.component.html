@@ -1,10 +1,10 @@
 <div class="container-fluid">
   <div class="row">
     <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
-      <div class="busy-container" [ngBusy]="_context.busyIndicator"></div>
-      <tree-view [(Nodes)]="_context.rootNodes"
-                 [(SelectedNode)]="_context.treePaneSelection"
-                 (onRequestNodes)="_context.requestNodes($event)">
+      <div class="busy-container" [ngBusy]="_browserService.busyIndicator"></div>
+      <tree-view [Nodes]="_rootNodes"
+                 [SelectedNode]="_selection"
+                 (onRequestNodes)="_browserService.requestNodes($event)">
       </tree-view>
       <hr>
       <app-upload-form></app-upload-form>
