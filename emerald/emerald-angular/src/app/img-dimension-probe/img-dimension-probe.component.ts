@@ -19,15 +19,17 @@ export class ImgDimensionProbeComponent implements AfterViewInit {
   ngAfterViewInit() {
     const el = this.dimensionProbe.nativeElement;
     if (el.complete) {
+      this._emit(el);
+    } else {
+      el.onload = () => this._emit(el);
+    }
+  }
+
+  private _emit(el: any) {
+    setTimeout(() => {
       this.output.emit({naturalWidth: el.naturalWidth,
         naturalHeight: el.naturalHeight, clientWidth: el.clientWidth,
         clientHeight: el.clientHeight});
-    } else {
-      el.onload = () => setTimeout(()=>{
-        this.output.emit({naturalWidth: el.naturalWidth,
-          naturalHeight: el.naturalHeight, clientWidth: el.clientWidth,
-          clientHeight: el.clientHeight});
-      }, 0);
-    }
+    }, 0);
   }
 }
