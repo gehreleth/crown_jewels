@@ -1,6 +1,10 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
+
+import 'rxjs/add/operator/first';
 
 import { BrowserCommonImageService } from '../services/browser-common-image.service';
 import { RegionEditorService } from '../services/region-editor.service';
@@ -22,19 +26,34 @@ export class ImgRegionEditorComponent implements OnInit, OnDestroy {
   @Input() imageMeta: IImageMeta;
   @Input() dimensions: IDimensions;
 
-  private _cachedAreasChanged: boolean;
-  private _cachedAreas: Array<IArea>;
+  private _subscription: Subscription;
+  private _areasCache: BehaviorSubject<Array<IArea>> =
+    new BehaviorSubject<Array<IArea>>(undefined);
 
   constructor(private _imageService: BrowserCommonImageService,
               private _regionsService: RegionEditorService)
   { }
 
   ngOnInit() {
-    this._clearCache();
-    this._regionsService.setAllRegionsScope(this.imageMeta);
+    const naturalWidth = this.dimensions.naturalWidth;
+    const clientWidth = this.dimensions.clientWidth;
+    const func = (regions: Array<IImageRegion>) => r2a(regions, clientWidth / naturalWidth);
+    const obs = this._regionsService.regions.map(func);
+    this._subscription = obs.subscribe((areas: Array<IArea>) => {
+      this._areasCache.next(areas);
+    });
   }
 
-  ngOnDestroy() { }
+  ngOnChanges(changes: SimpleChanges) {
+    const imChange = changes.imageMeta;
+    if (imChange) {
+      this._regionsService.setAllRegionsScope(imChange.currentValue as IImageMeta);
+    }
+  }
+
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
+  }
 
   private get _width(): number {
     return this.dimensions.clientWidth;
@@ -45,19 +64,11 @@ export class ImgRegionEditorComponent implements OnInit, OnDestroy {
   }
 
   private get _areas(): Observable<Array<IArea>> {
-    if (!this._cachedAreasChanged) {
-      const naturalWidth = this.dimensions.naturalWidth;
-      const clientWidth = this.dimensions.clientWidth;
-      const func = (regions: Array<IImageRegion>) => r2a(regions, clientWidth / naturalWidth);
-      return this._regionsService.regions.map(func);
-    } else {
-      return Observable.of(this._cachedAreas);
-    }
+    return this._areasCache.filter(arr => arr !== undefined);
   }
 
   private _areasChanged(arg: Array<IArea>) {
-    this._cachedAreasChanged = true;
-    this._cachedAreas = arg;
+    this._areasCache.next(arg);
   }
 
   private get _imageHref(): string {
@@ -73,18 +84,12 @@ export class ImgRegionEditorComponent implements OnInit, OnDestroy {
   }
 
   private _saveRegions(event: any) : void {
-    if (this._cachedAreasChanged) {
+    this._areas.first().subscribe((areas: Array<IArea>) => {
       const naturalWidth = this.dimensions.naturalWidth;
       const clientWidth = this.dimensions.clientWidth;
       this._regionsService.updateRegionsInScope(this.imageMeta,
-        a2r(this._cachedAreas, naturalWidth / clientWidth));
-      this._clearCache();
-    }
-  }
-
-  private _clearCache() {
-    this._cachedAreas = [];
-    this._cachedAreasChanged = false;
+        a2r(areas, naturalWidth / clientWidth));
+    });
   }
 }
 
