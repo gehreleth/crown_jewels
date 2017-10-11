@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
@@ -33,8 +33,7 @@ export class ImgRegionEditorComponent
   @Input() dimensions: IDimensions;
 
   private _subscription: Subscription;
-  private _areasCache: BehaviorSubject<Array<IArea>> =
-    new BehaviorSubject<Array<IArea>>(undefined);
+  private readonly _areas$ = new ReplaySubject<Array<IArea>>(1);
 
   constructor(private _imageService: BrowserCommonImageService,
               private _regionsService: RegionEditorService)
@@ -46,7 +45,7 @@ export class ImgRegionEditorComponent
     const func = (regions: Array<IImageRegion>) => r2a(regions, clientWidth / naturalWidth);
     const obs = this._regionsService.regions.map(func);
     this._subscription = obs.subscribe((areas: Array<IArea>) => {
-      this._areasCache.next(areas);
+      this._areas$.next(areas);
     });
   }
 
@@ -71,11 +70,11 @@ export class ImgRegionEditorComponent
   }
 
   private get _areas(): Observable<Array<IArea>> {
-    return this._areasCache.filter(arr => arr !== undefined);
+    return this._areas$;
   }
 
   private _areasChanged(arg: Array<IArea>) {
-    this._areasCache.next(arg);
+    this._areas$.next(arg);
   }
 
   private get _imageHref(): string {

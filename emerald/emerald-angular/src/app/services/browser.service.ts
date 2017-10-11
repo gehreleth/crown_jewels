@@ -5,8 +5,8 @@ import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
-import "rxjs/add/operator/filter";
 
+import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import { ITreeNode, NodeType } from '../backend/entities/tree-node';
@@ -25,14 +25,10 @@ import { HttpSettingsService } from './http-settings.service';
 export class BrowserService implements IBusyIndicatorHolder {
   busyIndicator: Promise<any> = Promise.resolve(1);
 
-  private _selection: BehaviorSubject<ITreeNode> =
-    new BehaviorSubject<ITreeNode>(undefined);
-
-  private _rootNodes: BehaviorSubject<Array<ITreeNode>> =
-    new BehaviorSubject<Array<ITreeNode>>([]);
-
+  private readonly _selection = new ReplaySubject<ITreeNode>(1);
+  private readonly _rootNodes = new BehaviorSubject<Array<ITreeNode>>([]);
   private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
-  private _isNumberRe: RegExp = new RegExp("^\\d+$");
+  private readonly _isNumberRe: RegExp = new RegExp("^\\d+$");
 
   constructor(private _http: Http, private _httpSettings: HttpSettingsService)
   {
@@ -42,7 +38,7 @@ export class BrowserService implements IBusyIndicatorHolder {
   }
 
   get selection(): Observable<ITreeNode> {
-    return this._selection.filter(n => n ? true : false);
+    return this._selection;
   }
 
   get rootNodes(): Observable<Array<ITreeNode>> {

@@ -7,6 +7,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { BrowserService } from '../../services/browser.service';
 import { BrowserPagesService } from '../../services/browser-pages.service';
 
+import { IPageRange } from '../../util/page-range';
+
 import getBlobUrl from '../../util/getBlobUrl';
 
 @Component({
@@ -28,7 +30,7 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this._subscription = this._activatedRoute.params.subscribe((params: Params) => {
       let pageRangeDefined = true;
-      let pageRange = { ... this._browserPages.pageRange };
+      let pageRange: IPageRange = this._browserPages.DefPageRange;
 
       let pageStr: string = params['page'];
       if (pageStr && this._isNumberRe.test(pageStr)) {
