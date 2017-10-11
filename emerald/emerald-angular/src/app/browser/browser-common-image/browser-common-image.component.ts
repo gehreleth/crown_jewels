@@ -9,7 +9,6 @@ import { ITreeNode, NodeType } from '../../backend/entities/tree-node';
 import { IImageMeta } from '../../backend/entities/image-meta';
 import { IDimensions } from '../../util/dimensions';
 import { BrowserCommonImageService } from '../../services/browser-common-image.service';
-import { BrowserPagesService } from '../../services/browser-pages.service';
 
 import { IBusyIndicatorHolder } from '../../util/busy-indicator-holder';
 
@@ -33,8 +32,7 @@ export class BrowserCommonImageComponent
   private _subscription: Subscription;
 
   constructor(private _sanitizer: DomSanitizer,
-              private _imageService: BrowserCommonImageService,
-              private _paginator: BrowserPagesService)
+              private _imageService: BrowserCommonImageService)
   { }
 
   ngOnInit() {
@@ -70,10 +68,7 @@ export class BrowserCommonImageComponent
     } else {
       switch (view) {
         case BrowserView.Selections:
-          return ['./selections', {
-            page: this._paginator.pageRange.page,
-            count: this._paginator.pageRange.count
-          }];
+          return ['./selections'];
         default:
           return ['../'];
       }

@@ -12,7 +12,6 @@ import { IDimensions } from '../util/dimensions'
 export class ImgRegionEditorByselComponent implements OnInit {
   @Input() imageMeta: IImageMeta;
   @Input() dimensions: IDimensions;
-  @Input() pageRange: IPageRange;
 
   constructor()
   { }
@@ -20,13 +19,12 @@ export class ImgRegionEditorByselComponent implements OnInit {
   ngOnInit() {}
 
   private get _regionsOnPage(): Array<IImageRegion> {
-    const start = this.pageRange.page * this.pageRange.count;
-    const end = start + this.pageRange.count;
     //return this.regions.slice(start, end);
     return [];
   }
 
   private get _prevPageLink(): any {
+/*
     if (this.pageRange.page > 0) {
       return { 'class': 'page-item',
                'link': ['../selections', { page: this.pageRange.page - 1,
@@ -35,9 +33,12 @@ export class ImgRegionEditorByselComponent implements OnInit {
     } else {
       return { 'class': 'page-item disabled', 'link': ['./'], 'tabindex': -1 };
     }
+    */
+    return null;
   }
 
   private get _nextPageLink(): any {
+    /*
     if (this.pageRange.page < (this.pageRange.numPages - 1)) {
       return { 'class': 'page-item',
                'link': ['../selections', { page: this.pageRange.page + 1,
@@ -46,9 +47,12 @@ export class ImgRegionEditorByselComponent implements OnInit {
     } else {
       return { 'class': 'page-item disabled', 'link': ['./'], 'tabindex': -1 };
     }
+    */
+    return null;
   }
 
   private get _pageLinks(): any[] {
+    /*
     let retVal: Array<any> = [];
     for (let i = 0; i < this.pageRange.numPages; ++i) {
       if (i !== this.pageRange.page) {
@@ -60,5 +64,7 @@ export class ImgRegionEditorByselComponent implements OnInit {
       }
     }
     return retVal;
+      */
+    return null;
   }
 }

@@ -4,13 +4,10 @@ import { BrowserService } from '../services/browser.service'
 import { ITreeNode } from '../backend/entities/tree-node';
 import { Subscription } from 'rxjs/Subscription';
 
-import { BrowserPagesService } from '../services/browser-pages.service';
-
 @Component({
   selector: 'app-browser',
   templateUrl: './browser.component.html',
   styleUrls: ['./browser.component.scss'],
-  providers: [ BrowserPagesService ]
 })
 export class BrowserComponent implements OnInit, OnDestroy {
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
@@ -23,8 +20,7 @@ export class BrowserComponent implements OnInit, OnDestroy {
   private _selectedSubscription: Subscription;
 
   constructor(private _activatedRoute: ActivatedRoute,
-              private _browserService: BrowserService,
-              private _browserPages: BrowserPagesService)
+              private _browserService: BrowserService)
   { }
 
   ngOnInit() {
@@ -41,7 +37,6 @@ export class BrowserComponent implements OnInit, OnDestroy {
         });
     this._selectedSubscription =
       this._browserService.selection.subscribe((selection: ITreeNode) => {
-        this._browserPages.clearPageRange();
         this._selection = selection;
       });
   }
