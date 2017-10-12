@@ -49,7 +49,7 @@ export class BrowserCommonImageService {
   }
 
   get dimensions(): Observable<IDimensions> {
-    return this._dimensions$.filter(Boolean);
+    return this._dimensions$;
   }
 
   rotateCW(imageMeta: IImageMeta, busy?: IBusyIndicatorHolder): void {
