@@ -29,7 +29,6 @@ import { IreMainAreaDeleteComponent } from './ire-main-area/ire-main-area-delete
 import { ImgRegionEditorByselComponent } from './img-region-editor-bysel/img-region-editor-bysel.component';
 import { ImgRegionEditorByselSelComponent } from './img-region-editor-bysel/img-region-editor-bysel-sel/img-region-editor-bysel-sel.component';
 import { IreBsImageComponent } from './img-region-editor-bysel/ire-bs-image/ire-bs-image.component';
-import { ImgDimensionProbeComponent } from './img-dimension-probe/img-dimension-probe.component';
 import { BrowserCommonImageComponent } from './browser/browser-common-image/browser-common-image.component';
 
 const routes: Routes = [
@@ -62,7 +61,6 @@ const routes: Routes = [
     ImgRegionEditorByselComponent,
     ImgRegionEditorByselSelComponent,
     IreBsImageComponent,
-    ImgDimensionProbeComponent,
     BrowserCommonImageComponent
   ],
   imports: [

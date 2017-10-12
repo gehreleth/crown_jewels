@@ -32,7 +32,7 @@ export class BrowserService implements IBusyIndicatorHolder {
 
   constructor(private _http: Http, private _httpSettings: HttpSettingsService)
   {
-    this.selection.subscribe((node: ITreeNode) =>
+    this.selection.filter(Boolean).subscribe((node: ITreeNode) =>
       this.handleSelectedNodeChanged(node));
     this.requestNodes(null, true);
   }

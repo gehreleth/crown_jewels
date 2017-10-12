@@ -1,3 +1,18 @@
+#browser-common {
+  position: relative;
+}
+
+#dim-probe{
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+#probe-image {
+  opacity: 0;
+}
+
 #navtabs {
   margin-bottom: 12px;
 }

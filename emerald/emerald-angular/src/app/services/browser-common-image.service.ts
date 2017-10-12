@@ -27,7 +27,7 @@ import setBusyIndicator from '../util/setBusyIndicator';
 @Injectable()
 export class BrowserCommonImageService {
   private readonly _imageMeta$ = new ReplaySubject<IImageMeta>(1);
-  private readonly _dimensions$ = new BehaviorSubject<IDimensions>(undefined);
+  private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
 
   constructor(private _http: Http, private _httpSettings: HttpSettingsService)
   { }
@@ -42,10 +42,6 @@ export class BrowserCommonImageService {
 
   setDimensions(dimensions: IDimensions): void {
     this._dimensions$.next(dimensions);
-  }
-
-  clearDimensions(): void {
-    this._dimensions$.next(undefined);
   }
 
   get imageMeta(): Observable<IImageMeta> {

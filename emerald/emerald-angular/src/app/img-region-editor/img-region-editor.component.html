@@ -13,7 +13,8 @@
     </button>
   </div>
   <div *ngIf="_areas | async; else noareas; let areas">
-    <app-ire-main-area [imageHref]="_imageHref"
+    <app-ire-main-area 
+      [imageHref]="_imageHref"
       [width]="_width" [height]="_height"
       [areas]="areas" (areasChanged)="_areasChanged($event)">
     </app-ire-main-area>

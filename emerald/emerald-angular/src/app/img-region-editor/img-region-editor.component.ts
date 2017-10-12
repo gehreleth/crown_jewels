@@ -11,10 +11,13 @@ import { RegionEditorService } from '../services/region-editor.service';
 
 import { IDimensions } from '../util/dimensions'
 import { IArea } from '../ire-main-area/area'
+
+import { IQuery } from '../backend/query';
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
+import setBusyIndicator from '../util/setBusyIndicator';
 
 import getBlobUrl from '../util/getBlobUrl';
 
@@ -34,31 +37,33 @@ export class ImgRegionEditorComponent
 
   private _subscription: Subscription;
   private readonly _areas$ = new ReplaySubject<Array<IArea>>(1);
+  private _scope: IQuery<Array<IImageRegion>>;
 
   constructor(private _imageService: BrowserCommonImageService,
               private _regionsService: RegionEditorService)
   { }
 
   ngOnInit() {
-    const naturalWidth = this.dimensions.naturalWidth;
-    const clientWidth = this.dimensions.clientWidth;
-    const func = (regions: Array<IImageRegion>) => r2a(regions, clientWidth / naturalWidth);
-    const obs = this._regionsService.regions.map(func);
-    this._subscription = obs.subscribe((areas: Array<IArea>) => {
-      this._areas$.next(areas);
-    });
+    let o = this._regionsService.scope;
+    this._subscription = o.subscribe(scope => this._setScope(scope));
   }
 
   ngOnChanges(changes: SimpleChanges) {
     const imChange = changes.imageMeta;
     if (imChange) {
+      this._areas$.next(undefined);
       const imageMeta = imChange.currentValue as IImageMeta;
-      this._regionsService.setAllRegionsScope(imageMeta, this);
+      this._regionsService.setAllRegionsScope(imageMeta);
     }
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
+  }
+
+  private _setScope(scope: IQuery<Array<IImageRegion>>) {
+    this._scope = scope;
+    setBusyIndicator(this, this._scope()).subscribe(areas => this._updateAreas(areas));
   }
 
   private get _width(): number {
@@ -70,7 +75,7 @@ export class ImgRegionEditorComponent
   }
 
   private get _areas(): Observable<Array<IArea>> {
-    return this._areas$;
+    return this._areas$.filter(Boolean);
   }
 
   private _areasChanged(arg: Array<IArea>) {
@@ -89,12 +94,20 @@ export class ImgRegionEditorComponent
     this._imageService.rotateCCW(this.imageMeta, this);
   }
 
+  private _updateAreas(regions: Array<IImageRegion>) {
+    const naturalWidth = this.dimensions.naturalWidth;
+    const clientWidth = this.dimensions.clientWidth;
+    this._areas$.next(r2a(regions, clientWidth / naturalWidth));
+  }
+
   private _saveRegions(event: any) : void {
+    let that = this;
     this._areas.first().subscribe((areas: Array<IArea>) => {
       const naturalWidth = this.dimensions.naturalWidth;
       const clientWidth = this.dimensions.clientWidth;
-      this._regionsService.saveRegions(this.imageMeta,
-        a2r(areas, naturalWidth / clientWidth), this);
+      let o = this._regionsService.saveRegions(this.imageMeta, this._scope,
+        a2r(areas, naturalWidth / clientWidth));
+      setBusyIndicator(that, o).subscribe(areas => that._updateAreas(areas));
     });
   }
 }

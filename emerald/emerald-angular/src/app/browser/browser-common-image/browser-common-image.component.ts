@@ -2,6 +2,8 @@ import { Component, Input } from '@angular/core';
 import { OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 
+import { Observable } from 'rxjs/Observable';
+import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subscription } from 'rxjs/Subscription';
 
 import { BrowserView } from '../browser-view';
@@ -30,15 +32,16 @@ export class BrowserCommonImageComponent
   @Input() view: BrowserView;
 
   private _subscription: Subscription;
+  private readonly _url$ = new ReplaySubject<SafeUrl>(1);
 
   constructor(private _sanitizer: DomSanitizer,
               private _imageService: BrowserCommonImageService)
   { }
 
   ngOnInit() {
-    let o = this._imageService.imageMeta;
-    this._subscription = o.subscribe((imageMeta: IImageMeta) => {
-      this._imageService.clearDimensions();
+    this._subscription = this._imageService.imageMeta.subscribe(imageMeta => {
+      const url = this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(imageMeta));
+      this._url$.next(url);
     });
   }
 
@@ -54,12 +57,16 @@ export class BrowserCommonImageComponent
     this._subscription.unsubscribe();
   }
 
-  private _probeHref(imageMeta: IImageMeta): SafeUrl {
-    return this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(imageMeta));
+  private get _probeHref(): Observable<SafeUrl> {
+    return this._url$;
   }
 
   private _navLinkClass(view: BrowserView): string {
     return 'nav-link' + ((view === this.view) ? ' active' : '');
+  }
+
+  private _onload(event: any) {
+    this._imageService.setDimensions(makeDimensions(event.srcElement));
   }
 
   private _routerLink(view: BrowserView): any[] {
@@ -74,4 +81,12 @@ export class BrowserCommonImageComponent
       }
     }
   }
+}
+
+function makeDimensions(ne: any): IDimensions {
+  const retVal: IDimensions = {naturalWidth: ne.naturalWidth,
+    naturalHeight: ne.naturalHeight, clientWidth: ne.clientWidth,
+    clientHeight: ne.clientHeight
+  };
+  return retVal;
 }
