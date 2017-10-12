@@ -23,7 +23,7 @@
     </div>
     <div *ngIf="_probeHref | async; let probeHref" id="dim-probe">
       <img id="probe-image" class="img-fluid" [src]="probeHref"
-           (load)="_onload($event)">
+           (load)="_probeLoaded($event)">
     </div>
   </div>
   <ng-template #nometa>

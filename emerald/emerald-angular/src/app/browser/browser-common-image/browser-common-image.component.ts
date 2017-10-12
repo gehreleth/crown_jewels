@@ -65,7 +65,7 @@ export class BrowserCommonImageComponent
     return 'nav-link' + ((view === this.view) ? ' active' : '');
   }
 
-  private _onload(event: any) {
+  private _probeLoaded(event: any) {
     this._imageService.setDimensions(makeDimensions(event.srcElement));
   }
 
