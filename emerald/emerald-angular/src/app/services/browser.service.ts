@@ -5,6 +5,10 @@ import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/concatMap';
+import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/distinctUntilChanged';
 
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
@@ -21,104 +25,80 @@ import setBusyIndicator from '../util/setBusyIndicator';
 
 import { HttpSettingsService } from './http-settings.service';
 
+interface ILazyTreeState {
+  selection?: ITreeNode,
+  root: Array<ITreeNode>,
+  id2Node: Map<number, ITreeNode>
+};
+
 @Injectable()
 export class BrowserService implements IBusyIndicatorHolder {
   busyIndicator: Promise<any> = Promise.resolve(1);
 
-  private readonly _selection = new ReplaySubject<ITreeNode>(1);
-  private readonly _rootNodes = new BehaviorSubject<Array<ITreeNode>>([]);
-  private _id2Node: Map<number, ITreeNode> = new Map<number, ITreeNode>();
+  private static readonly INITIAL_STATE = {
+    root: [],
+    id2Node: new Map<number, ITreeNode>()
+  };
+
+  private readonly _tree$ = new BehaviorSubject<ILazyTreeState>(BrowserService.INITIAL_STATE);
   private readonly _isNumberRe: RegExp = new RegExp("^\\d+$");
 
   constructor(private _http: Http, private _httpSettings: HttpSettingsService)
   {
-    this.selection.filter(Boolean).subscribe((node: ITreeNode) =>
-      this.handleSelectedNodeChanged(node));
+    this._tree$.map(state => state.selection)
+      .filter( selection => selection &&
+              (selection.type === NodeType.Zip || selection.type === NodeType.Folder))
+      .distinctUntilChanged((u, v) => u === v, selection => selection.id) // NOTE: requestNodes causes
+      .subscribe(selection => {                                           // recursive invokation of
+        this.requestNodes(selection, false);                              // this subscription.
+                                                                          // Distinct clause breaks it
+      });
     this.requestNodes(null, true);
   }
 
   get selection(): Observable<ITreeNode> {
-    return this._selection;
+    return this._tree$.map(state => state.selection);
   }
 
   get rootNodes(): Observable<Array<ITreeNode>> {
-    return this._rootNodes;
+    return this._tree$.map(q => q.root);
   }
 
   selectById(id: number) {
-    if (this._id2Node.has(id)) {
-      this.expandBranch(this._id2Node.get(id));
-    } else {
-      setBusyIndicator(this, populateBranchByTerminalNodeId(this._http, id))
-        .subscribe((branchRoot: ITreeNode) => {
-          this.mergeBranch(branchRoot);
-          this.expandBranch(this._id2Node.get(id));
-        });
-    }
-  }
-
-  private handleSelectedNodeChanged(node: ITreeNode) {
-    if (node.type === NodeType.Zip || node.type === NodeType.Folder) {
-      this.requestNodes(node, false);
-    }
+    let obs = this._tree$.concatMap(tree => {
+      let retVal: Observable<ILazyTreeState>;
+      if (tree.id2Node.has(id)) {
+        retVal = Observable.of(expandBranch(tree, tree.id2Node.get(id)));
+      } else {
+        retVal = populateBranchByTerminalNodeId(this._http, id)
+          .map((branchRoot: ITreeNode) => {
+            tree = mergeBranch(tree, branchRoot);
+            return expandBranch(tree, tree.id2Node.get(id));
+          });
+      }
+      return retVal;
+    }).take(1);
+    setBusyIndicator(this, obs).subscribe(tree => {
+      this._tree$.next(tree);
+    });
   }
 
   requestNodes(parent?: ITreeNode, forceRefresh?: boolean) {
-    const o = parent ? Observable.of(parent.children) : this.rootNodes;
-    setBusyIndicator(this, o).subscribe(curChildren => {
-      if (!curChildren || forceRefresh) {
-        setBusyIndicator(this, populateChildren(this._http, parent))
-          .subscribe(children => {
-            children = this.mergeNewChildrenSet(curChildren, children);
-            if (parent) {
-              parent.children = children;
-            } else {
-              this._rootNodes.next(children);
-            }
-          });
+    let obs = this._tree$.concatMap(tree => {
+      let retVal: Observable<ILazyTreeState>;
+      if (parent && tree.id2Node.has(parent.id)) {
+        parent = tree.id2Node.get(parent.id);
       }
-    })
-  }
-
-  private expandBranch(terminalNode: ITreeNode) {
-    let cur = terminalNode;
-    while (cur) {
-      cur.isExpanded = true;
-      cur = cur.parent;
-    }
-    this._selection.next(terminalNode);
-  }
-
-  private mergeNewChildrenSet(oldCh: Array<ITreeNode>, ch: Array<ITreeNode>)
-    : Array<ITreeNode>
-  {
-    ch = ch.filter(n => !this._id2Node.has(n.id));
-    const newCh = (oldCh ? oldCh.concat(ch) : ch);
-    for (const n of newCh) {
-      this._id2Node.set(n.id, n);
-    }
-    return newCh;
-  }
-
-  /**
-  * This function merges eagerly received branch to a lazily initiated tree.
-  * Needed for eages context when user explicitly request exact node by its id.
-  * This node may be absent from a tree because it's initiated lazily ad may
-  * miss lots of branches.
-  *
-  * @param newBranchRoot new branch eagerly received from the server.
-  * it should have caterpillar tree structure.
-  */
-  private mergeBranch(newBranchRoot: ITreeNode) {
-    setBusyIndicator(this, this.rootNodes).subscribe(rootNodes => {
-      let lookup = new Map<number, ITreeNode>();
-      makeSliceToMerge(rootNodes, [newBranchRoot], lookup);
-      let newNodes = mergeBranchRec(null, rootNodes, [newBranchRoot], lookup);
-      let newId2Node = new Map<number, ITreeNode>(this._id2Node);
-      lookup.forEach((v, k) => newId2Node.set(k, v));
-      this._rootNodes.next(newNodes);
-      this._id2Node = newId2Node;
-    });
+      let curChildren = parent ? parent.children : tree.root;
+      if (!curChildren || forceRefresh) {
+        retVal = populateChildren(this._http, parent)
+          .map(children => mergeChildrenSets(tree, parent, curChildren, children));
+      } else {
+        retVal = Observable.of(tree);
+      }
+      return retVal;
+    }).take(1);
+    setBusyIndicator(this, obs).subscribe(tree => this._tree$.next(tree));
   }
 
  /**
@@ -157,6 +137,59 @@ export class BrowserService implements IBusyIndicatorHolder {
       }
     });
   }
+}
+
+function eqSet(as, bs) {
+  if (as.size !== bs.size) return false;
+  for (var a of as) if (!bs.has(a)) return false;
+  return true;
+}
+
+function mergeChildrenSets(tree: ILazyTreeState, parent: ITreeNode,
+  oldCh: Array<ITreeNode>, ch: Array<ITreeNode>): ILazyTreeState
+{
+  ch = ch.filter(n => !tree.id2Node.has(n.id));
+  const newCh = (oldCh ? oldCh.concat(ch) : ch);
+  for (const n of newCh) {
+    tree.id2Node.set(n.id, n);
+  }
+  if (parent) {
+    parent.children = newCh;
+  } else {
+    tree.root = newCh;
+  }
+  return tree;
+}
+
+/**
+* This function merges eagerly received branch to a lazily initiated tree.
+* Needed for eages context when user explicitly request exact node by its id.
+* This node may be absent from a tree because it's initiated lazily ad may
+* miss lots of branches.
+*
+* @param newBranchRoot new branch eagerly received from the server.
+* it should have caterpillar tree structure.
+*/
+function mergeBranch(tree: ILazyTreeState, newBranchRoot: ITreeNode): ILazyTreeState {
+  let rootNodes = tree.root;
+  let lookup = new Map<number, ITreeNode>();
+  makeSliceToMerge(rootNodes, [newBranchRoot], lookup);
+  let newNodes = mergeBranchRec(null, rootNodes, [newBranchRoot], lookup);
+  let newId2Node = new Map<number, ITreeNode>(tree.id2Node);
+  lookup.forEach((v, k) => newId2Node.set(k, v));
+  tree.root = newNodes;
+  tree.id2Node = newId2Node;
+  return tree;
+}
+
+function expandBranch(state: ILazyTreeState, terminalNode: ITreeNode): ILazyTreeState {
+  let cur = terminalNode;
+  while (cur) {
+    cur.isExpanded = true;
+    cur = cur.parent;
+  }
+  state.selection = terminalNode
+  return state;
 }
 
 /**

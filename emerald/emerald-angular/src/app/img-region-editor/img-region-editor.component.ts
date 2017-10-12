@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs/Subscription';
 
 import 'rxjs/add/operator/first';
 
-import { BrowserCommonImageService } from '../services/browser-common-image.service';
+import { ImageMetadataService } from '../services/image-metadata.service';
 import { RegionEditorService } from '../services/region-editor.service';
 
 import { IDimensions } from '../util/dimensions'
@@ -39,7 +39,7 @@ export class ImgRegionEditorComponent
   private readonly _areas$ = new ReplaySubject<Array<IArea>>(1);
   private _scope: IQuery<Array<IImageRegion>>;
 
-  constructor(private _imageService: BrowserCommonImageService,
+  constructor(private _imageService: ImageMetadataService,
               private _regionsService: RegionEditorService)
   { }
 
@@ -87,11 +87,13 @@ export class ImgRegionEditorComponent
   }
 
   private _rotateCW(event: any): void {
-    this._imageService.rotateCW(this.imageMeta, this);
+    let o = setBusyIndicator(this, this._imageService.rotateCW(this.imageMeta));
+    o.subscribe(im => this._imageService.setImageMeta(im));
   }
 
   private _rotateCCW(event:any): void {
-    this._imageService.rotateCCW(this.imageMeta, this);
+    let o = setBusyIndicator(this, this._imageService.rotateCCW(this.imageMeta));
+    o.subscribe(im => this._imageService.setImageMeta(im));
   }
 
   private _updateAreas(regions: Array<IImageRegion>) {

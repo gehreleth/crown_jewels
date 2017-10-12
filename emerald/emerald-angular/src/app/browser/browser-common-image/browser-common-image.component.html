@@ -11,8 +11,8 @@
   </ul>
 </div>
 <div id="browser-common" [ngBusy]="busyIndicator">
-  <div *ngIf="_imageService.imageMeta | async; else nometa; let imageMeta">
-    <div *ngIf="_imageService.dimensions | async; else nodimensions; let dimensions"
+  <div *ngIf="_imageMetadataService.imageMeta | async; else nometa; let imageMeta">
+    <div *ngIf="_dimensions | async; else nodimensions; let dimensions"
          [ngSwitch]="view">
       <app-img-region-editor *ngSwitchCase="browserView.Overview"
         [imageMeta]="imageMeta" [dimensions]="dimensions">

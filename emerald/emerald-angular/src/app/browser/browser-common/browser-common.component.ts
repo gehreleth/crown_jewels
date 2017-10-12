@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { BrowserService } from '../../services/browser.service';
+import { ImageMetadataService } from '../../services/image-metadata.service';
 import { BrowserView } from '../browser-view';
 
 import { NodeType } from '../../backend/entities/tree-node';
@@ -16,8 +17,13 @@ import { NodeType } from '../../backend/entities/tree-node';
       <p>Folder</p>
     </div>
     <div *ngSwitchCase="nodeType.Image">
-      <app-browser-common-image [node]="node" [view]="view">
-      </app-browser-common-image>
+      <div *ngIf="_imageMetadataService.imageMeta | async; else nometa; let imageMeta">
+        <app-browser-common-image [imageMeta]="imageMeta" [view]="view">
+        </app-browser-common-image>
+      </div>
+      <ng-template #nometa>
+        <p>Loading ...</p>
+      </ng-template>
     </div>
   </div>
 </div>
@@ -30,6 +36,7 @@ export class BrowserCommonComponent {
 
   @Input() view: BrowserView;
 
-  constructor(private _browserService: BrowserService)
+  constructor(private _browserService: BrowserService,
+              private _imageMetadataService: ImageMetadataService)
   { }
 }

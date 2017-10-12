@@ -7,11 +7,10 @@ import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subscription } from 'rxjs/Subscription';
 
 import { BrowserView } from '../browser-view';
-import { ITreeNode, NodeType } from '../../backend/entities/tree-node';
 import { IImageMeta } from '../../backend/entities/image-meta';
 import { IDimensions } from '../../util/dimensions';
-import { BrowserCommonImageService } from '../../services/browser-common-image.service';
 
+import { ImageMetadataService } from '../../services/image-metadata.service';
 import { IBusyIndicatorHolder } from '../../util/busy-indicator-holder';
 
 import getBlobUrl from '../../util/getBlobUrl';
@@ -20,37 +19,29 @@ import getBlobUrl from '../../util/getBlobUrl';
   selector: 'app-browser-common-image',
   templateUrl: './browser-common-image.component.html',
   styleUrls: ['./browser-common-image.component.scss'],
-  providers: [ BrowserCommonImageService ]
 })
 export class BrowserCommonImageComponent
-  implements IBusyIndicatorHolder, OnInit, OnChanges, OnDestroy {
+  implements IBusyIndicatorHolder, OnInit, OnDestroy {
 
   busyIndicator: Promise<any> = Promise.resolve(1);
   public readonly browserView = BrowserView;
 
-  @Input() node: ITreeNode;
+  @Input() imageMeta: IImageMeta;
   @Input() view: BrowserView;
 
   private _subscription: Subscription;
   private readonly _url$ = new ReplaySubject<SafeUrl>(1);
+  private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
 
   constructor(private _sanitizer: DomSanitizer,
-              private _imageService: BrowserCommonImageService)
+              private _imageMetadataService: ImageMetadataService)
   { }
 
   ngOnInit() {
-    this._subscription = this._imageService.imageMeta.subscribe(imageMeta => {
+    this._subscription = this._imageMetadataService.imageMeta.subscribe(imageMeta => {
       const url = this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(imageMeta));
       this._url$.next(url);
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    const nodeChange = changes.node;
-    if (nodeChange) {
-      const node = nodeChange.currentValue as ITreeNode;
-      this._imageService.setNode(node, this);
-    }
   }
 
   ngOnDestroy() {
@@ -61,12 +52,16 @@ export class BrowserCommonImageComponent
     return this._url$;
   }
 
+  private get _dimensions(): Observable<IDimensions> {
+    return this._dimensions$;
+  }
+
   private _navLinkClass(view: BrowserView): string {
     return 'nav-link' + ((view === this.view) ? ' active' : '');
   }
 
   private _probeLoaded(event: any) {
-    this._imageService.setDimensions(makeDimensions(event.srcElement));
+    this._dimensions$.next(makeDimensions(event.srcElement));
   }
 
   private _routerLink(view: BrowserView): any[] {
