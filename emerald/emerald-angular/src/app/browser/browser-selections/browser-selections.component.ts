@@ -33,14 +33,14 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
       let pageRange: IPageRange = this._browserPages.DefPageRange;
 
       let pageStr: string = params['page'];
-      if (pageStr && this._isNumberRe.test(pageStr)) {
+      if (this._isNumberRe.test(pageStr)) {
         pageRange.page = parseInt(pageStr);
       } else {
         pageRangeDefined = false;
       }
 
       let countStr: string = params['count'];
-      if (countStr && this._isNumberRe.test(countStr)) {
+      if (this._isNumberRe.test(countStr)) {
         pageRange.count = parseInt(countStr);
       } else {
         pageRangeDefined = false;

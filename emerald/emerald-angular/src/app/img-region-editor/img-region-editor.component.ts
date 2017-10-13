@@ -28,7 +28,7 @@ import getBlobUrl from '../util/getBlobUrl';
   providers: [ RegionEditorService ]
 })
 export class ImgRegionEditorComponent
-  implements IBusyIndicatorHolder, OnInit, OnDestroy {
+  implements IBusyIndicatorHolder, OnInit, OnChanges, OnDestroy {
 
   busyIndicator: Promise<any> = Promise.resolve(1);
 
