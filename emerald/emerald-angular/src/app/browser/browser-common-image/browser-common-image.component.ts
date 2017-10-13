@@ -61,7 +61,7 @@ export class BrowserCommonImageComponent
   }
 
   private _probeLoaded(event: any) {
-    this._dimensions$.next(makeDimensions(event.srcElement));
+    this._dimensions$.next(makeDimensions(event.target));
   }
 
   private _routerLink(view: BrowserView): any[] {
