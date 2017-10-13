@@ -54,8 +54,10 @@ export class ImgRegionEditorComponent
       this._regionsService.setAllRegionsScope(imageMeta));
 
     this._scopeSub = this._regionsService.scope
-      .concatMap(scope => setBusyIndicator(this, scope()))
-        .subscribe(regions => this._updateAreas(regions));
+      .concatMap(scope => {
+        this._scope = scope;
+        return setBusyIndicator(this, this._scope())
+      }).subscribe(regions => this._updateAreas(regions));
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -68,11 +70,6 @@ export class ImgRegionEditorComponent
   ngOnDestroy() {
     this._scopeSub.unsubscribe();
     this._imSub.unsubscribe();
-  }
-
-  private _setScope(scope: IQuery<Array<IImageRegion>>) {
-    this._scope = scope;
-    setBusyIndicator(this, this._scope()).subscribe(areas => this._updateAreas(areas));
   }
 
   private get _width(): number {
