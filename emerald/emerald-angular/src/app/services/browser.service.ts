@@ -33,6 +33,10 @@ interface ILazyTreeState {
 
 @Injectable()
 export class BrowserService implements IBusyIndicatorHolder {
+  /**
+   * Backend call queue. It's supposed to be bound to a busy GUI indicator.
+   * User shouldn't alter this value directry.
+   */
   busyIndicator: Promise<any> = Promise.resolve(1);
 
   private static readonly INITIAL_STATE = {
@@ -48,22 +52,36 @@ export class BrowserService implements IBusyIndicatorHolder {
     this._tree$.map(state => state.selection)
       .filter( selection => selection &&
               (selection.type === NodeType.Zip || selection.type === NodeType.Folder))
-      .distinctUntilChanged((u, v) => u === v, selection => selection.id) // NOTE: requestNodes causes
-      .subscribe(selection => {                                           // recursive invokation of
-        this.requestNodes(selection, false);                              // this subscription.
-                                                                          // Distinct clause breaks it
-      });
+       /* NOTE: requestNodes causes indirect recursive invokation of this subscription.
+          Distinct clause breaks this infinite recursion. Helluva bug =(
+        */
+      .distinctUntilChanged((u, v) => u === v, selection => selection.id)
+      .subscribe(selection => this.requestNodes(selection, false));
     this.requestNodes(null, true);
   }
 
+  /**
+   * Cold Observable of the tree's selected node.
+   * Can return falsy values if none selected.
+   */
   get selection(): Observable<ITreeNode> {
     return this._tree$.map(state => state.selection);
   }
 
+  /**
+   * Cold Observable of the tree's root nodes set.
+   * Initially empty array, supposed to be altered on its own after
+   * initial portion of nodes is received from the backend
+   * (As a result of the this.requestNodes(null, true) call in the constructor).
+   */
   get rootNodes(): Observable<Array<ITreeNode>> {
     return this._tree$.map(q => q.root);
   }
 
+  /**
+   * Handler of a route activation event.
+   * @param id supposed node.id field, usually the route parameter.
+   */
   selectById(id: number) {
     let obs = this._tree$.concatMap(tree => {
       let retVal: Observable<ILazyTreeState>;
@@ -83,6 +101,11 @@ export class BrowserService implements IBusyIndicatorHolder {
     });
   }
 
+  /**
+   * Handler of a non-leaf node expansion event.
+   * @param parent node being expanded
+   * @param forceRefresh ignore cached values, always perform backend call.
+   */
   requestNodes(parent?: ITreeNode, forceRefresh?: boolean) {
     let obs = this._tree$.concatMap(tree => {
       let retVal: Observable<ILazyTreeState>;
@@ -139,12 +162,22 @@ export class BrowserService implements IBusyIndicatorHolder {
   }
 }
 
-function eqSet(as, bs) {
-  if (as.size !== bs.size) return false;
-  for (var a of as) if (!bs.has(a)) return false;
-  return true;
-}
-
+/**
+ * Updates children sets of a given paren (null parent is the root).
+ * This function doesn't alter children with ids already esisting in the parent's
+ * children set in any way.
+ *
+ * @param tree the tree instance we're operating on.
+ *
+ * @param parent the parent of the given children set.
+ * If null, the result of this merge operation will go to tree.root.
+ *
+ * @param oldCh existing children of the parent.
+ *
+ * @param ch new children we're mirging in here.
+ *
+ * @return the altered tree.
+ */
 function mergeChildrenSets(tree: ILazyTreeState, parent: ITreeNode,
   oldCh: Array<ITreeNode>, ch: Array<ITreeNode>): ILazyTreeState
 {
@@ -167,8 +200,10 @@ function mergeChildrenSets(tree: ILazyTreeState, parent: ITreeNode,
 * This node may be absent from a tree because it's initiated lazily ad may
 * miss lots of branches.
 *
+* @param tree the tree instance we're operating on.
 * @param newBranchRoot new branch eagerly received from the server.
 * it should have caterpillar tree structure.
+* @return the altered tree.
 */
 function mergeBranch(tree: ILazyTreeState, newBranchRoot: ITreeNode): ILazyTreeState {
   let rootNodes = tree.root;
@@ -182,6 +217,15 @@ function mergeBranch(tree: ILazyTreeState, newBranchRoot: ITreeNode): ILazyTreeS
   return tree;
 }
 
+/**
+* Expands all nodes on a path from root to terminal node. Sets selection to terminal node.
+*
+* @param tree the tree instance we're operating on.
+*
+* @param terminal node terminal node ona a branch we're expanding.
+*
+* @return the altered tree.
+*/
 function expandBranch(state: ILazyTreeState, terminalNode: ITreeNode): ILazyTreeState {
   let cur = terminalNode;
   while (cur) {
@@ -197,8 +241,10 @@ function expandBranch(state: ILazyTreeState, terminalNode: ITreeNode): ILazyTree
 * Basically, it's all the nodes that already exist in the tree,
 * but nave intersection with the branch.
 *
-* @param src of the nodes that already exist in one level of hiererchy
-* @param newBranch branch we're merging with
+* @param src of the nodes that already exist in one level of hiererchy.
+*
+* @param newBranch branch we're merging with.
+*
 * @param lookup the procedure will store its output here.
 * we can't make it a return value because this function it recursive and uses
 * this as accumulator shared between all its recursive contexts.
