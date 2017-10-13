@@ -1,5 +1,3 @@
-import { IImageRegion } from './image-region';
-
 export enum Rotation {
   NONE = 0, CW90 = 1, CW180 = 2,
   CW270 = 3, CCW90 = -1, CCW180 = -2,

@@ -1,10 +1,12 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 
-import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
+import { ReplaySubject } from 'rxjs/ReplaySubject';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import 'rxjs/add/operator/first';
+import 'rxjs/add/operator/filter';
 
 import { ImageMetadataService } from '../services/image-metadata.service';
 import { RegionEditorService } from '../services/region-editor.service';
@@ -35,8 +37,12 @@ export class ImgRegionEditorComponent
   @Input() imageMeta: IImageMeta;
   @Input() dimensions: IDimensions;
 
-  private _subscription: Subscription;
-  private readonly _areas$ = new ReplaySubject<Array<IArea>>(1);
+  private _imSub: Subscription;
+  private _scopeSub: Subscription;
+
+  private readonly _areas$ = new BehaviorSubject<Array<IArea>>(undefined);
+  private readonly _imageMeta$ = new ReplaySubject<IImageMeta>(1);
+
   private _scope: IQuery<Array<IImageRegion>>;
 
   constructor(private _imageService: ImageMetadataService,
@@ -44,21 +50,24 @@ export class ImgRegionEditorComponent
   { }
 
   ngOnInit() {
-    let o = this._regionsService.scope;
-    this._subscription = o.subscribe(scope => this._setScope(scope));
+    this._imSub = this._imageMeta$.subscribe(imageMeta =>
+      this._regionsService.setAllRegionsScope(imageMeta));
+
+    this._scopeSub = this._regionsService.scope
+      .concatMap(scope => setBusyIndicator(this, scope()))
+        .subscribe(regions => this._updateAreas(regions));
   }
 
   ngOnChanges(changes: SimpleChanges) {
     const imChange = changes.imageMeta;
     if (imChange) {
-      this._areas$.next(undefined);
-      const imageMeta = imChange.currentValue as IImageMeta;
-      this._regionsService.setAllRegionsScope(imageMeta);
+      this._imageMeta$.next(imChange.currentValue as IImageMeta);
     }
   }
 
   ngOnDestroy() {
-    this._subscription.unsubscribe();
+    this._scopeSub.unsubscribe();
+    this._imSub.unsubscribe();
   }
 
   private _setScope(scope: IQuery<Array<IImageRegion>>) {
@@ -75,7 +84,7 @@ export class ImgRegionEditorComponent
   }
 
   private get _areas(): Observable<Array<IArea>> {
-    return this._areas$.filter(Boolean);
+    return this._areas$.filter(q => q !== undefined);
   }
 
   private _areasChanged(arg: Array<IArea>) {
