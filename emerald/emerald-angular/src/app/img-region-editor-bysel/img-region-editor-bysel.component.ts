@@ -39,6 +39,9 @@ export class ImgRegionEditorByselComponent implements OnInit, OnDestroy {
   private readonly _regionsOnPage$ = new ReplaySubject<Array<IImageRegion>>(1);
   private readonly _pageRange$ = new ReplaySubject<IPageRange>(1);
 
+  private readonly _linkGenerator = (page: number, count: number) =>
+    ['../selections', { page: page, count: count }];
+
   constructor(private _regionsService: RegionEditorService,
               private _browserPages: BrowserPagesService)
   { }
@@ -85,41 +88,5 @@ export class ImgRegionEditorByselComponent implements OnInit, OnDestroy {
 
   private get _pageRange(): Observable<IPageRange> {
     return this._pageRange$;
-  }
-
-  private _prevPageLink(pageRange: IPageRange): any {
-    if (pageRange.page > 0) {
-      return { 'class': 'page-item',
-               'link': ['../selections', { page: pageRange.page - 1,
-                                           count: pageRange.count }],
-               'tabindex': 0 };
-    } else {
-      return { 'class': 'page-item disabled', 'link': ['./'], 'tabindex': -1 };
-    }
-  }
-
-  private _nextPageLink(pageRange: IPageRange): any {
-    if (pageRange.page < (pageRange.numPages - 1)) {
-      return { 'class': 'page-item',
-               'link': ['../selections', { page: pageRange.page + 1,
-                                           count: pageRange.count }],
-               'tabindex': 0 };
-    } else {
-      return { 'class': 'page-item disabled', 'link': ['./'], 'tabindex': -1 };
-    }
-  }
-
-  private _pageLinks(pageRange: IPageRange): any[] {
-    let retVal: Array<any> = [];
-    for (let i = 0; i < pageRange.numPages; ++i) {
-      if (i !== pageRange.page) {
-        retVal.push({ 'class': 'page-item',
-                      'caption': '' + (i + 1),
-                      'link':  ['../selections', { page: i, count: pageRange.count }]});
-      } else {
-        retVal.push({ 'class': 'page-item active', 'caption': '' + (i + 1), 'link': ['./']});
-      }
-    }
-    return retVal;
   }
 }

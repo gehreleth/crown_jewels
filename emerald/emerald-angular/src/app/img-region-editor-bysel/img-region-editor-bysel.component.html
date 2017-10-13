@@ -1,1 +1,10 @@
-<p>Under construction</p>
+<div *ngIf="_regionsOnPage | async; let regions">
+  <app-img-region-editor-bysel-sel *ngFor="let region of regions"
+    [imageMeta]="imageMeta"
+    [region]="region"
+    [dimensions]="dimensions">
+  </app-img-region-editor-bysel-sel>
+</div>
+<div *ngIf="_pageRange | async; let pageRange" id="pages-outer">
+  <app-paginator [pageRange]="pageRange" [linkGenerator]="_linkGenerator"></app-paginator>
+</div>

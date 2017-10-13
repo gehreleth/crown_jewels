@@ -1,0 +1,17 @@
+<nav id="pages-inner" aria-label="Region editor by selection pages">
+  <ul class="pagination">
+    <li [ngClass]="_prevPageLink.class">
+      <a class="page-link"
+         [routerLink]="_prevPageLink.link"
+         tabindex="{{_prevPageLink.tabindex}}">{{prevPageCaption}}</a>
+    </li>
+    <li *ngFor="let pl of _pageLinks" [ngClass]="pl.class">
+      <a class="page-link" [routerLink]="pl.link">{{pl.caption}}</a>
+    </li>
+    <li [ngClass]="_nextPageLink.class">
+      <a class="page-link"
+         [routerLink]="_nextPageLink.link"
+         tabindex="{{_nextPageLink.tabindex}}">{{nextPageCaption}}</a>
+    </li>
+  </ul>
+</nav>

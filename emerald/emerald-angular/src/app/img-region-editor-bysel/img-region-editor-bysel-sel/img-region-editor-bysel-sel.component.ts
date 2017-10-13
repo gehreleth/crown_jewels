@@ -9,7 +9,7 @@ import { IDimensions } from '../../util/dimensions';
   styleUrls: ['./img-region-editor-bysel-sel.component.scss']
 })
 export class ImgRegionEditorByselSelComponent implements OnInit {
-
+  @Input() imageMeta: IImageMeta;
   @Input() region: IImageRegion;
   @Input() dimensions: IDimensions;
 
