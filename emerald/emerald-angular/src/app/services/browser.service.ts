@@ -7,7 +7,7 @@ import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/first';
 import 'rxjs/add/operator/distinctUntilChanged';
 
 import { ReplaySubject } from 'rxjs/ReplaySubject';
@@ -95,7 +95,7 @@ export class BrowserService implements IBusyIndicatorHolder {
           });
       }
       return retVal;
-    }).take(1);
+    }).first();
     setBusyIndicator(this, obs).subscribe(tree => {
       this._tree$.next(tree);
     });
@@ -120,7 +120,7 @@ export class BrowserService implements IBusyIndicatorHolder {
         retVal = Observable.of(tree);
       }
       return retVal;
-    }).take(1);
+    }).first();
     setBusyIndicator(this, obs).subscribe(tree => this._tree$.next(tree));
   }
 
