@@ -4,9 +4,9 @@
     [region]="region"
     [dimensions]="dimensions">
   </app-img-region-editor-bysel-sel>
-  <div *ngIf="_pageRange | async; let pageRange" id="pages-outer">
+  <div *ngIf="_pageRange | async; let pageRange">
     <app-paginator
-      *ngIf="pageRange.numPages > 1" 
+      *ngIf="pageRange.numPages > 1"
       [pageRange]="pageRange"
       [linkGenerator]="_linkGenerator">
     </app-paginator>
