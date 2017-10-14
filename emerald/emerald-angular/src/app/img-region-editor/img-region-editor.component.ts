@@ -36,15 +36,23 @@ export class ImgRegionEditorComponent
 
   busyIndicator: Promise<any> = Promise.resolve(1);
 
-  @Input() imageMeta: IImageMeta;
-  @Input() dimensions: IDimensions;
+  private readonly _imageMeta$ = new ReplaySubject<IImageMeta>(1);
+  private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
+
+  @Input()
+  set imageMeta(imageMeta: IImageMeta) {
+    this._imageMeta$.next(imageMeta);
+  }
+
+  @Input()
+  set dimensions(dimensions: IDimensions) {
+    this._dimensions$.next(dimensions);
+  }
 
   private _imSub: Subscription;
   private _scopeSub: Subscription;
 
   private readonly _areas$ = new BehaviorSubject<Array<IArea>>(undefined);
-  private readonly _imageMeta$ = new ReplaySubject<IImageMeta>(1);
-  private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
 
   constructor(private _imageService: ImageMetadataService,
               private _regionsService: RegionEditorService)
