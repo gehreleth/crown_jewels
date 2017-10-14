@@ -3,14 +3,13 @@ import { Observable } from 'rxjs/Observable';
 
 import { ITreeNode, NodeType } from './entities/tree-node';
 import { IImageMeta, Rotation } from './entities/image-meta';
-import { IImageRegion } from './entities/image-region'
+import { IImageRegion, RegionStatus } from './entities/image-region';
 
 import { IQuery } from './query'
 
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/concatMap';
 import 'rxjs/add/observable/forkJoin';
-
 
 /**
 * Assigns new regions collection to the image meta object and performs deep
@@ -67,6 +66,7 @@ function updateRegions_post(http: Http, requestOptions: RequestOptions,
         text: r.text,
         x: r.x,
         y: r.y,
+        status: RegionStatus[r.status],
         width: r.width,
         height: r.height,
         imageMetadata: imageMetadataHref
@@ -85,6 +85,7 @@ function updateRegions_patch(http: Http, requestOptions: RequestOptions,
         text: r.text,
         x: r.x,
         y: r.y,
+        status: RegionStatus[r.status],
         width: r.width,
         height: r.height
       }), requestOptions));

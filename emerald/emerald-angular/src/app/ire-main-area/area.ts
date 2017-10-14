@@ -4,5 +4,6 @@ export interface IArea {
   width: number;
   height: number;
   text: string;
+  color?: string;
   attachment? : any;
 }

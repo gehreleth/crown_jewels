@@ -18,7 +18,7 @@ import { IArea } from '../ire-main-area/area'
 
 import { IQuery } from '../backend/query';
 import { IImageMeta, Rotation } from '../backend/entities/image-meta';
-import { IImageRegion } from '../backend/entities/image-region';
+import { IImageRegion, RegionStatus } from '../backend/entities/image-region';
 
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
@@ -152,12 +152,17 @@ function a2r(arg: Array<IArea>, scale: number): Array<IImageRegion> {
       if (q.attachment && q.attachment.href) {
         href = q.attachment.href;
       }
+      let status: RegionStatus = RegionStatus.Default;
+      if (q.attachment && q.attachment.status) {
+        status = q.attachment.status;
+      }
       const retVal: IImageRegion = {
         x: q.x * scale,
         y: q.y * scale,
         width: q.width * scale,
         height: q.height * scale,
         text: q.text,
+        status: status,
         href: href
       }
       return retVal;
@@ -174,11 +179,26 @@ function r2a(arg: Array<IImageRegion>, scale: number): Array<IArea> {
         width: q.width * scale,
         height: q.height * scale,
         text: q.text,
+        color: status2color(q.status),
         attachment: {
           href: q.href,
+          status: q.status
         }
       }
       return retVal;
     }
   );
+}
+
+function status2color(status: RegionStatus): string {
+  switch (status) {
+    case RegionStatus.HighUncertainty:
+      return 'red';
+    case RegionStatus.LowUncertainty:
+      return 'yellow';
+    case RegionStatus.HumanVerified:
+      return 'green';
+    default:
+      return null;
+  }
 }
