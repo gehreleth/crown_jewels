@@ -40,13 +40,13 @@ export class ImgRegionEditorComponent
   private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
 
   @Input()
-  set imageMeta(imageMeta: IImageMeta) {
-    this._imageMeta$.next(imageMeta);
+  set imageMeta(arg: IImageMeta) {
+    this._imageMeta$.next(arg);
   }
 
   @Input()
-  set dimensions(dimensions: IDimensions) {
-    this._dimensions$.next(dimensions);
+  set dimensions(arg: IDimensions) {
+    this._dimensions$.next(arg);
   }
 
   private _imSub: Subscription;

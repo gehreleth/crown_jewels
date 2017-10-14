@@ -1,13 +1,12 @@
-<div *ngIf="_regionsOnPage | async; let regions">
-  <app-img-region-editor-bysel-sel *ngFor="let region of regions"
-    [imageMeta]="imageMeta"
-    [region]="region"
-    [dimensions]="dimensions">
-  </app-img-region-editor-bysel-sel>
-  <div *ngIf="_pageRange | async; let pageRange">
-    <app-paginator
-      *ngIf="pageRange.numPages > 1"
-      [pageRange]="pageRange"
+<div *ngIf="_editorPageState | async; let eps">
+  <div [ngBusy]="busyIndicator">
+    <app-img-region-editor-bysel-sel *ngFor="let region of eps.regionsOnPage"
+      [imageMeta]="eps.imageMeta"
+      [region]="region"
+      [dimensions]="eps.dimensions">
+    </app-img-region-editor-bysel-sel>
+    <app-paginator *ngIf="eps.pageRange.numPages > 1"
+      [pageRange]="eps.pageRange"
       [linkGenerator]="_linkGenerator">
     </app-paginator>
   </div>
