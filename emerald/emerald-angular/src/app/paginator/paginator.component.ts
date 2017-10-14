@@ -16,9 +16,7 @@ export class PaginatorComponent implements OnInit {
 
   constructor() { }
 
-  ngOnInit() {
-    console.log('I am here');
-  }
+  ngOnInit() { }
 
   private get _prevPageLink(): any {
     if (this.pageRange.page > 0) {
