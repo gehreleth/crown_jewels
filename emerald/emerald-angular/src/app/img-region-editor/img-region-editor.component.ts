@@ -130,10 +130,7 @@ export class ImgRegionEditorComponent
             return this._regionsService.saveRegions(imageMeta, scope,
               a2r(areas, naturalWidth / clientWidth));
           }).map(regions => {
-            return {
-              'regions': regions,
-              'dimensions': dimensions
-            }
+            return { 'regions': regions, 'dimensions': dimensions };
           }))));
     setBusyIndicator(this, obs).subscribe(state =>
       this._updateAreas(state.regions, state.dimensions));
