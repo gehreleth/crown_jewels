@@ -103,7 +103,8 @@ export class IreBsImageComponent implements OnChanges {
     return {   'display': 'inline-block',
                'position': 'relative',
                'width': `${this.width}px`,
-               'height': `${this.height}px` };
+               'height': `${this.height}px`,
+               'margin': '16px'};
   }
 
   private get _imgStyles(): any {

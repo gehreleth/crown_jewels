@@ -18,4 +18,19 @@ export class ImgRegionEditorByselSelComponent implements OnInit {
   ngOnInit() {
   }
 
+  private get _x(): number {
+    return Math.round(this.region.x);
+  }
+
+  private get _y(): number {
+    return Math.round(this.region.x);
+  }
+
+  private get _width(): number {
+    return Math.round(this.region.width);
+  }
+
+  private get _height(): number {
+    return Math.round(this.region.height);
+  }
 }
