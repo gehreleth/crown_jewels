@@ -6,6 +6,7 @@ import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import 'rxjs/add/operator/first';
+import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/distinctUntilChanged';
 
@@ -45,8 +46,6 @@ export class ImgRegionEditorComponent
   private readonly _imageMeta$ = new ReplaySubject<IImageMeta>(1);
   private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
 
-  private _scope: IQuery<Array<IImageRegion>>;
-
   constructor(private _imageService: ImageMetadataService,
               private _regionsService: RegionEditorService)
   { }
@@ -59,12 +58,9 @@ export class ImgRegionEditorComponent
       });
 
     this._scopeSub = this._dimensions$.mergeMap(dimensions => {
-       let obs = this._regionsService.scope.first();
-       return obs.concatMap(scope => {
-        this._scope = scope;
-        return setBusyIndicator(this, this._scope())
-      }).map(r => {
-        return { 'regions': r, 'dimensions': dimensions }
+      let scopeObs = this._regionsService.scope.first();
+      return scopeObs.concatMap(scope => setBusyIndicator(this, scope())).map(r => {
+        return { 'regions': r, 'dimensions': dimensions };
       })
     }).subscribe(state => this._updateAreas(state.regions, state.dimensions));
   }
@@ -125,24 +121,22 @@ export class ImgRegionEditorComponent
   }
 
   private _saveRegions(event: any) : void {
-    let obs = this._imageMeta$.first().mergeMap(imageMeta => {
-      return this._dimensions$.first().mergeMap(dimensions => {
-        return this._areas.first().mergeMap(areas => {
-          const naturalWidth = dimensions.naturalWidth;
-          const clientWidth = dimensions.clientWidth;
-          return this._regionsService.saveRegions(imageMeta, this._scope,
+    let obs = this._imageMeta$.first().mergeMap(imageMeta =>
+      this._regionsService.scope.first().mergeMap(scope =>
+        this._dimensions$.first().mergeMap(dimensions =>
+          this._areas.first().mergeMap(areas => {
+            const naturalWidth = dimensions.naturalWidth;
+            const clientWidth = dimensions.clientWidth;
+            return this._regionsService.saveRegions(imageMeta, scope,
               a2r(areas, naturalWidth / clientWidth));
-        }).map(regions => {
-          return {
-            'regions': regions,
-            'dimensions': dimensions
-          }
-        })
-      })
-    });
-    setBusyIndicator(this, obs).subscribe(state => {
-      this._updateAreas(state.regions, state.dimensions);
-    });
+          }).map(regions => {
+            return {
+              'regions': regions,
+              'dimensions': dimensions
+            }
+          }))));
+    setBusyIndicator(this, obs).subscribe(state =>
+      this._updateAreas(state.regions, state.dimensions));
   }
 }
 
