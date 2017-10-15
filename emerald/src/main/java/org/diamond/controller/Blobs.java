@@ -81,7 +81,7 @@ public class Blobs {
             key.y = y;
             key.width = width;
             key.height = height;
-            IContent content = cachedContent.get(key);
+            IContent content = cachedFragments.get(key);
             retVal = ResponseEntity.ok().contentLength(content.getLength())
                         .contentType(MediaType.parseMediaType(content.getMimeType())).body(content.getData());
         } catch (Exception e) {
@@ -91,13 +91,9 @@ public class Blobs {
         return retVal;
     }
 
-    private final CacheLoader<BlobCacheKey, CachedContent> loader = new CacheLoader<BlobCacheKey, CachedContent> () {
+    private final CacheLoader<BlobCacheKey, CachedContent> fragmentLoader = new CacheLoader<BlobCacheKey, CachedContent> () {
         public CachedContent load(BlobCacheKey key) throws Exception {
-            IContent content;
-            try (Connection conn = dataSource.getConnection()) {
-                conn.setAutoCommit(false);
-                content = retrieveContent(conn, key.uuid);
-            }
+            IContent content = cachedImages.get(key.uuid);
             content = applyTransformations(content, key);
             File tmp = makeTmpFile();
             FileUtils.copyInputStreamToFile(content.getData().getInputStream(), tmp);
@@ -105,7 +101,20 @@ public class Blobs {
         }
     };
 
-    private final RemovalListener<BlobCacheKey, CachedContent> removalListener = removal -> {
+    private final CacheLoader<UUID, CachedContent> blobLoader = new CacheLoader<UUID, CachedContent> () {
+        public CachedContent load(UUID uuid) throws Exception {
+            IContent content;
+            try (Connection conn = dataSource.getConnection()) {
+                conn.setAutoCommit(false);
+                content = retrieveContent(conn, uuid);
+            }
+            File tmp = makeTmpFile();
+            FileUtils.copyInputStreamToFile(content.getData().getInputStream(), tmp);
+            return new CachedContent(tmp, content.getLength(), content.getMimeType());
+        }
+    };
+
+    private final RemovalListener<UUID, CachedContent> blobRemovalListener = removal -> {
         try {
             File file = removal.getValue().tmpFile;
             if (!file.delete()) {
@@ -116,9 +125,24 @@ public class Blobs {
         }
     };
 
+
     // TODO: Take cache size from project configuration
-    private final LoadingCache<BlobCacheKey, CachedContent> cachedContent = CacheBuilder.newBuilder()
-            .maximumSize(100).removalListener(removalListener).build(loader);
+    private final LoadingCache<UUID, CachedContent> cachedImages = CacheBuilder.newBuilder()
+            .maximumSize(100).removalListener(blobRemovalListener).build(blobLoader);
+
+    private final RemovalListener<BlobCacheKey, CachedContent> fragmentRemovalListener = removal -> {
+        try {
+            File file = removal.getValue().tmpFile;
+            if (!file.delete()) {
+                LOGGER.warn("Can't remove temporary file :" + file.getName());
+            }
+        } catch (Exception e) {
+            LOGGER.error("Cache removal listener", e);
+        }
+    };
+
+    private final LoadingCache<BlobCacheKey, CachedContent> cachedFragments = CacheBuilder.newBuilder()
+            .maximumSize(100).removalListener(fragmentRemovalListener).build(fragmentLoader);
 
     private IContent retrieveContent(Connection conn, UUID uuid) throws SQLException, IOException {
         IContent retVal;

@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { IImageMeta } from '../../backend/entities/image-meta';
 import { IImageRegion, RegionStatus } from '../../backend/entities/image-region';
 import { IDimensions } from '../../util/dimensions';
@@ -13,10 +14,10 @@ export class ImgRegionEditorByselSelComponent implements OnInit {
   @Input() region: IImageRegion;
   @Input() dimensions: IDimensions;
 
-  constructor() { }
+  constructor(private _router: Router, private _activatedRoute: ActivatedRoute)
+  { }
 
-  ngOnInit() {
-  }
+  ngOnInit() { }
 
   private get _x(): number {
     return Math.round(this.region.x);
@@ -32,6 +33,10 @@ export class ImgRegionEditorByselSelComponent implements OnInit {
 
   private get _height(): number {
     return Math.round(this.region.height);
+  }
+
+  private _editRegion(event: any, region: IImageRegion): void {
+    console.log(event);
   }
 
   private _statusClass(status: RegionStatus): string {

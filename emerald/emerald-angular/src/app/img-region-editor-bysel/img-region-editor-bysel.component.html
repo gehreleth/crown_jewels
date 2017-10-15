@@ -1,11 +1,12 @@
 <div *ngIf="_editorPageState | async; let eps" [ngBusy]="busyIndicator">
   <div id="mysel-main-area">
-    <div *ngFor="let region of eps.regionsOnPage" class="card">
+    <div *ngFor="let region of eps.regionsOnPage">
       <app-img-region-editor-bysel-sel
         [imageMeta]="eps.imageMeta"
         [region]="region"
         [dimensions]="eps.dimensions">
       </app-img-region-editor-bysel-sel>
+      <hr>
     </div>
   </div>
   <app-paginator *ngIf="eps.pageRange.numPages > 1"

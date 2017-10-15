@@ -5,6 +5,10 @@
       [width]="300" [height]="300">
     </app-ire-bs-image>
     <div class="media-body" id="editor-body">
+      <div class="pull-right">
+        <button type="button" class="btn btn-primary btn-sm"
+          (click)="_editRegion($event, region)">Edit...</button>
+      </div>
       <h5>Region 1.</h5>
       <small class="text-muted">
         x:{{_x}}, y:{{_y}}, width:{{_width}}, height:{{_height}}
