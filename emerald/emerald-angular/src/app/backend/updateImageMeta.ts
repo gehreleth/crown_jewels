@@ -16,7 +16,7 @@ import 'rxjs/add/operator/concatMap';
 *
 * @returns Observable of the updated meta object.
 */
-export default function updateWithoutRegions(http: Http, requestOptions: RequestOptions,
+export default function updateImageMeta(http: Http, requestOptions: RequestOptions,
   arg: IImageMeta) : Observable<IImageMeta>
 {
   if (arg && arg.href) {

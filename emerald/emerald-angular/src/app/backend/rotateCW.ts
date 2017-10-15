@@ -8,7 +8,7 @@ import { IImageRegion } from './entities/image-region'
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/concatMap';
 
-import updateWithoutRegions from './updateWithoutRegions'
+import updateImageMeta from './updateImageMeta'
 
 /**
 * Updates image meta, sets its default angle to (current angle + 90) MOD 360
@@ -28,5 +28,5 @@ export default function rotateCW(http: Http, requestOptions: RequestOptions,
     contentLength: arg.contentLength,
     rotation: updRotation
   }
-  return updateWithoutRegions(http, requestOptions, im);
+  return updateImageMeta(http, requestOptions, im);
 }

@@ -13,7 +13,7 @@ export default function allRegions(http: Http, imageMeta: IImageMeta)
   : Observable<Array<IImageRegion>>
 {
     if (imageMeta && imageMeta.href) {
-      return http.get(imageMeta.href).concatMap((rsp : Response) => {
+      return http.get(`${imageMeta.href}?projection=brief`).concatMap((rsp : Response) => {
         const dict = rsp.json();
         const regionsHref = new URL(dict._links.regions.href).pathname;
         return http.get(regionsHref).map((rsp: Response) =>
