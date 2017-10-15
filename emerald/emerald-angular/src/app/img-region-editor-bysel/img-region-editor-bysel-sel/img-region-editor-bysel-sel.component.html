@@ -1,35 +1,30 @@
 <div class="container-fluid">
-  <form>
-    <div class="media">
-      <app-ire-bs-image class="d-flex mr-3"
-        [imageMeta]="imageMeta" [region]="region" [dimensions]="dimensions"
-        [width]="300" [height]="300">
-      </app-ire-bs-image>
-      <div class="media-body" id="editor-body">
-        <h5>Region 1.</h5>
-        <small class="form-text text-muted">
-          x:{{_x}}, y:{{_y}}, width:{{_width}}, height:{{_height}}
-        </small>
-        <hr>
-        <div class="form-group row">
-          <label for="region-text" class="col-sm-2 col-form-label">Text</label>
-          <div class="col-sm-10">
-            <input id="region-text"
-                   type="text"
-                   readonly class="form-control-plaintext"
-                   [value]="_textString(region.text)">
-          </div>
+  <div class="media">
+    <app-ire-bs-image class="d-flex mr-3"
+      [imageMeta]="imageMeta" [region]="region" [dimensions]="dimensions"
+      [width]="300" [height]="300">
+    </app-ire-bs-image>
+    <div class="media-body" id="editor-body">
+      <h5>Region 1.</h5>
+      <small class="text-muted">
+        x:{{_x}}, y:{{_y}}, width:{{_width}}, height:{{_height}}
+      </small>
+      <hr>
+      <div class="row">
+        <div class="col-sm-1"><strong>Text</strong></div>
+        <div class="col-sm-11">
+          <p *ngIf="region.text; else notext">{{region.text}}</p>
+          <ng-template #notext>
+            <span class="badge badge-danger">None</span>
+          </ng-template>
         </div>
-        <div class="form-group row">
-          <label for="region-status" class="col-sm-2 col-form-label">Status</label>
-          <div class="col-sm-10">
-            <input id="region-status"
-                   type="text"
-                   readonly class="form-control-plaintext"
-                   [value]="_statusString(region.status)">
-          </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-1"><strong>Status</strong></div>
+        <div class="col-sm-11">
+          <span class="{{_statusClass(region.status)}}">{{_statusString(region.status)}}</span>
         </div>
       </div>
     </div>
-  </form>
+  </div>
 </div>

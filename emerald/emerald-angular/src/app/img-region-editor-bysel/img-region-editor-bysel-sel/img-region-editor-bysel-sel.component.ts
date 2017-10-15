@@ -34,8 +34,17 @@ export class ImgRegionEditorByselSelComponent implements OnInit {
     return Math.round(this.region.height);
   }
 
-  private _textString(text: string): string {
-    return text ? text : '[Not Assigned]';
+  private _statusClass(status: RegionStatus): string {
+    switch(status) {
+      case RegionStatus.HighUncertainty:
+        return 'badge badge-danger';
+      case RegionStatus.LowUncertainty:
+        return 'badge badge-warning';
+      case RegionStatus.HumanVerified:
+        return 'badge badge-success';
+      default:
+        return 'badge badge-info';
+    }
   }
 
   private _statusString(status: RegionStatus): string {
