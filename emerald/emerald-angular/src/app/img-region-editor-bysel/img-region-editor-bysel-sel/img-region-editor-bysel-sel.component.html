@@ -2,11 +2,8 @@
   <form>
     <div class="media">
       <app-ire-bs-image class="d-flex mr-3"
-        [imageMeta]="imageMeta"
-        [region]="region"
-        [dimensions]="dimensions"
-        [width]="300"
-        [height]="300">
+        [imageMeta]="imageMeta" [region]="region" [dimensions]="dimensions"
+        [width]="300" [height]="300">
       </app-ire-bs-image>
       <div class="media-body" id="editor-body">
         <h5>Region 1.</h5>
@@ -15,21 +12,21 @@
         </small>
         <hr>
         <div class="form-group row">
-          <label for="staticEmail" class="col-sm-2 col-form-label">Email</label>
+          <label for="region-text" class="col-sm-2 col-form-label">Text</label>
           <div class="col-sm-10">
-            <input type="text" readonly class="form-control-plaintext" id="staticEmail" value="email@example.com">
+            <input id="region-text"
+                   type="text"
+                   readonly class="form-control-plaintext"
+                   [value]="_textString(region.text)">
           </div>
         </div>
         <div class="form-group row">
-          <label for="staticEmail" class="col-sm-2 col-form-label">Email</label>
+          <label for="region-status" class="col-sm-2 col-form-label">Status</label>
           <div class="col-sm-10">
-            <input type="text" readonly class="form-control-plaintext" id="staticEmail" value="email@example.com">
-          </div>
-        </div>
-        <div class="form-group row">
-          <label for="staticEmail" class="col-sm-2 col-form-label">Email</label>
-          <div class="col-sm-10">
-            <input type="text" readonly class="form-control-plaintext" id="staticEmail" value="email@example.com">
+            <input id="region-status"
+                   type="text"
+                   readonly class="form-control-plaintext"
+                   [value]="_statusString(region.status)">
           </div>
         </div>
       </div>

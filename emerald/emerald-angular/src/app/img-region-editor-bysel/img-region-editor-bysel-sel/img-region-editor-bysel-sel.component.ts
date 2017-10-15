@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { IImageMeta } from '../../backend/entities/image-meta';
-import { IImageRegion } from '../../backend/entities/image-region';
+import { IImageRegion, RegionStatus } from '../../backend/entities/image-region';
 import { IDimensions } from '../../util/dimensions';
 
 @Component({
@@ -32,5 +32,22 @@ export class ImgRegionEditorByselSelComponent implements OnInit {
 
   private get _height(): number {
     return Math.round(this.region.height);
+  }
+
+  private _textString(text: string): string {
+    return text ? text : '[Not Assigned]';
+  }
+
+  private _statusString(status: RegionStatus): string {
+    switch(status) {
+      case RegionStatus.HighUncertainty:
+        return 'High Uncertainty';
+      case RegionStatus.LowUncertainty:
+        return 'Low Uncertainty';
+      case RegionStatus.HumanVerified:
+        return 'Verified by Human Operator';
+      default:
+        return 'Created Interactively';
+    }
   }
 }
