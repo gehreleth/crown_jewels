@@ -36,32 +36,8 @@ export class ImgRegionEditorByselSelComponent implements OnInit {
   }
 
   private _editRegion(event: any, region: IImageRegion): void {
-    console.log(event);
-  }
-
-  private _statusClass(status: RegionStatus): string {
-    switch(status) {
-      case RegionStatus.HighUncertainty:
-        return 'badge badge-danger';
-      case RegionStatus.LowUncertainty:
-        return 'badge badge-warning';
-      case RegionStatus.HumanVerified:
-        return 'badge badge-success';
-      default:
-        return 'badge badge-info';
-    }
-  }
-
-  private _statusString(status: RegionStatus): string {
-    switch(status) {
-      case RegionStatus.HighUncertainty:
-        return 'High Uncertainty';
-      case RegionStatus.LowUncertainty:
-        return 'Low Uncertainty';
-      case RegionStatus.HumanVerified:
-        return 'Verified by Human Operator';
-      default:
-        return 'Created Interactively';
-    }
+    this._router.navigate(['./', {
+      edit: encodeURI(this.region.href)
+    }], { relativeTo: this._activatedRoute });
   }
 }

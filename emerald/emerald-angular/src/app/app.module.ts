@@ -31,6 +31,7 @@ import { ImgRegionEditorByselSelComponent } from './img-region-editor-bysel/img-
 import { IreBsImageComponent } from './img-region-editor-bysel/ire-bs-image/ire-bs-image.component';
 import { BrowserCommonImageComponent } from './browser/browser-common-image/browser-common-image.component';
 import { PaginatorComponent } from './paginator/paginator.component';
+import { ImgRegionEditorByselPreviewComponent } from './img-region-editor-bysel/img-region-editor-bysel-preview/img-region-editor-bysel-preview.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -63,7 +64,8 @@ const routes: Routes = [
     ImgRegionEditorByselSelComponent,
     IreBsImageComponent,
     BrowserCommonImageComponent,
-    PaginatorComponent
+    PaginatorComponent,
+    ImgRegionEditorByselPreviewComponent
   ],
   imports: [
     BrowserModule,

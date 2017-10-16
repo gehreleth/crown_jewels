@@ -11,8 +11,8 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/first';
 import 'rxjs/add/operator/distinctUntilChanged';
 
-import { RegionEditorService } from '../services/region-editor.service';
-import { BrowserPagesService } from '../services/browser-pages.service';
+import { ImageMetadataService } from '../services/image-metadata.service';
+import { BrowserPagesService} from '../services/browser-pages.service';
 
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
@@ -35,7 +35,6 @@ interface IEditorPageState {
   selector: 'app-img-region-editor-bysel',
   templateUrl: './img-region-editor-bysel.component.html',
   styleUrls: ['./img-region-editor-bysel.component.scss'],
-  providers: [ RegionEditorService ]
 })
 export class ImgRegionEditorByselComponent
   implements IBusyIndicatorHolder, OnInit, OnChanges, OnDestroy {
@@ -62,7 +61,7 @@ export class ImgRegionEditorByselComponent
   private readonly _linkGenerator = (page: number, count: number) =>
     ['../selections', { page: page, count: count }];
 
-  constructor(private _regionsService: RegionEditorService,
+  constructor(private _imageMetadataService: ImageMetadataService,
               private _browserPages: BrowserPagesService)
   { }
 
@@ -70,14 +69,13 @@ export class ImgRegionEditorByselComponent
     this._imSub = this._imageMeta$
       .distinctUntilChanged((u, v) => u === v, im => im.href)
       .subscribe(imageMeta => {
-        this._regionsService.setAllRegionsScope(imageMeta)
+        this._imageMetadataService.setAllRegionsScope(imageMeta)
       });
 
     this._stateSub = this._imageMeta$.mergeMap(imageMeta =>
       this._dimensions$.mergeMap(dimensions =>
         this._browserPages.pageRange.mergeMap(pageRange => {
-          let scopeObs = this._regionsService.scope.first().concatMap(scope => scope());
-          return setBusyIndicator(this, scopeObs).map(regions => {
+          return this._imageMetadataService.regionsCache.map(regions => {
             const start = pageRange.page * pageRange.count;
             let end = start + pageRange.count;
             end = Math.min(end, regions.length);

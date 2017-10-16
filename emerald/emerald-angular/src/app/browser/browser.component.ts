@@ -19,9 +19,10 @@ export class BrowserComponent implements OnInit, OnDestroy {
   private _rootNodes: Array<ITreeNode>;
   private _selection: ITreeNode;
 
-  private _routeSubscription: Subscription;
-  private _rootNodesSubscription: Subscription;
-  private _selectedSubscription: Subscription;
+  private _routeSub: Subscription;
+  private _regionsScopeSub: Subscription;
+  private _rootNodesSub: Subscription;
+  private _selectedSub: Subscription;
 
   constructor(private _activatedRoute: ActivatedRoute,
               private _browserService: BrowserService,
@@ -29,33 +30,39 @@ export class BrowserComponent implements OnInit, OnDestroy {
   { }
 
   ngOnInit() {
-    this._routeSubscription = this._activatedRoute.params.subscribe((params: Params) => {
+    this._routeSub = this._activatedRoute.params.subscribe((params: Params) => {
       const idParam: string = params['id'];
       if (this._isNumberRe.test(idParam)) {
         this._browserService.selectById(parseInt(idParam));
       }
     });
-    this._rootNodesSubscription =
-      this._browserService.rootNodes.subscribe((rootNodes: Array<ITreeNode>) =>
-        {
-          this._rootNodes = rootNodes;
-        });
-    this._selectedSubscription =
-      this._browserService.selection.subscribe((selection: ITreeNode) => {
-        this._selection = selection;
-        if (this._selection && this._selection.type === NodeType.Image) {
-          let observable = this._imageMetadataService.fromNode(this._selection);
-          observable = setBusyIndicator(this._browserService, observable);
-          observable.subscribe(imageMeta => {
-            this._imageMetadataService.setImageMeta(imageMeta);
-          });
-        }
+
+    this._imageMetadataService.scope.mergeMap(scope =>
+      setBusyIndicator(this._browserService, scope()))
+      .subscribe(regions => {
+        this._imageMetadataService.updateRegionsCache(regions);
       });
+
+    this._rootNodesSub = this._browserService.rootNodes.subscribe((rootNodes: Array<ITreeNode>) => {
+      this._rootNodes = rootNodes;
+    });
+
+    this._selectedSub = this._browserService.selection.subscribe((selection: ITreeNode) => {
+      this._selection = selection;
+      if (this._selection && this._selection.type === NodeType.Image) {
+        let observable = this._imageMetadataService.fromNode(this._selection);
+        observable = setBusyIndicator(this._browserService, observable);
+        observable.subscribe(imageMeta => {
+          this._imageMetadataService.setImageMeta(imageMeta);
+        });
+      }
+    });
   }
 
   ngOnDestroy() {
-    this._rootNodesSubscription.unsubscribe();
-    this._selectedSubscription.unsubscribe();
-    this._routeSubscription.unsubscribe();
+    this._regionsScopeSub.unsubscribe();
+    this._rootNodesSub.unsubscribe();
+    this._selectedSub.unsubscribe();
+    this._routeSub.unsubscribe();
   }
 }

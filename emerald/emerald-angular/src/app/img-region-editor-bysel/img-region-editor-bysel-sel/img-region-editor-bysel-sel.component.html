@@ -4,7 +4,7 @@
       [imageMeta]="imageMeta" [region]="region" [dimensions]="dimensions"
       [width]="300" [height]="300">
     </app-ire-bs-image>
-    <div class="media-body" id="editor-body">
+    <div class="media-body" id="body">
       <div class="pull-right">
         <button type="button" class="btn btn-primary btn-sm"
           (click)="_editRegion($event, region)">Edit...</button>
@@ -14,21 +14,9 @@
         x:{{_x}}, y:{{_y}}, width:{{_width}}, height:{{_height}}
       </small>
       <hr>
-      <div class="row">
-        <div class="col-sm-1"><strong>Text</strong></div>
-        <div class="col-sm-11">
-          <p *ngIf="region.text; else notext">{{region.text}}</p>
-          <ng-template #notext>
-            <span class="badge badge-danger">None</span>
-          </ng-template>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-sm-1"><strong>Status</strong></div>
-        <div class="col-sm-11">
-          <span class="{{_statusClass(region.status)}}">{{_statusString(region.status)}}</span>
-        </div>
-      </div>
+      <app-img-region-editor-bysel-preview
+        [region]="region">
+      </app-img-region-editor-bysel-preview>
     </div>
   </div>
 </div>

@@ -11,7 +11,6 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/distinctUntilChanged';
 
 import { ImageMetadataService } from '../services/image-metadata.service';
-import { RegionEditorService } from '../services/region-editor.service';
 
 import { IDimensions } from '../util/dimensions'
 import { IArea } from '../ire-main-area/area'
@@ -29,7 +28,6 @@ import getBlobUrl from '../util/getBlobUrl';
   selector: 'app-img-region-editor',
   templateUrl: './img-region-editor.component.html',
   styleUrls: ['./img-region-editor.component.scss'],
-  providers: [ RegionEditorService ]
 })
 export class ImgRegionEditorComponent
   implements IBusyIndicatorHolder, OnInit, OnChanges, OnDestroy {
@@ -50,24 +48,22 @@ export class ImgRegionEditorComponent
   }
 
   private _imSub: Subscription;
-  private _scopeSub: Subscription;
+  private _updateAreasSub: Subscription;
 
   private readonly _areas$ = new BehaviorSubject<Array<IArea>>(undefined);
 
-  constructor(private _imageService: ImageMetadataService,
-              private _regionsService: RegionEditorService)
+  constructor(private _imageMetadataService: ImageMetadataService)
   { }
 
   ngOnInit() {
     this._imSub = this._imageMeta$
       .distinctUntilChanged((u, v) => u === v, im => im.href)
       .subscribe(imageMeta => {
-        this._regionsService.setAllRegionsScope(imageMeta)
+        this._imageMetadataService.setAllRegionsScope(imageMeta)
       });
 
-    this._scopeSub = this._dimensions$.mergeMap(dimensions => {
-      let scopeObs = this._regionsService.scope.first();
-      return scopeObs.concatMap(scope => setBusyIndicator(this, scope())).map(r => {
+    this._updateAreasSub = this._dimensions$.mergeMap(dimensions => {
+      return this._imageMetadataService.regionsCache.map(r => {
         return { 'regions': r, 'dimensions': dimensions };
       })
     }).subscribe(state => this._updateAreas(state.regions, state.dimensions));
@@ -86,7 +82,7 @@ export class ImgRegionEditorComponent
   }
 
   ngOnDestroy() {
-    this._scopeSub.unsubscribe();
+    this._updateAreasSub.unsubscribe();
     this._imSub.unsubscribe();
   }
 
@@ -100,16 +96,16 @@ export class ImgRegionEditorComponent
 
   private _rotateCW(event: any): void {
     let obs = this._imageMeta$.first()
-      .mergeMap(imageMeta => this._imageService.rotateCW(imageMeta))
+      .mergeMap(imageMeta => this._imageMetadataService.rotateCW(imageMeta))
     setBusyIndicator(this, obs)
-      .subscribe(imageMeta => this._imageService.setImageMeta(imageMeta));
+      .subscribe(imageMeta => this._imageMetadataService.setImageMeta(imageMeta));
   }
 
   private _rotateCCW(event:any): void {
     let obs = this._imageMeta$.first()
-      .mergeMap(imageMeta => this._imageService.rotateCCW(imageMeta))
+      .mergeMap(imageMeta => this._imageMetadataService.rotateCCW(imageMeta))
     setBusyIndicator(this, obs)
-      .subscribe(imageMeta => this._imageService.setImageMeta(imageMeta));
+      .subscribe(imageMeta => this._imageMetadataService.setImageMeta(imageMeta));
   }
 
   private get _imageInfo(): Observable<any> {
@@ -130,12 +126,12 @@ export class ImgRegionEditorComponent
 
   private _saveRegions(event: any) : void {
     let obs = this._imageMeta$.first().mergeMap(imageMeta =>
-      this._regionsService.scope.first().mergeMap(scope =>
+      this._imageMetadataService.scope.first().mergeMap(scope =>
         this._dimensions$.first().mergeMap(dimensions =>
           this._areas.first().mergeMap(areas => {
             const naturalWidth = dimensions.naturalWidth;
             const clientWidth = dimensions.clientWidth;
-            return this._regionsService.saveRegions(imageMeta, scope,
+            return this._imageMetadataService.saveRegions(imageMeta, scope,
               a2r(areas, naturalWidth / clientWidth));
           }).map(regions => {
             return { 'regions': regions, 'dimensions': dimensions };
