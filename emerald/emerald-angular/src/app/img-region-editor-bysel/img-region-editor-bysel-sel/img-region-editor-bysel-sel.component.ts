@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { IImageMeta } from '../../backend/entities/image-meta';
 import { IImageRegion } from '../../backend/entities/image-region';
-import { IEnumeratedImageRegion } from '../enumerated-region';
+import { IEditorByselRegion } from '../editor-bysel-region';
 import { IDimensions } from '../../util/dimensions';
 
 @Component({
@@ -12,7 +12,7 @@ import { IDimensions } from '../../util/dimensions';
 })
 export class ImgRegionEditorByselSelComponent implements OnInit {
   @Input() imageMeta: IImageMeta;
-  @Input() region: IEnumeratedImageRegion;
+  @Input() region: IEditorByselRegion;
   @Input() dimensions: IDimensions;
 
   constructor(private _router: Router, private _activatedRoute: ActivatedRoute)

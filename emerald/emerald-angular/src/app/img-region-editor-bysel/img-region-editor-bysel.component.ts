@@ -20,7 +20,7 @@ import { IQuery } from '../backend/query';
 
 import { IPageRange } from '../util/page-range';
 import { IDimensions } from '../util/dimensions'
-import { IEnumeratedImageRegion} from './enumerated-region';
+import { IEditorByselRegion } from './editor-bysel-region';
 
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
@@ -29,7 +29,7 @@ interface IEditorPageState {
   pageRange: IPageRange,
   imageMeta: IImageMeta,
   dimensions: IDimensions,
-  regionsOnPage: Array<IEnumeratedImageRegion>,
+  regionsOnPage: Array<IEditorByselRegion>,
 };
 
 @Component({
@@ -75,36 +75,33 @@ export class ImgRegionEditorByselComponent
 
     this._stateSub = this._imageMeta$.mergeMap(imageMeta =>
       this._dimensions$.mergeMap(dimensions =>
-        this._browserPages.pageRange.mergeMap(pageRange => {
-          return this._imageMetadataService.regionsCache.map(regions => {
-            const start = pageRange.page * pageRange.count;
-            let end = start + pageRange.count;
-            end = Math.min(end, regions.length);
-            let pageRange0 = { ... pageRange };
-            pageRange0.numPages = Math.ceil(regions.length / pageRange.count);
-            let regions0: Array<IEnumeratedImageRegion> = [];
-            let n = start;
-            for (let r of regions.slice(start, end)) {
-              regions0.push({
-                num: ++n,
-                href: r.href,
-                text: r.text,
-                status: r.status,
-                x: r.x,
-                y: r.y,
-                width: r.width,
-                height: r.height
-              });
-            }
-            const retVal: IEditorPageState = {
-              pageRange: pageRange0,
-              imageMeta: imageMeta,
-              dimensions: dimensions,
-              regionsOnPage: regions0
-            }
-            return retVal;
-          })
-        }))).subscribe(s => this._editorPageState$.next(s));
+        this._browserPages.pageRange.mergeMap(pageRange =>
+          this._imageMetadataService.activeRegion.mergeMap(activeRegion =>
+            this._imageMetadataService.regionsCache.map(regions => {
+              const activeHref = activeRegion ? activeRegion.href : null;
+              const start = pageRange.page * pageRange.count;
+              let end = start + pageRange.count;
+              end = Math.min(end, regions.length);
+              let pageRange0 = { ... pageRange };
+              pageRange0.numPages = Math.ceil(regions.length / pageRange.count);
+              let regions0: Array<IEditorByselRegion> = [];
+              let n = start;
+              for (let r of regions.slice(start, end)) {
+                regions0.push({
+                  num: ++n,
+                  active: activeHref === r.href,
+                  href: r.href,
+                  text: r.text,
+                  status: r.status,
+                  x: r.x,
+                  y: r.y,
+                  width: r.width,
+                  height: r.height
+                });
+              }
+              return { pageRange: pageRange0, imageMeta: imageMeta,
+                dimensions: dimensions, regionsOnPage: regions0 };
+          }))))).subscribe(s => this._editorPageState$.next(s));
   }
 
   ngOnChanges(changes: SimpleChanges) {
