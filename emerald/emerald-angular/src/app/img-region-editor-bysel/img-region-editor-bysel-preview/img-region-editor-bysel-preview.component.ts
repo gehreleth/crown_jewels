@@ -5,8 +5,8 @@ import { IImageRegion, RegionStatus } from '../../backend/entities/image-region'
   selector: 'app-img-region-editor-bysel-preview',
   template: `
 <div class="row">
-  <div class="col-sm-1"><strong>Text</strong></div>
-  <div class="col-sm-11">
+  <div class="col-sm-2"><strong>Text</strong></div>
+  <div class="col-sm-10">
     <p *ngIf="region.text; else notext">{{region.text}}</p>
     <ng-template #notext>
       <span class="badge badge-danger">None</span>
@@ -14,8 +14,8 @@ import { IImageRegion, RegionStatus } from '../../backend/entities/image-region'
   </div>
 </div>
 <div class="row">
-  <div class="col-sm-1"><strong>Status</strong></div>
-  <div class="col-sm-11">
+  <div class="col-sm-2"><strong>Status</strong></div>
+  <div class="col-sm-10">
     <span class="{{_statusClass(region.status)}}">{{_statusString(region.status)}}</span>
   </div>
 </div>

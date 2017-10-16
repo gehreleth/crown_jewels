@@ -1,6 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgxPopperModule } from 'ngx-popper';
 import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http'
 import { LocationStrategy,
          HashLocationStrategy,
@@ -32,6 +33,7 @@ import { IreBsImageComponent } from './img-region-editor-bysel/ire-bs-image/ire-
 import { BrowserCommonImageComponent } from './browser/browser-common-image/browser-common-image.component';
 import { PaginatorComponent } from './paginator/paginator.component';
 import { ImgRegionEditorByselPreviewComponent } from './img-region-editor-bysel/img-region-editor-bysel-preview/img-region-editor-bysel-preview.component';
+import { ImgRegionEditorByselAlterComponent } from './img-region-editor-bysel/img-region-editor-bysel-alter/img-region-editor-bysel-alter.component';
 
 const routes: Routes = [
     { path: '', redirectTo: 'browse/-', pathMatch: 'full' },
@@ -65,9 +67,11 @@ const routes: Routes = [
     IreBsImageComponent,
     BrowserCommonImageComponent,
     PaginatorComponent,
-    ImgRegionEditorByselPreviewComponent
+    ImgRegionEditorByselPreviewComponent,
+    ImgRegionEditorByselAlterComponent
   ],
   imports: [
+    FormsModule,
     BrowserModule,
     NgxPopperModule,
     AngularFontAwesomeModule,
