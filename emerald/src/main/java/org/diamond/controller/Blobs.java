@@ -6,7 +6,6 @@ import java.awt.Rectangle;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.diamond.aquamarine.IContent;
 import org.diamond.persistence.srcimages.entities.Rotation;
@@ -17,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -223,7 +223,6 @@ public class Blobs {
                 }
             };
         } else {
-            // CachedContent(File tmpFile, long length, String mimeType)
             return new CachedContent(blob._file, blob._file.length(), blob._mimeType);
         }
     }
@@ -382,13 +381,7 @@ public class Blobs {
 
         @Override
         public AbstractResource getData() {
-            InputStreamResource retVal;
-            try {
-                retVal = new InputStreamResource(new FileInputStream(tmpFile));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return retVal;
+            return new FileSystemResource(tmpFile);
         }
 
         @Override
