@@ -38,16 +38,16 @@ export class ImgRegionEditorByselAlterComponent implements OnChanges {
   private get _region(): Observable<Wrapper> {
     return this._region$.map(r => {
       return {
-        get text(): string { return r.text; },
-        set text(value: string) {
+        get text(): any { return r.text; },
+        set text(value: any) {
           let region0 = { ... r };
           region0.text = value;
           this._region$.next(region0);
         },
-        get status(): string { return RegionStatus[r.status]; },
-        set status(value: string) {
+        get status(): any { return RegionStatus[r.status]; },
+        set status(value: any) {
           let region0 = { ... r };
-          region0.status = RegionStatus[value];
+          region0.status = RegionStatus[value as string];
           this._region$.next(region0);
         }
       }
