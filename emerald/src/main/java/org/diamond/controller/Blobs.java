@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.diamond.aquamarine.IContent;
 import org.diamond.persistence.srcimages.entities.Rotation;
@@ -93,16 +94,16 @@ public class Blobs {
 
     private final CacheLoader<BlobCacheKey, CachedContent> fragmentLoader = new CacheLoader<BlobCacheKey, CachedContent> () {
         public CachedContent load(BlobCacheKey key) throws Exception {
-            IContent content = cachedImages.get(key.uuid);
-            content = applyTransformations(content, key);
+            FileAndMimeType blob = cachedBlobs.get(key.uuid);
+            IContent content = applyTransformations(blob, key);
             File tmp = makeTmpFile();
             FileUtils.copyInputStreamToFile(content.getData().getInputStream(), tmp);
             return new CachedContent(tmp, content.getLength(), content.getMimeType());
         }
     };
 
-    private final CacheLoader<UUID, CachedContent> blobLoader = new CacheLoader<UUID, CachedContent> () {
-        public CachedContent load(UUID uuid) throws Exception {
+    private final CacheLoader<UUID, FileAndMimeType> blobLoader = new CacheLoader<UUID, FileAndMimeType> () {
+        public FileAndMimeType load(UUID uuid) throws Exception {
             IContent content;
             try (Connection conn = dataSource.getConnection()) {
                 conn.setAutoCommit(false);
@@ -110,13 +111,13 @@ public class Blobs {
             }
             File tmp = makeTmpFile();
             FileUtils.copyInputStreamToFile(content.getData().getInputStream(), tmp);
-            return new CachedContent(tmp, content.getLength(), content.getMimeType());
+            return new FileAndMimeType(tmp, content.getMimeType());
         }
     };
 
-    private final RemovalListener<UUID, CachedContent> blobRemovalListener = removal -> {
+    private final RemovalListener<UUID, FileAndMimeType> blobRemovalListener = removal -> {
         try {
-            File file = removal.getValue().tmpFile;
+            File file = removal.getValue()._file;
             if (!file.delete()) {
                 LOGGER.warn("Can't remove temporary file :" + file.getName());
             }
@@ -127,7 +128,7 @@ public class Blobs {
 
 
     // TODO: Take cache size from project configuration
-    private final LoadingCache<UUID, CachedContent> cachedImages = CacheBuilder.newBuilder()
+    private final LoadingCache<UUID, FileAndMimeType> cachedBlobs = CacheBuilder.newBuilder()
             .maximumSize(100).removalListener(blobRemovalListener).build(blobLoader);
 
     private final RemovalListener<BlobCacheKey, CachedContent> fragmentRemovalListener = removal -> {
@@ -182,21 +183,21 @@ public class Blobs {
         return retVal;
     }
 
-    private IContent applyTransformations(final IContent content, BlobCacheKey key) throws IOException, LLJTranException {
+    private IContent applyTransformations(final FileAndMimeType blob, BlobCacheKey key) throws IOException, LLJTranException {
         boolean nullTransform = (key.rotation == null || key.rotation == Rotation.NONE)
                 && (key.x == null) && (key.y == null) && (key.width == null) && (key.height == null);
         if (!nullTransform) {
-            final String mimeType = content.getMimeType();
+            final String mimeType = blob._mimeType;
             if (!KNOWN_IMAGE_FORMATS.contains(mimeType)) {
                 throw new RuntimeException("Rotate isn't applicable for mime type " + mimeType);
             }
             final Pair<AbstractResource, Long> transformed;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (InputStream is = content.getData().getInputStream()) {
+            try {
                 if ("image/jpeg".equals(mimeType)) {
-                    transformJpeg(is, baos, key);
+                    transformJpeg(blob._file, baos, key);
                 } else if ("image/png".equals(mimeType)) {
-                    transformPng(is, baos, key);
+                    transformPng(blob._file, baos, key);
                 } else {
                     throw new RuntimeException("Rotate isn't applicable for mime type " + mimeType);
                 }
@@ -222,14 +223,15 @@ public class Blobs {
                 }
             };
         } else {
-            return content;
+            // CachedContent(File tmpFile, long length, String mimeType)
+            return new CachedContent(blob._file, blob._file.length(), blob._mimeType);
         }
     }
 
-    private static void transformJpeg(InputStream is, OutputStream os, BlobCacheKey key) throws LLJTranException, IOException {
+    private static void transformJpeg(File file, OutputStream os, BlobCacheKey key) throws LLJTranException, IOException {
         LLJTran jpegTransform = null;
         try {
-            jpegTransform = new LLJTran(is);
+            jpegTransform = new LLJTran(file);
             jpegTransform.read(LLJTran.READ_ALL, true);
             int tsf;
             if (key.rotation != null && key.rotation != Rotation.NONE) {
@@ -271,7 +273,7 @@ public class Blobs {
         }
     }
 
-    private static void transformPng(InputStream is, OutputStream os, BlobCacheKey key) {
+    private static void transformPng(File file, OutputStream os, BlobCacheKey key) {
         throw new RuntimeException("PNG rotation not implemented");
     }
 
@@ -352,6 +354,16 @@ public class Blobs {
             result = 31 * result + (width != null ? width.hashCode() : 0);
             result = 31 * result + (height != null ? height.hashCode() : 0);
             return result;
+        }
+    }
+
+    private static class FileAndMimeType {
+        private final File _file;
+        private final String _mimeType;
+
+        FileAndMimeType(File file, String mimeType) {
+            this._file = file;
+            this._mimeType = mimeType;
         }
     }
 
