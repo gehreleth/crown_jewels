@@ -41,16 +41,24 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._regionsCacheSub =
-      this._imageMetadataService.regionsCache.subscribe(regions => {
-        let map = new Map<string, IImageRegion>();
-        for (const region of regions) {
-          map.set(region.href, region);
-        }
-        this._state$.next({
-          regions: regions,
-          href2Region: map
+      this._imageMetadataService.activeRegion.mergeMap(activeRegion =>
+        this._imageMetadataService.regionsCache.map(regions => {
+          if (activeRegion) {
+            regions = regions.map(r =>
+              r.href !== activeRegion.href ? r : activeRegion
+            );
+          }
+          let map = new Map<string, IImageRegion>();
+          for (const region of regions) {
+            map.set(region.href, region);
+          }
+          return {
+            regions: regions,
+            href2Region: map
+          }}
+        )).subscribe(state => {
+          this._state$.next(state);
         });
-      });
 
     this._routeSub = this._state$.mergeMap(state =>
        this._activatedRoute.params.map(params => {
@@ -63,6 +71,7 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
          let href2Region: Map<string, IImageRegion> = state.href2Region;
 
          const edit = params['edit'];
+         const save = params['save'];
          if (edit && href2Region.has(edit)) {
            let region = href2Region.get(edit);
            let pageRange: IPageRange = this._browserPages.DefPageRange;
@@ -72,18 +81,27 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
              pageRange.count = parseInt(countStr);
            }
 
-           for (let i=0; i < regions.length; i++) {
-             if (regions[i].href === region.href) {
-               pageRange.page = Math.floor(i / pageRange.count);
-               break;
-             }
-           }
-
+           pageRange.page = this._pageOfRegion(region, regions, pageRange.count);
            this._imageMetadataService.setActiveRegion(region);
+
            this._router.navigate(['./', {
              page: pageRange.page,
              count: pageRange.count,
              edit: encodeURI(edit)
+           }], { relativeTo: this._activatedRoute });
+         } else if (save && href2Region.has(save)) {
+           let region = href2Region.get(save);
+           let pageRange: IPageRange = this._browserPages.DefPageRange;
+
+           let countStr: string = params['count'];
+           if (this._isNumberRe.test(countStr)) {
+             pageRange.count = parseInt(countStr);
+           }
+
+           pageRange.page = this._pageOfRegion(region, regions, pageRange.count);
+           this._router.navigate(['./', {
+             page: pageRange.page,
+             count: pageRange.count,
            }], { relativeTo: this._activatedRoute });
          } else {
            let pageRange: IPageRange = this._browserPages.DefPageRange;
@@ -112,6 +130,14 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
            }
          }
        });
+  }
+
+  private _pageOfRegion(region: IImageRegion, regions: Array<IImageRegion>, count: number) {
+    for (let i=0; i < regions.length; i++) {
+      if (regions[i].href === region.href) {
+        return Math.floor(i / count);
+      }
+    }
   }
 
   ngOnDestroy() {

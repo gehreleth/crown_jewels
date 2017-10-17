@@ -1,13 +1,15 @@
-<div *ngIf="_region | async; let region" class="container">
-  <form>
+<div class="container">
+  <form (ngSubmit)="_submit($event)" #regionForm="ngForm">
     <div class="form-group row">
       <label for="regionText" class="col-sm-2 col-form-label"><strong>Text</strong></label>
       <div class="col-sm-10">
         <input type="text"
                class="form-control"
                id="regionText"
+               name="regionText"
                placeholder="Region text"
-               [(value)]="region.text">
+               [(ngModel)]="_model.text"
+               required>
       </div>
     </div>
     <fieldset class="form-group">
@@ -16,54 +18,55 @@
         <div class="col-sm-10">
           <div class="form-check">
             <label class="form-check-label">
-              <input id="gridRadios1"
+              <input id="regionStatus1"
                      class="form-check-input"
                      type="radio"
-                     name="gridRadios"
-                     value="Default"
-                     [checked]="_isStatus(region.status, regionStatus.Default)"
-                     (change)="_setStatus(region, $event)">
+                     name="regionStatus"
+                     [value]="regionStatus.Default"
+                     [(ngModel)]="_model.status">
               Created interactively by Human operator
             </label>
           </div>
           <div class="form-check">
             <label class="form-check-label">
-              <input id="gridRadios2"
+              <input id="regionStatus2"
                      class="form-check-input"
                      type="radio"
-                     name="gridRadios"
-                     value="LowUncertainty"
-                     [checked]="_isStatus(region.status, regionStatus.LowUncertainty)"
-                     (change)="_setStatus(region, $event)">
+                     name="regionStatus"
+                     [value]="regionStatus.LowUncertainty"
+                     [(ngModel)]="_model.status">
               Created by Machine Learning algorightm / Low estimated probability of error
             </label>
           </div>
           <div class="form-check">
             <label class="form-check-label">
-              <input id="gridRadios3"
+              <input id="regionStatus3"
                      class="form-check-input"
                      type="radio"
-                     name="gridRadios"
-                     value="HighUncertainty"
-                     [checked]="_isStatus(region.status, regionStatus.HighUncertainty)"
-                     (change)="_setStatus(region, $event)">
+                     name="regionStatus"
+                     [value]="regionStatus.HighUncertainty"
+                     [(ngModel)]="_model.status">
               Created by Machine Learning algorightm / High estimated probability of error
             </label>
           </div>
           <div class="form-check">
             <label class="form-check-label">
-              <input id="gridRadios4"
+              <input id="regionStatus4"
                      class="form-check-input"
                      type="radio"
-                     name="gridRadios"
-                     value="HumanVerified"
-                     [checked]="_isStatus(region.status, regionStatus.HighUncertainty)"
-                     (change)="_setStatus(region, $event)">
+                     name="regionStatus"
+                     [value]="regionStatus.HumanVerified"
+                     [(ngModel)]="_model.status">
               Validity of this data is verified by Human Operator
             </label>
           </div>
         </div>
       </div>
     </fieldset>
+    <div class="pull-right">
+      <button type="submit"
+              class="btn btn-primary"
+              [disabled]="!regionForm.form.valid">Submit</button>
+    </div>
   </form>
 </div>

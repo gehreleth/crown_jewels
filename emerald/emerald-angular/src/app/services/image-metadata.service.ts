@@ -22,6 +22,7 @@ import rotateCCW from '../backend/rotateCCW';
 
 import allRegions from '../backend/allRegions';
 import updateRegions from '../backend/updateRegions';
+import updateSingleRegion from '../backend/updateSingleRegion';
 
 @Injectable()
 export class ImageMetadataService {
@@ -85,6 +86,10 @@ export class ImageMetadataService {
               regions: Array<IImageRegion>): Observable<Array<IImageRegion>>
   {
     return updateRegions(this._http, this._httpSettings.DefReqOpts, imageMeta, scope, regions);
+  }
+
+  updateSingleRegion(region: IImageRegion) {
+    return updateSingleRegion(this._http, this._httpSettings.DefReqOpts, region);
   }
 
   private _eraseContext() {
