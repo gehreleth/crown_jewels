@@ -1,12 +1,13 @@
 package org.diamond.persistence.srcimages;
 
 import org.diamond.persistence.srcimages.entities.ImageMetadata;
+import org.diamond.persistence.srcimages.entities.im_projections.IBrief;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-@RepositoryRestResource(path = "image-metadata")
+@RepositoryRestResource(path = "image-metadata", excerptProjection = IBrief.class)
 public interface IImageMetadataRepository extends JpaRepository<ImageMetadata, Long> {
     @Query("FROM ImageMetadata AS im WHERE im.storageNode.id = ?1")
     ImageMetadata findOneByStorageNodeId(@Param("storage_node_id") Long storageNodeId);
