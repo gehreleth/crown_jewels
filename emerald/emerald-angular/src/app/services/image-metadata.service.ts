@@ -28,10 +28,6 @@ import updateSingleRegion from '../backend/updateSingleRegion';
 export class ImageMetadataService {
   private readonly _scope$ = new ReplaySubject<IQuery<Array<IImageRegion>>>(1);
 
-  private readonly _regionsCache$ = new BehaviorSubject<Array<IImageRegion>>(undefined);
-
-  private readonly _activeRegion$ = new BehaviorSubject<IImageRegion>(null);
-
   private readonly _imageMeta$ = new BehaviorSubject<IImageMeta>(undefined);
 
   constructor(private _http: Http, private _httpSettings: HttpSettingsService)
@@ -62,24 +58,7 @@ export class ImageMetadataService {
   }
 
   setAllRegionsScope(imageMeta: IImageMeta) {
-    this._eraseContext();
     this._scope$.next(() => allRegions(this._http, imageMeta));
-  }
-
-  updateRegionsCache(regions: Array<IImageRegion>) {
-    return this._regionsCache$.next(regions);
-  }
-
-  get regionsCache(): Observable<Array<IImageRegion>> {
-    return this._regionsCache$.filter(cache => cache !== undefined);
-  }
-
-  setActiveRegion(region: IImageRegion) {
-    this._activeRegion$.next(region);
-  }
-
-  get activeRegion(): Observable<IImageRegion> {
-    return this._activeRegion$;
   }
 
   saveRegions(imageMeta: IImageMeta, scope: IQuery<Array<IImageRegion>>,
@@ -88,12 +67,7 @@ export class ImageMetadataService {
     return updateRegions(this._http, this._httpSettings.DefReqOpts, imageMeta, scope, regions);
   }
 
-  updateSingleRegion(region: IImageRegion) {
+  saveSingleRegion(region: IImageRegion): Observable<IImageRegion> {
     return updateSingleRegion(this._http, this._httpSettings.DefReqOpts, region);
-  }
-
-  private _eraseContext() {
-    this._activeRegion$.next(null);
-    this._regionsCache$.next(undefined);
   }
 }

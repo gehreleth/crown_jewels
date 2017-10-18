@@ -11,6 +11,7 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/distinctUntilChanged';
 
 import { ImageMetadataService } from '../services/image-metadata.service';
+import { RegionEditorService } from '../services/region-editor.service'
 
 import { IDimensions } from '../util/dimensions'
 import { IArea } from '../ire-main-area/area'
@@ -52,7 +53,8 @@ export class ImgRegionEditorComponent
 
   private readonly _areas$ = new BehaviorSubject<Array<IArea>>(undefined);
 
-  constructor(private _imageMetadataService: ImageMetadataService)
+  constructor(private _imageMetadataService: ImageMetadataService,
+              private _regionEditorService: RegionEditorService)
   { }
 
   ngOnInit() {
@@ -63,7 +65,7 @@ export class ImgRegionEditorComponent
       });
 
     this._updateAreasSub = this._dimensions$.mergeMap(dimensions => {
-      return this._imageMetadataService.regionsCache.map(r => {
+      return this._regionEditorService.regions.map(r => {
         return { 'regions': r, 'dimensions': dimensions };
       })
     }).subscribe(state => this._updateAreas(state.regions, state.dimensions));

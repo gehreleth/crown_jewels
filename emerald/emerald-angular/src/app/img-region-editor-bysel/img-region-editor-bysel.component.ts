@@ -4,33 +4,19 @@ import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subscription } from 'rxjs/Subscription';
 
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/concatMap';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/first';
-import 'rxjs/add/operator/distinctUntilChanged';
-
 import { ImageMetadataService } from '../services/image-metadata.service';
+import { RegionEditorService, IEditorRegion } from '../services/region-editor.service';
 import { BrowserPagesService} from '../services/browser-pages.service';
+import { Router, ActivatedRoute, Params } from '@angular/router';
 
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
-import { IQuery } from '../backend/query';
 
 import { IPageRange } from '../util/page-range';
 import { IDimensions } from '../util/dimensions'
-import { IEditorByselRegion } from './editor-bysel-region';
 
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
-
-interface IEditorPageState {
-  pageRange: IPageRange,
-  imageMeta: IImageMeta,
-  dimensions: IDimensions,
-  regionsOnPage: Array<IEditorByselRegion>,
-};
 
 @Component({
   selector: 'app-img-region-editor-bysel',
@@ -62,7 +48,10 @@ export class ImgRegionEditorByselComponent
   private readonly _linkGenerator = (page: number, count: number) =>
     ['../selections', { page: page, count: count }];
 
-  constructor(private _imageMetadataService: ImageMetadataService,
+  constructor(private _router: Router,
+              private _activatedRoute: ActivatedRoute,
+              private _imageMetadataService: ImageMetadataService,
+              private _regionEditorService: RegionEditorService,
               private _browserPages: BrowserPagesService)
   { }
 
@@ -76,32 +65,18 @@ export class ImgRegionEditorByselComponent
     this._stateSub = this._imageMeta$.mergeMap(imageMeta =>
       this._dimensions$.mergeMap(dimensions =>
         this._browserPages.pageRange.mergeMap(pageRange =>
-          this._imageMetadataService.activeRegion.mergeMap(activeRegion =>
-            this._imageMetadataService.regionsCache.map(regions => {
-              const activeHref = activeRegion ? activeRegion.href : null;
-              const start = pageRange.page * pageRange.count;
-              let end = start + pageRange.count;
-              end = Math.min(end, regions.length);
-              let pageRange0 = { ... pageRange };
-              pageRange0.numPages = Math.ceil(regions.length / pageRange.count);
-              let regions0: Array<IEditorByselRegion> = [];
-              let n = start;
-              for (let r of regions.slice(start, end)) {
-                regions0.push({
-                  num: ++n,
-                  active: activeHref === r.href,
-                  href: r.href,
-                  text: r.text,
-                  status: r.status,
-                  x: r.x,
-                  y: r.y,
-                  width: r.width,
-                  height: r.height
-                });
-              }
-              return { pageRange: pageRange0, imageMeta: imageMeta,
-                dimensions: dimensions, regionsOnPage: regions0 };
-          }))))).subscribe(s => this._editorPageState$.next(s));
+          this._regionEditorService.regions.mergeMap(regions =>
+            this._activatedRoute.params.map(params => {
+            const start = pageRange.page * pageRange.count;
+            let end = start + pageRange.count;
+            end = Math.min(end, regions.length);
+            let pageRange0 = { ... pageRange };
+            pageRange0.numPages = Math.ceil(regions.length / pageRange.count);
+            return { rkey: params['r'], pageRange: pageRange0,
+              imageMeta: imageMeta, dimensions: dimensions,
+              regionsOnPage: regions.slice(start, end)
+            };
+        }))))).subscribe(s => this._editorPageState$.next(s));
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -116,12 +91,50 @@ export class ImgRegionEditorByselComponent
     }
   }
 
-  private get _editorPageState(): Observable<IEditorPageState> {
-    return this._editorPageState$;
-  }
-
   ngOnDestroy() {
     this._stateSub.unsubscribe();
     this._imSub.unsubscribe();
   }
+
+  private get _editorPageState(): Observable<IEditorPageState> {
+    return this._editorPageState$;
+  }
+
+  private _regionChanged(region: IImageRegion) {
+    this._imageMetadataService.saveSingleRegion(region).subscribe(region => {
+      this._regionEditorService.updateRegion(region);
+      this._browserPages.pageRange.first().subscribe(pageRange => {
+        this._router.navigate(['./', { page: pageRange.page,
+          count: pageRange.count }], { relativeTo: this._activatedRoute });
+      });
+    })
+  }
+
+  private _editLink(region: IImageRegion) {
+    return ['../selections', { 'r': encodeURI(region.href) }];
+  }
+
+  private _x(region: IImageRegion): number {
+    return Math.round(region.x);
+  }
+
+  private _y(region: IImageRegion): number {
+    return Math.round(region.x);
+  }
+
+  private _width(region: IImageRegion): number {
+    return Math.round(region.width);
+  }
+
+  private _height(region: IImageRegion): number {
+    return Math.round(region.height);
+  }
 }
+
+interface IEditorPageState {
+  rkey: string,
+  pageRange: IPageRange,
+  imageMeta: IImageMeta,
+  dimensions: IDimensions,
+  regionsOnPage: Array<IEditorRegion>,
+};

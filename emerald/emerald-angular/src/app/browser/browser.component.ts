@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { BrowserService } from '../services/browser.service'
 import { ImageMetadataService } from '../services/image-metadata.service'
+import { RegionEditorService } from '../services/region-editor.service'
+
 import { ITreeNode, NodeType } from '../backend/entities/tree-node';
 import { Subscription } from 'rxjs/Subscription';
 
@@ -11,7 +13,7 @@ import setBusyIndicator from '../util/setBusyIndicator';
   selector: 'app-browser',
   templateUrl: './browser.component.html',
   styleUrls: ['./browser.component.scss'],
-  providers: [ ImageMetadataService ]
+  providers: [ ImageMetadataService, RegionEditorService ]
 })
 export class BrowserComponent implements OnInit, OnDestroy {
   private _isNumberRe: RegExp = new RegExp("^\\d+$");
@@ -26,7 +28,8 @@ export class BrowserComponent implements OnInit, OnDestroy {
 
   constructor(private _activatedRoute: ActivatedRoute,
               private _browserService: BrowserService,
-              private _imageMetadataService: ImageMetadataService)
+              private _imageMetadataService: ImageMetadataService,
+              private _regionEditorService: RegionEditorService)
   { }
 
   ngOnInit() {
@@ -37,10 +40,9 @@ export class BrowserComponent implements OnInit, OnDestroy {
       }
     });
 
-    this._imageMetadataService.scope.mergeMap(scope =>
-      setBusyIndicator(this._browserService, scope()))
-      .subscribe(regions => {
-        this._imageMetadataService.updateRegionsCache(regions);
+    this._regionsScopeSub = this._imageMetadataService.scope.mergeMap(scope =>
+      setBusyIndicator(this._browserService, scope())).subscribe(regions => {
+        this._regionEditorService.reinit(regions);
       });
 
     this._rootNodesSub = this._browserService.rootNodes.subscribe((rootNodes: Array<ITreeNode>) => {

@@ -1,15 +1,9 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { IImageRegion, RegionStatus } from '../../backend/entities/image-region';
-import { Router } from '@angular/router';
-import { ActivatedRoute, Params } from '@angular/router';
-import { ImageMetadataService } from '../../services/image-metadata.service';
-
-import { IBusyIndicatorHolder } from '../../util/busy-indicator-holder';
-import setBusyIndicator from '../../util/setBusyIndicator';
-
+import { IEditorRegion } from '../../services/region-editor.service';
 
 interface Model {
-  _region: IImageRegion;
+  _region: IEditorRegion;
   text: any;
   status: any;
 }
@@ -19,17 +13,14 @@ interface Model {
   templateUrl: './img-region-editor-bysel-alter.component.html',
   styleUrls: ['./img-region-editor-bysel-alter.component.scss']
 })
-export class ImgRegionEditorByselAlterComponent implements IBusyIndicatorHolder {
-  busyIndicator: Promise<any> = Promise.resolve(1);
+export class ImgRegionEditorByselAlterComponent  {
   public readonly regionStatus = RegionStatus;
   private _model: Model;
 
-  constructor(private _router: Router,
-              private _activatedRoute: ActivatedRoute,
-              private _imageMetadataService: ImageMetadataService) { }
+  constructor() { }
 
   @Input()
-  set region(arg: IImageRegion) {
+  set region(arg: IEditorRegion) {
     this._model = {
       _region: arg,
       get text(): string {
@@ -52,14 +43,9 @@ export class ImgRegionEditorByselAlterComponent implements IBusyIndicatorHolder 
     };
   }
 
+  @Output() regionChanged = new EventEmitter<IEditorRegion>();
+
   private _submit(event: any) {
-    let obs = setBusyIndicator(this,
-      this._imageMetadataService.updateSingleRegion(this._model._region));
-    obs.subscribe(region => {
-      this._imageMetadataService.setActiveRegion(region);
-      this._router.navigate(['./', {
-        save: encodeURI(region.href)
-      }], { relativeTo: this._activatedRoute });
-    });
+    this.regionChanged.emit(this._model._region);
   }
 }

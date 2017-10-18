@@ -28,7 +28,6 @@ import { IreMainAreaActionLayerComponent } from './ire-main-area/ire-main-area-a
 import { IreMainAreaHandlersComponent } from './ire-main-area/ire-main-area-handlers/ire-main-area-handlers.component';
 import { IreMainAreaDeleteComponent } from './ire-main-area/ire-main-area-delete/ire-main-area-delete.component';
 import { ImgRegionEditorByselComponent } from './img-region-editor-bysel/img-region-editor-bysel.component';
-import { ImgRegionEditorByselSelComponent } from './img-region-editor-bysel/img-region-editor-bysel-sel/img-region-editor-bysel-sel.component';
 import { IreBsImageComponent } from './img-region-editor-bysel/ire-bs-image/ire-bs-image.component';
 import { BrowserCommonImageComponent } from './browser/browser-common-image/browser-common-image.component';
 import { PaginatorComponent } from './paginator/paginator.component';
@@ -63,7 +62,6 @@ const routes: Routes = [
     BrowserSelectionsComponent,
     BrowserCommonComponent,
     ImgRegionEditorByselComponent,
-    ImgRegionEditorByselSelComponent,
     IreBsImageComponent,
     BrowserCommonImageComponent,
     PaginatorComponent,

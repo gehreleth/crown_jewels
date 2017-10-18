@@ -1,11 +1,34 @@
 <div *ngIf="_editorPageState | async; let eps" [ngBusy]="busyIndicator">
   <div id="mysel-main-area">
     <div *ngFor="let region of eps.regionsOnPage">
-      <app-img-region-editor-bysel-sel
-        [imageMeta]="eps.imageMeta"
-        [region]="region"
-        [dimensions]="eps.dimensions">
-      </app-img-region-editor-bysel-sel>
+      <div class="container-fluid">
+        <div class="media">
+          <app-ire-bs-image class="d-flex mr-3"
+            [imageMeta]="eps.imageMeta" [region]="region"
+            [dimensions]="eps.dimensions" [width]="300" [height]="300">
+          </app-ire-bs-image>
+          <div class="media-body" id="body">
+            <div *ngIf="!region.selected" class="pull-right">
+              <a class="btn btn-primary btn-sm"
+                 [routerLink]="_editLink(region)"
+                 role="button">Edit...</a>
+            </div>
+            <h5>Region {{region.num + 1}}.</h5>
+            <small class="text-muted">
+              x:{{_x(region)}}, y:{{_y(region)}}, width:{{_width(region)}}, height:{{_height(region)}}
+            </small>
+            <hr>
+            <app-img-region-editor-bysel-alter *ngIf="region.href === eps.rkey; else preview"
+              [region]="region"
+              (regionChanged)="_regionChanged($event)">
+            </app-img-region-editor-bysel-alter>
+            <ng-template #preview>
+              <app-img-region-editor-bysel-preview [region]="region">
+              </app-img-region-editor-bysel-preview>
+            </ng-template>
+          </div>
+        </div>
+      </div>
       <hr>
     </div>
   </div>
