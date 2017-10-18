@@ -101,7 +101,8 @@ export class ImgRegionEditorByselComponent
   }
 
   private _regionChanged(region: IImageRegion) {
-    this._imageMetadataService.saveSingleRegion(region).subscribe(region => {
+    let obs = setBusyIndicator(this, this._imageMetadataService.saveSingleRegion(region));
+    obs.subscribe(region => {
       this._regionEditorService.updateRegion(region);
       this._browserPages.pageRange.first().subscribe(pageRange => {
         this._router.navigate(['./', { page: pageRange.page,
