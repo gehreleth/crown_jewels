@@ -11,9 +11,11 @@ import { Router, ActivatedRoute, Params } from '@angular/router';
 
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
+import { ITaggedImageRegion } from '../backend/entities/tagged-image-region';
 
 import { IPageRange } from '../util/page-range';
-import { IDimensions } from '../util/dimensions'
+import { IDimensions } from '../util/dimensions';
+import { IEnumerated } from '../util/enumerated';
 
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
@@ -78,8 +80,17 @@ export class ImgRegionEditorByselComponent
             return { rkey: rkey, pageRange: pageRange0,
               imageMeta: imageMeta, dimensions: dimensions,
               regionsOnPage: regions.slice(start, end)
-            };
-        })))).subscribe(s => this._editorPageState$.next(s));
+            }
+          }))))
+          .concatMap(q =>
+            this._imageMetadataService.extendRegionsWithTags(q.regionsOnPage)
+            .map(taggedRegions => mergeInterfaces(q.regionsOnPage, taggedRegions))
+            .map(regions => {
+              return { rkey: q.rkey,
+                pageRange: q.pageRange, imageMeta: q.imageMeta,
+                dimensions: q.dimensions, regionsOnPage: regions
+              };
+            })).subscribe(s => this._editorPageState$.next(s));
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -135,10 +146,30 @@ export class ImgRegionEditorByselComponent
   }
 }
 
+interface IEnumeratedTaggedRegion extends IEnumerated, ITaggedImageRegion {
+};
+
 interface IEditorPageState {
   rkey: string,
   pageRange: IPageRange,
   imageMeta: IImageMeta,
   dimensions: IDimensions,
-  regionsOnPage: Array<IEditorRegion>,
+  regionsOnPage: Array<IEnumeratedTaggedRegion>,
 };
+
+function mergeInterfaces(simpleRegions:Array<IEditorRegion>,
+  taggedRegions: Array<ITaggedImageRegion>): Array<IEnumeratedTaggedRegion>
+{
+  let lookup = new Map<string, number>();
+  for (const sr of simpleRegions) {
+    lookup.set(sr.href, sr.num);
+  }
+  let retVal = new Array<IEnumeratedTaggedRegion>();
+  for (const tr of taggedRegions) {
+    retVal.push({
+      ...tr,
+      num: lookup.get(tr.href)
+    });
+  }
+  return retVal;
+}

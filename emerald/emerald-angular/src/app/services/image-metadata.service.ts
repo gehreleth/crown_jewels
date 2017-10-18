@@ -13,6 +13,7 @@ import { HttpSettingsService } from '../services/http-settings.service';
 import { ITreeNode } from '../backend/entities/tree-node';
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
+import { ITaggedImageRegion } from '../backend/entities/tagged-image-region';
 
 import { IQuery } from '../backend/query';
 
@@ -23,6 +24,7 @@ import rotateCCW from '../backend/rotateCCW';
 import allRegions from '../backend/allRegions';
 import updateRegions from '../backend/updateRegions';
 import updateSingleRegion from '../backend/updateSingleRegion';
+import extendRegionsWithTags from '../backend/extendRegionsWithTags';
 
 @Injectable()
 export class ImageMetadataService {
@@ -69,5 +71,9 @@ export class ImageMetadataService {
 
   saveSingleRegion(region: IImageRegion): Observable<IImageRegion> {
     return updateSingleRegion(this._http, this._httpSettings.DefReqOpts, region);
+  }
+
+  extendRegionsWithTags(regions: Array<IImageRegion>): Observable<Array<ITaggedImageRegion>> {
+    return extendRegionsWithTags(this._http, regions);
   }
 }
