@@ -8,7 +8,7 @@
             [dimensions]="eps.dimensions" [width]="300" [height]="300">
           </app-ire-bs-image>
           <div class="media-body" id="body">
-            <div *ngIf="!region.selected" class="pull-right">
+            <div *ngIf="region.href !== eps.rkey" class="pull-right">
               <a class="btn btn-primary btn-sm"
                  [routerLink]="_editLink(region)"
                  role="button">Edit...</a>
