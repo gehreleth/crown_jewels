@@ -58,6 +58,9 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
                break;
              }
            }
+           let ctx = new Map<string, string>();
+           ctx.set('r', rkey);
+           pageRange.context = ctx;
          }
 
          let pageStr: string = params['page'];

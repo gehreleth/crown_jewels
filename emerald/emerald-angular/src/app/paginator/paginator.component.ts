@@ -10,8 +10,8 @@ import { IPageRange } from '../util/page-range';
 export class PaginatorComponent implements OnInit {
   @Input() pageRange: IPageRange;
   @Input() linkGenerator: (page: number, count:number) => any;
-  @Input() prevPageCaption: string = 'Next';
-  @Input() nextPageCaption: string = 'Prev';
+  @Input() prevPageCaption: string = 'Prev';
+  @Input() nextPageCaption: string = 'Next';
   @Input() captionGenerator: (page: number) => string = (arg) => '' + arg;
 
   constructor() { }

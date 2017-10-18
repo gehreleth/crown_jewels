@@ -65,18 +65,21 @@ export class ImgRegionEditorByselComponent
     this._stateSub = this._imageMeta$.mergeMap(imageMeta =>
       this._dimensions$.mergeMap(dimensions =>
         this._browserPages.pageRange.mergeMap(pageRange =>
-          this._regionEditorService.regions.mergeMap(regions =>
-            this._activatedRoute.params.map(params => {
+          this._regionEditorService.regions.map(regions => {
             const start = pageRange.page * pageRange.count;
             let end = start + pageRange.count;
             end = Math.min(end, regions.length);
             let pageRange0 = { ... pageRange };
             pageRange0.numPages = Math.ceil(regions.length / pageRange.count);
-            return { rkey: params['r'], pageRange: pageRange0,
+            let rkey: string;
+            if (pageRange.context && pageRange.context.has('r')) {
+              rkey = pageRange.context.get('r');
+            }
+            return { rkey: rkey, pageRange: pageRange0,
               imageMeta: imageMeta, dimensions: dimensions,
               regionsOnPage: regions.slice(start, end)
             };
-        }))))).subscribe(s => this._editorPageState$.next(s));
+        })))).subscribe(s => this._editorPageState$.next(s));
   }
 
   ngOnChanges(changes: SimpleChanges) {
