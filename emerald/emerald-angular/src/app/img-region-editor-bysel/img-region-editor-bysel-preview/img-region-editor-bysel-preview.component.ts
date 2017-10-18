@@ -1,8 +1,15 @@
 import { Component, Input } from '@angular/core';
 import { IImageRegion, RegionStatus } from '../../backend/entities/image-region';
+import { ITaggedImageRegion } from '../../backend/entities/tagged-image-region';
 
 @Component({
   selector: 'app-img-region-editor-bysel-preview',
+  styles : [`
+.tag {
+  display: inline-block;
+  margin: 4px;
+}
+`],
   template: `
 <div class="row">
   <div class="col-sm-2"><strong>Text</strong></div>
@@ -19,10 +26,21 @@ import { IImageRegion, RegionStatus } from '../../backend/entities/image-region'
     <span class="{{_statusClass(region.status)}}">{{_statusString(region.status)}}</span>
   </div>
 </div>
+<div class="row">
+  <div class="col-sm-2"><strong>Tags</strong></div>
+  <div class="col-sm-10">
+    <div *ngFor="let tag of region.tags" class="tag">
+      <span class="badge badge-info">{{tag.name}}</span>
+    </div>
+    <ng-template #notags>
+      <span class="badge badge-danger">None</span>
+    </ng-template>
+  </div>
+</div>
 `
 })
 export class ImgRegionEditorByselPreviewComponent {
-  @Input() region: IImageRegion;
+  @Input() region: ITaggedImageRegion;
 
   constructor() { }
 
