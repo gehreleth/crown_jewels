@@ -13,10 +13,10 @@ import java.util.List;
 
 @RepositoryRestResource(path = "tag", excerptProjection = IBrief.class)
 public interface ITagRepository extends JpaRepository<Tag, Long>  {
-    @Query("FROM Tag t WHERE LOWER(t.name) LIKE CONCAT('%',:name_pattern,'%')")
+    @Query("FROM Tag t WHERE LOWER(t.name) LIKE CONCAT('%',LOWER(:name_pattern),'%')")
     List<Tag> findByNamePattern(@Param("name_pattern") String namePattern);
 
-    @Query("FROM Tag t WHERE LOWER(t.name) = :name")
+    @Query("FROM Tag t WHERE LOWER(t.name) = LOWER(:name)")
     @QueryHints(@QueryHint(name = "JDBC_MAX_ROWS", value = "1"))
     Tag findOneByName(@Param("name") String name);
 }
