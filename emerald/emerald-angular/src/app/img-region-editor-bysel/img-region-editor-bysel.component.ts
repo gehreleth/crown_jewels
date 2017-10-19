@@ -6,7 +6,8 @@ import { Subscription } from 'rxjs/Subscription';
 
 import { ImageMetadataService } from '../services/image-metadata.service';
 import { RegionEditorService, IEditorRegion } from '../services/region-editor.service';
-import { BrowserPagesService} from '../services/browser-pages.service';
+import { BrowserPagesService } from '../services/browser-pages.service';
+import { RegionTagsService } from '../services/region-tags.service';
 import { Router, ActivatedRoute, Params } from '@angular/router';
 
 import { IImageMeta } from '../backend/entities/image-meta';
@@ -24,6 +25,7 @@ import setBusyIndicator from '../util/setBusyIndicator';
   selector: 'app-img-region-editor-bysel',
   templateUrl: './img-region-editor-bysel.component.html',
   styleUrls: ['./img-region-editor-bysel.component.scss'],
+  providers: [ RegionTagsService ]
 })
 export class ImgRegionEditorByselComponent
   implements IBusyIndicatorHolder, OnInit, OnChanges, OnDestroy {
@@ -56,7 +58,8 @@ export class ImgRegionEditorByselComponent
               private _activatedRoute: ActivatedRoute,
               private _imageMetadataService: ImageMetadataService,
               private _regionEditorService: RegionEditorService,
-              private _browserPages: BrowserPagesService)
+              private _browserPages: BrowserPagesService,
+              private _regionTagsService: RegionTagsService)
   { }
 
   ngOnInit() {

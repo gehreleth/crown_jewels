@@ -68,9 +68,8 @@
       <div class="col-sm-10">
         <tag-input id="regionTags"
                    name="regionTags"
-                   theme='bootstrap'
-                   [identifyBy]="'id'"
-                   [displayBy]="'name'"
+                   theme="bootstrap"
+                   [onAdding]="_onAdding"
                    [(ngModel)]="_model.tags">
         </tag-input>
       </div>

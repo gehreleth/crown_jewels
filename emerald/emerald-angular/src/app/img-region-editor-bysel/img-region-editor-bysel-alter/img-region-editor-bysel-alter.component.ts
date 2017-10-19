@@ -1,4 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
+import { EmptyObservable } from 'rxjs/observable/EmptyObservable';
+
+import 'rxjs/add/observable/of';
+
+import { RegionTagsService } from '../../services/region-tags.service';
+
 import { IImageRegion, RegionStatus } from '../../backend/entities/image-region';
 import { ITaggedImageRegion } from '../../backend/entities/tagged-image-region';
 import { ITag } from '../../backend/entities/tag';
@@ -12,7 +19,8 @@ export class ImgRegionEditorByselAlterComponent  {
   public readonly regionStatus = RegionStatus;
   private _model: any;
 
-  constructor() { }
+  constructor(private _regionTagsService: RegionTagsService)
+  { }
 
   @Input()
   set region(arg: ITaggedImageRegion) {
@@ -21,10 +29,7 @@ export class ImgRegionEditorByselAlterComponent  {
       text: arg.text,
       status: arg.status,
       tags: arg.tags.map(t => {
-        return {
-          id: t.href,
-          name: t.name
-        };
+        return { value: t.href, display: t.name };
       })
     };
   }
@@ -32,8 +37,21 @@ export class ImgRegionEditorByselAlterComponent  {
   @Output() regionChanged = new EventEmitter<ITaggedImageRegion>();
 
   private _submit(event: any) {
-    const updatedRegion: ITaggedImageRegion = {...this._model._orig,
-      text: this._model.text, status: this._model.status};
+    const updatedRegion: ITaggedImageRegion = { ...this._model._orig,
+      text: this._model.text, status: this._model.status };
     this.regionChanged.emit(updatedRegion);
+  }
+
+  private _onAdding = (tag: string) => this._onAdding0(tag);
+
+  private _onAdding0(tag: string): Observable<any> {
+    const confirm = window.confirm(`Do you really want to add the tag "${tag}" ?`);
+    if (confirm) {
+      return this._regionTagsService.getTagByName(tag).map(t => {
+        return { _orig: t, value: t.href, display: t.name };
+      });
+    } else {
+      return new EmptyObservable();
+    }
   }
 }
