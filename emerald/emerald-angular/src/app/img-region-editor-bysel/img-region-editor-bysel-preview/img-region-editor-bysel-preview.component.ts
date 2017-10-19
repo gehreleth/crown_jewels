@@ -4,40 +4,8 @@ import { ITaggedImageRegion } from '../../backend/entities/tagged-image-region';
 
 @Component({
   selector: 'app-img-region-editor-bysel-preview',
-  styles : [`
-.tag {
-  display: inline-block;
-  margin: 4px;
-}
-`],
-  template: `
-<div class="row">
-  <div class="col-sm-2"><strong>Text</strong></div>
-  <div class="col-sm-10">
-    <p *ngIf="region.text; else notext">{{region.text}}</p>
-    <ng-template #notext>
-      <span class="badge badge-danger">None</span>
-    </ng-template>
-  </div>
-</div>
-<div class="row">
-  <div class="col-sm-2"><strong>Status</strong></div>
-  <div class="col-sm-10">
-    <span class="{{_statusClass(region.status)}}">{{_statusString(region.status)}}</span>
-  </div>
-</div>
-<div class="row">
-  <div class="col-sm-2"><strong>Tags</strong></div>
-  <div class="col-sm-10">
-    <div *ngFor="let tag of region.tags" class="tag">
-      <span class="badge badge-info">{{tag.name}}</span>
-    </div>
-    <ng-template #notags>
-      <span class="badge badge-danger">None</span>
-    </ng-template>
-  </div>
-</div>
-`
+  templateUrl: './img-region-editor-bysel-preview.component.html',
+  styleUrls: ['./img-region-editor-bysel-preview.component.scss']
 })
 export class ImgRegionEditorByselPreviewComponent {
   @Input() region: ITaggedImageRegion;
@@ -68,5 +36,9 @@ export class ImgRegionEditorByselPreviewComponent {
       default:
         return 'Created Interactively';
     }
+  }
+
+  private _anyTags(region: ITaggedImageRegion): boolean {
+    return region.tags && region.tags.length > 0;
   }
 }
