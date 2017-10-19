@@ -90,7 +90,7 @@ export class ImgRegionEditorByselComponent
               for (let r of s.regionsOnPage) {
                 this._taggedRegionsCache.set(r.href, r);
               }
-              this._editorPageState$.next(s)
+              this._editorPageState$.next(s);
             });
   }
 
