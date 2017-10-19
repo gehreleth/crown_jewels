@@ -16,7 +16,7 @@
 <div class="row">
   <div class="col-sm-2"><strong>Tags</strong></div>
   <div class="col-sm-10">
-    <div *ngIf="region.tags.length > 0; else notags">
+    <div *ngIf="_anyTags(region); else notags">
       <div *ngFor="let tag of region.tags" class="tag">
         <span class="badge badge-info">{{tag.name}}</span>
       </div>
