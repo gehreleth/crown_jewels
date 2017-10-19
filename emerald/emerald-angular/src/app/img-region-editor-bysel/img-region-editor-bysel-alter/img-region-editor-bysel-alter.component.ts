@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { IImageRegion, RegionStatus } from '../../backend/entities/image-region';
-import { IEditorRegion } from '../../services/region-editor.service';
+import { ITaggedImageRegion } from '../../backend/entities/tagged-image-region';
 
 interface Model {
-  _region: IEditorRegion;
+  _region: ITaggedImageRegion;
   text: any;
   status: any;
 }
@@ -20,30 +20,25 @@ export class ImgRegionEditorByselAlterComponent  {
   constructor() { }
 
   @Input()
-  set region(arg: IEditorRegion) {
+  set region(arg: ITaggedImageRegion) {
     this._model = {
       _region: arg,
       get text(): string {
         return this._region.text;
       },
       set text(value: string) {
-        let r = { ... this._region };
-        r.text = value;
-        this._region = r;
+        this._region = { ...this._region, text: value };
       },
       get status(): RegionStatus {
         return this._region.status;
       },
       set status(value: RegionStatus) {
-        console.log(value);
-        let r = { ... this._region };
-        r.status = value;
-        this._region = r;
+        this._region = { ...this._region, status: value };
       }
     };
   }
 
-  @Output() regionChanged = new EventEmitter<IEditorRegion>();
+  @Output() regionChanged = new EventEmitter<ITaggedImageRegion>();
 
   private _submit(event: any) {
     this.regionChanged.emit(this._model._region);
