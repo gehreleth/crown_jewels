@@ -34,6 +34,8 @@ export class ImgRegionEditorByselComponent
   private _dimensions$ = new ReplaySubject<IDimensions>(1);
   private _editorPageState$ = new ReplaySubject<IEditorPageState>(1);
 
+  private readonly _taggedRegionsCache = new Map<string, ITaggedImageRegion>();
+
   @Input()
   set imageMeta(arg: IImageMeta) {
     this._imageMeta$.next(arg);
@@ -81,19 +83,24 @@ export class ImgRegionEditorByselComponent
               imageMeta: imageMeta, dimensions: dimensions,
               regionsOnPage: regions.slice(start, end)
             }
-          }))))
-          .concatMap(q =>
-            this._imageMetadataService.extendRegionsWithTags(q.regionsOnPage)
+          })))).concatMap(q => this._cachedExtendRegions(q.regionsOnPage)
             .map(taggedRegions => mergeInterfaces(q.regionsOnPage, taggedRegions))
             .map(regions => {
               return { rkey: q.rkey,
                 pageRange: q.pageRange, imageMeta: q.imageMeta,
                 dimensions: q.dimensions, regionsOnPage: regions
               };
-            })).subscribe(s => this._editorPageState$.next(s));
+            })).subscribe(s => {
+              for (let r of s.regionsOnPage) {
+                this._taggedRegionsCache.set(r.href, r);
+              }
+              this._editorPageState$.next(s)
+            });
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    this._taggedRegionsCache.clear();
+
     const imChange = changes.imageMeta;
     if (imChange) {
       this._imageMeta$.next(imChange.currentValue as IImageMeta);
@@ -114,15 +121,34 @@ export class ImgRegionEditorByselComponent
     return this._editorPageState$;
   }
 
+  private _cachedExtendRegions(regions: Array<IImageRegion>): Observable<Array<ITaggedImageRegion>> {
+    let inCache: Array<ITaggedImageRegion> = [];
+    let notInCache: Array<IImageRegion> = [];
+    for (let r of regions) {
+      if (this._taggedRegionsCache.has(r.href)) {
+        inCache.push(this._taggedRegionsCache.get(r.href));
+      } else {
+        notInCache.push(r);
+      }
+    }
+    if (notInCache.length > 0) {
+      return this._imageMetadataService.extendRegionsWithTags(notInCache)
+        .map(regions => regions.concat(inCache));
+    } else {
+      return Observable.of(inCache);
+    }
+  }
+
   private _regionChanged(region: IImageRegion) {
     let obs = setBusyIndicator(this, this._imageMetadataService.saveSingleRegion(region));
     obs.subscribe(region => {
+      this._taggedRegionsCache.delete(region.href);
       this._regionEditorService.updateRegion(region);
       this._browserPages.pageRange.first().subscribe(pageRange => {
         this._router.navigate(['./', { page: pageRange.page,
           count: pageRange.count }], { relativeTo: this._activatedRoute });
       });
-    })
+    });
   }
 
   private _editLink(region: IImageRegion) {
@@ -171,5 +197,5 @@ function mergeInterfaces(simpleRegions:Array<IEditorRegion>,
       num: lookup.get(tr.href)
     });
   }
-  return retVal;
+  return retVal.sort((n1,n2) => n1.num - n2.num);
 }
