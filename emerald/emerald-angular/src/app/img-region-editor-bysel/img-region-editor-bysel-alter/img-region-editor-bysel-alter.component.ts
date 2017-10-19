@@ -1,12 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { IImageRegion, RegionStatus } from '../../backend/entities/image-region';
 import { ITaggedImageRegion } from '../../backend/entities/tagged-image-region';
-
-interface Model {
-  _region: ITaggedImageRegion;
-  text: any;
-  status: any;
-}
+import { ITag } from '../../backend/entities/tag';
 
 @Component({
   selector: 'app-img-region-editor-bysel-alter',
@@ -15,32 +10,30 @@ interface Model {
 })
 export class ImgRegionEditorByselAlterComponent  {
   public readonly regionStatus = RegionStatus;
-  private _model: Model;
+  private _model: any;
 
   constructor() { }
 
   @Input()
   set region(arg: ITaggedImageRegion) {
     this._model = {
-      _region: arg,
-      get text(): string {
-        return this._region.text;
-      },
-      set text(value: string) {
-        this._region = { ...this._region, text: value };
-      },
-      get status(): RegionStatus {
-        return this._region.status;
-      },
-      set status(value: RegionStatus) {
-        this._region = { ...this._region, status: value };
-      }
+      _orig: arg,
+      text: arg.text,
+      status: arg.status,
+      tags: arg.tags.map(t => {
+        return {
+          id: t.href,
+          name: t.name
+        };
+      })
     };
   }
 
   @Output() regionChanged = new EventEmitter<ITaggedImageRegion>();
 
   private _submit(event: any) {
-    this.regionChanged.emit(this._model._region);
+    const updatedRegion: ITaggedImageRegion = {...this._model._orig,
+      text: this._model.text, status: this._model.status};
+    this.regionChanged.emit(updatedRegion);
   }
 }

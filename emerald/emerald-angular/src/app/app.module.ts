@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgxPopperModule } from 'ngx-popper';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http'
@@ -8,6 +8,9 @@ import { LocationStrategy,
          APP_BASE_HREF } from '@angular/common';
 import { AngularFontAwesomeModule } from 'angular-font-awesome/angular-font-awesome';
 import { AppComponent } from './app.component';
+import { NgxPopperModule } from 'ngx-popper';
+import { TagInputModule } from 'ngx-chips';
+import { BusyModule } from 'angular2-busy';
 import { UploadFormComponent } from './upload-form/upload-form.component';
 import { BrowserService } from './services/browser.service';
 import { HttpSettingsService } from './services/http-settings.service';
@@ -18,8 +21,6 @@ import { BrowserCommonComponent } from './browser/browser-common/browser-common.
 import { BrowserOverviewComponent } from './browser/browser-overview/browser-overview.component';
 import { BrowserSelectionsComponent } from './browser/browser-selections/browser-selections.component';
 import { MenuComponent } from './menu/menu.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { BusyModule } from 'angular2-busy';
 import { ImgRegionEditorComponent } from './img-region-editor/img-region-editor.component';
 import { IreMainAreaComponent } from './ire-main-area/ire-main-area.component';
 import { IreMainAreaSelComponent } from './ire-main-area/ire-main-area-sel/ire-main-area-sel.component';
@@ -75,6 +76,7 @@ const routes: Routes = [
     AngularFontAwesomeModule,
     HttpModule,
     BrowserAnimationsModule,
+    TagInputModule,
     BusyModule,
     RouterModule.forRoot(routes)
   ],
