@@ -69,7 +69,7 @@ export class ImageMetadataService {
     return updateRegions(this._http, this._httpSettings.DefReqOpts, imageMeta, scope, regions);
   }
 
-  saveSingleRegion(region: IImageRegion): Observable<IImageRegion> {
+  saveSingleRegion(region: ITaggedImageRegion): Observable<IImageRegion> {
     return updateSingleRegion(this._http, this._httpSettings.DefReqOpts, region);
   }
 

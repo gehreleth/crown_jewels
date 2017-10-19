@@ -141,7 +141,7 @@ export class ImgRegionEditorByselComponent
     }
   }
 
-  private _regionChanged(region: IImageRegion) {
+  private _regionChanged(region: ITaggedImageRegion) {
     let obs = setBusyIndicator(this, this._imageMetadataService.saveSingleRegion(region));
     obs.subscribe(region => {
       this._taggedRegionsCache.delete(region.href);

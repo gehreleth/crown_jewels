@@ -29,7 +29,7 @@ export class ImgRegionEditorByselAlterComponent  {
       text: arg.text,
       status: arg.status,
       tags: arg.tags.map(t => {
-        return { value: t.href, display: t.name };
+        return { _orig: t, value: t.href, display: t.name };
       })
     };
   }
@@ -38,7 +38,9 @@ export class ImgRegionEditorByselAlterComponent  {
 
   private _submit(event: any) {
     const updatedRegion: ITaggedImageRegion = { ...this._model._orig,
-      text: this._model.text, status: this._model.status };
+      text: this._model.text, status: this._model.status,
+      tags: this._model.tags.map(mt => mt._orig)
+    };
     this.regionChanged.emit(updatedRegion);
   }
 
