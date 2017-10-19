@@ -34,7 +34,7 @@ export class ImgRegionEditorByselComponent
   private _dimensions$ = new ReplaySubject<IDimensions>(1);
   private _editorPageState$ = new ReplaySubject<IEditorPageState>(1);
 
-  private readonly _taggedRegionsCache = new Map<string, ITaggedImageRegion>();
+  private readonly _taggedRegionsCache = new Map<string, IEnumeratedTaggedRegion>();
 
   @Input()
   set imageMeta(arg: IImageMeta) {
@@ -84,12 +84,8 @@ export class ImgRegionEditorByselComponent
               regionsOnPage: regions.slice(start, end)
             }
           })))).concatMap(q => this._cachedExtendRegions(q.regionsOnPage)
-            .map(taggedRegions => mergeInterfaces(q.regionsOnPage, taggedRegions))
             .map(regions => {
-              return { rkey: q.rkey,
-                pageRange: q.pageRange, imageMeta: q.imageMeta,
-                dimensions: q.dimensions, regionsOnPage: regions
-              };
+              return { ...q, regionsOnPage: regions };
             })).subscribe(s => {
               for (let r of s.regionsOnPage) {
                 this._taggedRegionsCache.set(r.href, r);
@@ -121,8 +117,10 @@ export class ImgRegionEditorByselComponent
     return this._editorPageState$;
   }
 
-  private _cachedExtendRegions(regions: Array<IImageRegion>): Observable<Array<ITaggedImageRegion>> {
-    let inCache: Array<ITaggedImageRegion> = [];
+  private _cachedExtendRegions(regions: Array<IEditorRegion>)
+    : Observable<Array<IEnumeratedTaggedRegion>>
+  {
+    let inCache: Array<IEnumeratedTaggedRegion> = [];
     let notInCache: Array<IImageRegion> = [];
     for (let r of regions) {
       if (this._taggedRegionsCache.has(r.href)) {
@@ -133,7 +131,8 @@ export class ImgRegionEditorByselComponent
     }
     if (notInCache.length > 0) {
       return this._imageMetadataService.extendRegionsWithTags(notInCache)
-        .map(regions => regions.concat(inCache));
+        .map(r => r.concat(inCache))
+        .map(r => mergeInterfaces(regions, r));
     } else {
       return Observable.of(inCache);
     }
