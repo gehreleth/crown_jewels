@@ -16,6 +16,6 @@ export namespace ITag {
 
   export function fromEmbedded(arg: any): ITag[] {
     const embedded: any[] = arg._embedded.tags as any[];
-    return embedded.map(q => ITag.fromDict(q));
+    return embedded ? embedded.map(q => ITag.fromDict(q)) : [];
   }
 }
