@@ -3,6 +3,8 @@ import { Observable } from 'rxjs/Observable';
 import { EmptyObservable } from 'rxjs/observable/EmptyObservable';
 
 import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/debounceTime';
 
 import { RegionTagsService } from '../../services/region-tags.service';
 
@@ -23,37 +25,48 @@ export class ImgRegionEditorByselAlterComponent  {
   { }
 
   @Input()
-  set region(arg: ITaggedImageRegion) {
-    this._model = {
-      _orig: arg,
-      text: arg.text,
-      status: arg.status,
-      tags: arg.tags.map(t => {
-        return { _orig: t, value: t.href, display: t.name };
-      })
-    };
+  set region(region: ITaggedImageRegion) {
+    this._model = region2model(region);
   }
 
   @Output() regionChanged = new EventEmitter<ITaggedImageRegion>();
 
   private _submit(event: any) {
-    const updatedRegion: ITaggedImageRegion = { ...this._model._orig,
-      text: this._model.text, status: this._model.status,
-      tags: this._model.tags.map(mt => mt._orig)
-    };
-    this.regionChanged.emit(updatedRegion);
+    this.regionChanged.emit(model2region(this._model));
   }
 
-  private _onAdding = (tag: string) => this._onAdding0(tag);
+  private _onAdding = (tag: any) => this._onAdding0(tag);
 
-  private _onAdding0(tag: string): Observable<any> {
-    const confirm = window.confirm(`Do you really want to add the tag "${tag}" ?`);
-    if (confirm) {
-      return this._regionTagsService.getTagByName(tag).map(t => {
-        return { _orig: t, value: t.href, display: t.name };
-      });
+  private _onAdding0(tag: any): Observable<any> {
+    if (tag && tag._orig && tag._orig.href) {
+      return Observable.of(tag);
     } else {
-      return new EmptyObservable();
+      return this._regionTagsService.getTagByName(tag).map(t => tag2model(t));
     }
   }
+
+  private _requestAutocompleteItems = (pattern: any) => this._requestAutocompleteItems0(pattern);
+
+  private _requestAutocompleteItems0(pattern: any): Observable<any> {
+    if (pattern.length && pattern.length >= 2) {
+      return this._regionTagsService.populateTagsByPattern(pattern).map(
+        (tags: Array<ITag>) => tags.map(t => tag2model(t)));
+    } else {
+      return Observable.of([]);
+    }
+  }
+}
+
+function region2model(arg: ITaggedImageRegion): any {
+  return { _orig: arg, text: arg.text, status: arg.status,
+    tags: arg.tags.map(t => tag2model(t)) };
+}
+
+function tag2model(arg: ITag): any {
+  return { _orig: arg, value: arg.href, display: arg.name };
+}
+
+function model2region(arg: any): ITaggedImageRegion {
+  return { ...arg._orig, text: arg.text, status: arg.status,
+    tags: arg.tags.map(mt => mt._orig) };
 }

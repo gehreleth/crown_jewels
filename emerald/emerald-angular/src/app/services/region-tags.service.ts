@@ -11,6 +11,7 @@ import 'rxjs/add/operator/mergeMap';
 import { HttpSettingsService } from './http-settings.service';
 
 import getTagByName from '../backend/getTagByName';
+import populateTagsByPattern from '../backend/populateTagsByPattern';
 
 @Injectable()
 export class RegionTagsService {
@@ -19,5 +20,9 @@ export class RegionTagsService {
 
   getTagByName(name: string, description?: string): Observable<ITag> {
     return getTagByName(this._http, this._httpSettings.DefReqOpts, name);
+  }
+
+  populateTagsByPattern(pattern: string): Observable<Array<ITag>> {
+    return populateTagsByPattern(this._http, pattern);
   }
 }

@@ -71,6 +71,8 @@
                    theme="bootstrap"
                    [onAdding]="_onAdding"
                    [(ngModel)]="_model.tags">
+          <tag-input-dropdown [autocompleteObservable]='_requestAutocompleteItems'>
+          </tag-input-dropdown>
         </tag-input>
       </div>
     </div>
