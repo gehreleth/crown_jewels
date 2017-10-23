@@ -2,18 +2,13 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ActivatedRoute, Params } from '@angular/router';
 import { BrowserView } from '../browser-view'
-
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
-
 import { BrowserService } from '../../services/browser.service';
 import { BrowserPagesService } from '../../services/browser-pages.service';
-import { RegionEditorService, IEditorRegion } from '../../services/region-editor.service';
-
+import { ImageMetadataService, IEnumeratedTaggedRegion } from '../../services/image-metadata.service';
 import { IImageRegion } from '../../backend/entities/image-region';
 import { IPageRange } from '../../util/page-range';
-
-import getBlobUrl from '../../util/getBlobUrl';
 
 @Component({
   template: `<app-browser-common [view]="_SELECTIONS"></app-browser-common>`,
@@ -28,17 +23,17 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
   constructor(private _router: Router,
               private _activatedRoute: ActivatedRoute,
               private _browserService: BrowserService,
-              private _regionEditorService: RegionEditorService,
-              private _browserPages: BrowserPagesService)
+              private _browserPages: BrowserPagesService,
+              private _imageMetadataService: ImageMetadataService)
   { }
 
   ngOnInit() {
-    this._routeSub = this._regionEditorService.regions.mergeMap(regions =>
+    this._routeSub = this._imageMetadataService.regions$.mergeMap(regions =>
        this._activatedRoute.params.map(params => {
          return { 'params': params, 'regions': regions };
        })).subscribe(state => {
          let params: Params = state.params;
-         let regions: Array<IEditorRegion> = state.regions;
+         let regions: Array<IEnumeratedTaggedRegion> = state.regions;
 
          let pageRange: IPageRange = this._browserPages.DefPageRange;
          let pageRangeDefined = true;

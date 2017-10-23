@@ -17,8 +17,8 @@ import { NodeType } from '../../backend/entities/tree-node';
       <p>Folder</p>
     </div>
     <div *ngSwitchCase="nodeType.Image">
-      <div *ngIf="_imageMetadataService.imageMeta | async; else nometa; let imageMeta">
-        <app-browser-common-image [imageMeta]="imageMeta" [view]="view">
+      <div *ngIf="_imageMetadataService.imageMeta$ | async; else nometa">
+        <app-browser-common-image [view]="view">
         </app-browser-common-image>
       </div>
       <ng-template #nometa>

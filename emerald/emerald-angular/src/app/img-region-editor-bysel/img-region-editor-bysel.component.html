@@ -1,4 +1,4 @@
-<div *ngIf="_editorPageState | async; let eps" [ngBusy]="busyIndicator">
+<div *ngIf="_editorPageState$ | async; let eps">
   <div id="mysel-main-area">
     <div *ngFor="let region of eps.regionsOnPage">
       <div class="container-fluid">

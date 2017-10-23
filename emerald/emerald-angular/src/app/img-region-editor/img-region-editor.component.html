@@ -1,4 +1,4 @@
-<div class="container-fluid" [ngBusy]="busyIndicator">
+<div class="container-fluid">
   <div id="overview-buttons">
     <div class="btn-group" data-toggle="buttons">
       <button type="button" class="btn btn-primary" (click)="_rotateCCW($event)">
@@ -12,8 +12,8 @@
       <i class="nodeicon fa fa-floppy-o"></i>
     </button>
   </div>
-  <div *ngIf="_imageInfo | async; let imageInfo">
-    <div *ngIf="_areas | async; else noareas; let areas">
+  <div *ngIf="_imageInfo$ | async; let imageInfo">
+    <div *ngIf="_areas$ | async; else noareas; let areas">
       <app-ire-main-area
         [imageHref]="imageInfo.href"
         [width]="imageInfo.width" [height]="imageInfo.height"

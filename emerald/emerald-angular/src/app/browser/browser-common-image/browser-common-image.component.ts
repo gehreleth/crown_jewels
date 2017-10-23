@@ -19,40 +19,22 @@ import getBlobUrl from '../../util/getBlobUrl';
   templateUrl: './browser-common-image.component.html',
   styleUrls: ['./browser-common-image.component.scss'],
 })
-export class BrowserCommonImageComponent
-  implements IBusyIndicatorHolder, OnInit, OnDestroy {
+export class BrowserCommonImageComponent {
 
   busyIndicator: Promise<any> = Promise.resolve(1);
   public readonly browserView = BrowserView;
 
-  @Input() imageMeta: IImageMeta;
   @Input() view: BrowserView;
 
-  private _subscription: Subscription;
-  private readonly _url$ = new ReplaySubject<SafeUrl>(1);
   private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
 
   constructor(private _sanitizer: DomSanitizer,
               private _imageMetadataService: ImageMetadataService)
   { }
 
-  ngOnInit() {
-    this._subscription = this._imageMetadataService.imageMeta.subscribe(imageMeta => {
-      const url = this._sanitizer.bypassSecurityTrustUrl(getBlobUrl(imageMeta));
-      this._url$.next(url);
-    });
-  }
-
-  ngOnDestroy() {
-    this._subscription.unsubscribe();
-  }
-
-  private get _probeHref(): Observable<SafeUrl> {
-    return this._url$;
-  }
-
-  private get _dimensions(): Observable<IDimensions> {
-    return this._dimensions$;
+  private get _probeHref$(): Observable<SafeUrl> {
+    return this._imageMetadataService.imageHref$.map(href =>
+      this._sanitizer.bypassSecurityTrustUrl(href));
   }
 
   private _navLinkClass(view: BrowserView): string {

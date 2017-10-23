@@ -3,8 +3,9 @@ import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subscription } from 'rxjs/Subscription';
+import 'rxjs/add/observable/interval';
 
-import { ImageMetadataService } from '../services/image-metadata.service';
+import { ImageMetadataService, IEnumeratedTaggedRegion } from '../services/image-metadata.service';
 import { RegionEditorService, IEditorRegion } from '../services/region-editor.service';
 import { BrowserPagesService } from '../services/browser-pages.service';
 import { RegionTagsService } from '../services/region-tags.service';
@@ -27,30 +28,15 @@ import setBusyIndicator from '../util/setBusyIndicator';
   styleUrls: ['./img-region-editor-bysel.component.scss'],
   providers: [ RegionTagsService ]
 })
-export class ImgRegionEditorByselComponent
-  implements IBusyIndicatorHolder, OnInit, OnDestroy {
-
-  busyIndicator: Promise<any> = Promise.resolve(1);
-
-  private _imageMeta$ = new ReplaySubject<IImageMeta>(1);
+export class ImgRegionEditorByselComponent implements OnInit, OnDestroy {
   private _dimensions$ = new ReplaySubject<IDimensions>(1);
-  private _editorPageState$ = new ReplaySubject<IEditorPageState>(1);
-
-  private readonly _taggedRegionsCache = new Map<string, IEnumeratedTaggedRegion>();
-
-  @Input()
-  set imageMeta(arg: IImageMeta) {
-    this._taggedRegionsCache.clear();
-    this._imageMeta$.next(arg);
-  }
+  private readonly _editorPageState$ = new ReplaySubject<IEditorPageState>(1);
+  private _sub: Subscription;
 
   @Input()
   set dimensions(arg: IDimensions) {
     this._dimensions$.next(arg);
   }
-
-  private _imSub: Subscription;
-  private _stateSub: Subscription;
 
   private readonly _linkGenerator = (page: number, count: number) =>
     ['../selections', { page: page, count: count }];
@@ -58,86 +44,38 @@ export class ImgRegionEditorByselComponent
   constructor(private _router: Router,
               private _activatedRoute: ActivatedRoute,
               private _imageMetadataService: ImageMetadataService,
-              private _regionEditorService: RegionEditorService,
               private _browserPages: BrowserPagesService,
               private _regionTagsService: RegionTagsService)
   { }
 
   ngOnInit() {
-    this._imSub = this._imageMeta$
-      .distinctUntilChanged((u, v) => u === v, im => im.href)
-      .subscribe(imageMeta => {
-        this._imageMetadataService.setAllRegionsScope(imageMeta)
-      });
-
-    this._stateSub = this._imageMeta$.mergeMap(imageMeta =>
-      this._dimensions$.mergeMap(dimensions =>
-        this._browserPages.pageRange.mergeMap(pageRange =>
-          this._regionEditorService.regions.map(regions => {
+    this._sub = this._dimensions$.mergeMap(dimensions =>
+      this._browserPages.pageRange.mergeMap(pageRange =>
+        this._imageMetadataService.imageMeta$.mergeMap(imageMeta =>
+          this._imageMetadataService.regions$.map(regions => {
             const start = pageRange.page * pageRange.count;
             let end = start + pageRange.count;
             end = Math.min(end, regions.length);
-            let pageRange0 = { ... pageRange };
-            pageRange0.numPages = Math.ceil(regions.length / pageRange.count);
             let rkey: string;
             if (pageRange.context && pageRange.context.has('r')) {
               rkey = pageRange.context.get('r');
             }
-            return { rkey: rkey, pageRange: pageRange0,
-              imageMeta: imageMeta, dimensions: dimensions,
+            const numPages = Math.ceil(regions.length / pageRange.count);
+            return { rkey: rkey,
+              imageMeta: imageMeta,
+              pageRange: { ...pageRange, numPages: numPages },
+              dimensions: dimensions,
               regionsOnPage: regions.slice(start, end)
-            }
-          })))).concatMap(q => this._cachedExtendRegions(q.regionsOnPage)
-            .map(regions => {
-              return { ...q, regionsOnPage: regions };
-            })).subscribe(s => {
-              for (let r of s.regionsOnPage) {
-                this._taggedRegionsCache.set(r.href, r);
-              }
-              this._editorPageState$.next(s);
-            });
+            };
+          })))).subscribe(s => this._editorPageState$.next(s));
   }
 
   ngOnDestroy() {
-    this._stateSub.unsubscribe();
-    this._imSub.unsubscribe();
-  }
-
-  private get _editorPageState(): Observable<IEditorPageState> {
-    return this._editorPageState$;
-  }
-
-  private _cachedExtendRegions(regions: Array<IEditorRegion>)
-    : Observable<Array<IEnumeratedTaggedRegion>>
-  {
-    let inCache: Array<IEnumeratedTaggedRegion> = [];
-    let notInCache: Array<IImageRegion> = [];
-    for (let r of regions) {
-      if (this._taggedRegionsCache.has(r.href)) {
-        inCache.push(this._taggedRegionsCache.get(r.href));
-      } else {
-        notInCache.push(r);
-      }
-    }
-    if (notInCache.length > 0) {
-      return this._imageMetadataService.extendRegionsWithTags(notInCache)
-        .map(r => r.concat(inCache))
-        .map(r => mergeInterfaces(regions, r));
-    } else {
-      return Observable.of(inCache);
-    }
+    this._sub.unsubscribe();
   }
 
   private _regionChanged(region: ITaggedImageRegion) {
-    let obs = setBusyIndicator(this, this._imageMetadataService.saveSingleRegion(region));
-    obs.subscribe(region => {
-      this._taggedRegionsCache.delete(region.href);
-      this._regionEditorService.updateRegion(region);
-      this._browserPages.pageRange.first().subscribe(pageRange => {
-        this._router.navigate(['./', { page: pageRange.page,
-          count: pageRange.count }], { relativeTo: this._activatedRoute });
-      });
-    });
+    this._imageMetadataService.updateRegionDeep(region);
   }
 
   private _editLink(region: IImageRegion) {
@@ -161,30 +99,10 @@ export class ImgRegionEditorByselComponent
   }
 }
 
-interface IEnumeratedTaggedRegion extends IEnumerated, ITaggedImageRegion {
-};
-
 interface IEditorPageState {
   rkey: string,
+  imageMeta: IImageMeta;
   pageRange: IPageRange,
-  imageMeta: IImageMeta,
   dimensions: IDimensions,
-  regionsOnPage: Array<IEnumeratedTaggedRegion>,
-};
-
-function mergeInterfaces(simpleRegions:Array<IEditorRegion>,
-  taggedRegions: Array<ITaggedImageRegion>): Array<IEnumeratedTaggedRegion>
-{
-  let lookup = new Map<string, number>();
-  for (const sr of simpleRegions) {
-    lookup.set(sr.href, sr.num);
-  }
-  let retVal = new Array<IEnumeratedTaggedRegion>();
-  for (const tr of taggedRegions) {
-    retVal.push({
-      ...tr,
-      num: lookup.get(tr.href)
-    });
-  }
-  return retVal.sort((n1,n2) => n1.num - n2.num);
+  regionsOnPage: Array<IEnumeratedTaggedRegion>
 }

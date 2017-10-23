@@ -6,17 +6,18 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import "rxjs/add/operator/filter";
 
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { HttpSettingsService } from '../services/http-settings.service';
 
-import { ITreeNode } from '../backend/entities/tree-node';
+import { ITreeNode, NodeType } from '../backend/entities/tree-node';
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
 import { ITaggedImageRegion } from '../backend/entities/tagged-image-region';
 
 import { IQuery } from '../backend/query';
+import { IEnumerated } from '../util/enumerated';
 
+import getBlobUrl from '../util/getBlobUrl';
 import metaFromNode from '../backend/metaFromNode';
 import rotateCW from '../backend/rotateCW';
 import rotateCCW from '../backend/rotateCCW';
@@ -26,54 +27,129 @@ import updateRegions from '../backend/updateRegions';
 import updateSingleRegion from '../backend/updateSingleRegion';
 import extendRegionsWithTags from '../backend/extendRegionsWithTags';
 
-@Injectable()
-export class ImageMetadataService {
-  private readonly _scope$ = new ReplaySubject<IQuery<Array<IImageRegion>>>(1);
+import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
+import setBusyIndicator from '../util/setBusyIndicator';
 
-  private readonly _imageMeta$ = new BehaviorSubject<IImageMeta>(undefined);
+export interface IEnumeratedTaggedRegion extends IEnumerated, ITaggedImageRegion {
+}
+
+@Injectable()
+export class ImageMetadataService implements IBusyIndicatorHolder {
+  /**
+   * Backend call queue. It's supposed to be bound to a busy GUI indicator.
+   * User shouldn't alter this value directry.
+   */
+  busyIndicator: Promise<any> = Promise.resolve(1);
+
+  private readonly _state$ = new ReplaySubject<IImageMetadataServiceState>(1);
 
   constructor(private _http: Http, private _httpSettings: HttpSettingsService)
   { }
 
-  setImageMeta(imageMeta: IImageMeta): void {
-    this._imageMeta$.next(imageMeta);
+  reset(node: ITreeNode) {
+    let obs = ((node && node.type === NodeType.Image)
+        ? metaFromNode(this._http, this._httpSettings.DefReqOpts, node)
+        : Observable.of(null))
+      .concatMap(im => {
+        if (im) {
+          let scope = this.makeAllRegionsScope(im);
+          return scope().concatMap(r => extendRegionsWithTags(this._http, r)
+            .map(regions => {
+              let arr: Array<IEnumeratedTaggedRegion> = [];
+              let lookup = new Map<string, number>();
+              for (let i = 0; i < regions.length; ++i) {
+                const r = regions[i];
+                arr.push({ ...r, num: i });
+                lookup.set(r.href, i);
+              }
+              return { imageMeta: im, scope: scope, regions: arr, href2num: lookup };
+            }));
+        } else {
+          return Observable.of({});
+        }
+      })
+    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
   }
 
-  get imageMeta(): Observable<IImageMeta> {
-    return this._imageMeta$.filter(Boolean);
+  rotateCW() {
+    let obs = this._state$.first().concatMap(s =>
+      rotateCW(this._http, this._httpSettings.DefReqOpts, s.imageMeta).map(im => {
+        return {...s, imageMeta: im }
+      }));
+
+    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
   }
 
-  fromNode(node: ITreeNode): Observable<IImageMeta> {
-    return metaFromNode(this._http, this._httpSettings.DefReqOpts, node);
+  rotateCCW() {
+    let obs = this._state$.first().concatMap(s =>
+      rotateCCW(this._http, this._httpSettings.DefReqOpts, s.imageMeta).map(im => {
+        return {...s, imageMeta: im }
+      }));
+
+    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
   }
 
-  rotateCW(imageMeta: IImageMeta): Observable<IImageMeta> {
-    return rotateCW(this._http, this._httpSettings.DefReqOpts, imageMeta);
+  get imageHref$(): Observable<string> {
+    return this._state$.filter(s => !!s.imageMeta)
+      .map(s => getBlobUrl(s.imageMeta))
+      .distinctUntilChanged();
   }
 
-  rotateCCW(imageMeta: IImageMeta): Observable<IImageMeta> {
-    return rotateCCW(this._http, this._httpSettings.DefReqOpts, imageMeta);
+  get imageMeta$(): Observable<IImageMeta> {
+    return this._state$.filter(s => !!s.imageMeta).map(s => s.imageMeta);
   }
 
-  get scope(): Observable<IQuery<Array<IImageRegion>>> {
-    return this._scope$;
+  get regions$(): Observable<Array<IEnumeratedTaggedRegion>> {
+    return this._state$.filter(s => !!s.imageMeta).map(s => s.regions);
   }
 
-  setAllRegionsScope(imageMeta: IImageMeta) {
-    this._scope$.next(() => allRegions(this._http, imageMeta));
+  makeAllRegionsScope(imageMeta: IImageMeta): IQuery<Array<IImageRegion>> {
+    return () => allRegions(this._http, imageMeta);
   }
 
-  saveRegions(imageMeta: IImageMeta, scope: IQuery<Array<IImageRegion>>,
-              regions: Array<IImageRegion>): Observable<Array<IImageRegion>>
-  {
-    return updateRegions(this._http, this._httpSettings.DefReqOpts, imageMeta, scope, regions);
+  updateRegionsShallow(regions: Array<IImageRegion>) {
+    let obs = this._state$.first().concatMap(s =>
+      updateRegions(this._http, this._httpSettings.DefReqOpts,
+        s.imageMeta, s.scope, regions).map(regions => {
+          let arr = [ ...s.regions ];
+          let lookup = { ...s.href2num };
+          for (let r of regions) {
+           if (lookup.has(r.href)) {
+             const ix = lookup.get(r.href);
+             arr[ix] = { ...arr[ix], r };
+           } else {
+             const ix = arr.length;
+             arr.push({...r, num: ix, tags:[]});
+             lookup.set(r.href, ix);
+           }
+          }
+          return { ...s, regions: arr, href2num: lookup };
+        }));
+
+    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
   }
 
-  saveSingleRegion(region: ITaggedImageRegion): Observable<IImageRegion> {
-    return updateSingleRegion(this._http, this._httpSettings.DefReqOpts, region);
-  }
+  updateRegionDeep(region: ITaggedImageRegion) {
+    let obs = this._state$.first().concatMap(s =>
+      updateSingleRegion(this._http, this._httpSettings.DefReqOpts, region)
+        .map(r => {
+          const lookup = s.href2num;
+          let arr = [ ...s.regions ];
+          if (lookup.has(r.href)) {
+            const ix = lookup.get(r.href);
 
-  extendRegionsWithTags(regions: Array<IImageRegion>): Observable<Array<ITaggedImageRegion>> {
-    return extendRegionsWithTags(this._http, regions);
+            arr[ix] = { ...r, num: ix };
+          }
+          return { ...s, regions: arr };
+        }));
+
+    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
   }
+}
+
+interface IImageMetadataServiceState {
+  readonly imageMeta?: IImageMeta,
+  readonly scope?: IQuery<Array<IImageRegion>>,
+  readonly regions?: Array<IEnumeratedTaggedRegion>,
+  readonly href2num?: Map<string, number>
 }
