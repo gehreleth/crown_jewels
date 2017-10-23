@@ -1,5 +1,4 @@
-import { Component, Input } from '@angular/core';
-import { OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 
 import { Observable } from 'rxjs/Observable';

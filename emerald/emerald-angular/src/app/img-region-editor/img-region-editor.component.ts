@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
@@ -31,7 +31,7 @@ import getBlobUrl from '../util/getBlobUrl';
   styleUrls: ['./img-region-editor.component.scss'],
 })
 export class ImgRegionEditorComponent
-  implements IBusyIndicatorHolder, OnInit, OnChanges, OnDestroy {
+  implements IBusyIndicatorHolder, OnInit, OnDestroy {
 
   busyIndicator: Promise<any> = Promise.resolve(1);
 
@@ -69,18 +69,6 @@ export class ImgRegionEditorComponent
         return { 'regions': r, 'dimensions': dimensions };
       })
     }).subscribe(state => this._updateAreas(state.regions, state.dimensions));
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    const imChange = changes.imageMeta;
-    if (imChange) {
-      this._imageMeta$.next(imChange.currentValue as IImageMeta);
-    }
-
-    const dimChange = changes.dimensions;
-    if (dimChange) {
-      this._dimensions$.next(dimChange.currentValue as IDimensions);
-    }
   }
 
   ngOnDestroy() {

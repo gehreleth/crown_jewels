@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 
 import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
@@ -28,7 +28,7 @@ import setBusyIndicator from '../util/setBusyIndicator';
   providers: [ RegionTagsService ]
 })
 export class ImgRegionEditorByselComponent
-  implements IBusyIndicatorHolder, OnInit, OnChanges, OnDestroy {
+  implements IBusyIndicatorHolder, OnInit, OnDestroy {
 
   busyIndicator: Promise<any> = Promise.resolve(1);
 
@@ -40,6 +40,7 @@ export class ImgRegionEditorByselComponent
 
   @Input()
   set imageMeta(arg: IImageMeta) {
+    this._taggedRegionsCache.clear();
     this._imageMeta$.next(arg);
   }
 
@@ -95,20 +96,6 @@ export class ImgRegionEditorByselComponent
               }
               this._editorPageState$.next(s);
             });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this._taggedRegionsCache.clear();
-
-    const imChange = changes.imageMeta;
-    if (imChange) {
-      this._imageMeta$.next(imChange.currentValue as IImageMeta);
-    }
-
-    const dimChange = changes.dimensions;
-    if (dimChange) {
-      this._dimensions$.next(dimChange.currentValue as IDimensions);
-    }
   }
 
   ngOnDestroy() {
