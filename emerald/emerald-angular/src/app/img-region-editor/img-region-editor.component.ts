@@ -33,13 +33,13 @@ export class ImgRegionEditorComponent
   @Input() dimensions: IDimensions;
 
   private _areas: Array<IArea>;
-  private _updateAreasSub: Subscription;
+  private _sub: Subscription;
 
   constructor(private _imageMetadataService: ImageMetadataService)
   { }
 
   ngOnInit() {
-    this._updateAreasSub = this._imageMetadataService.regions$.subscribe(regions => {
+    this._sub = this._imageMetadataService.regions$.subscribe(regions => {
       const naturalWidth = this.dimensions.naturalWidth;
       const clientWidth = this.dimensions.clientWidth;
       this._areas = r2a(regions, clientWidth / naturalWidth);
@@ -47,7 +47,7 @@ export class ImgRegionEditorComponent
   }
 
   ngOnDestroy() {
-    this._updateAreasSub.unsubscribe();
+    this._sub.unsubscribe();
   }
 
   private _rotateCW(event: any): void {
