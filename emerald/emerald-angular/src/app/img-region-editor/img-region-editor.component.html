@@ -13,15 +13,10 @@
     </button>
   </div>
   <div *ngIf="_imageInfo$ | async; let imageInfo">
-    <div *ngIf="_areas$ | async; else noareas; let areas">
-      <app-ire-main-area
-        [imageHref]="imageInfo.href"
-        [width]="imageInfo.width" [height]="imageInfo.height"
-        [areas]="areas" (areasChanged)="_areasChanged($event)">
-      </app-ire-main-area>
-    </div>
-    <ng-template #noareas>
-      <p>Loading ...</p>
-    </ng-template>
+    <app-ire-main-area
+      [imageHref]="imageInfo.href"
+      [width]="imageInfo.width" [height]="imageInfo.height"
+      [areas]="areas" (areasChanged)="_areasChanged($event)">
+    </app-ire-main-area>
   </div>
 </div>

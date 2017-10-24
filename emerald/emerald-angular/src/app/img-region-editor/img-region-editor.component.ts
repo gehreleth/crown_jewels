@@ -30,36 +30,24 @@ import getBlobUrl from '../util/getBlobUrl';
 export class ImgRegionEditorComponent
   implements OnInit, OnDestroy {
 
-  private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
-  private readonly _areas$ = new ReplaySubject<Array<IArea>>(1);
-  private _updateAreasSub: Subscription;
+  @Input() dimensions: IDimensions;
 
-  @Input()
-  set dimensions(arg: IDimensions) {
-    this._dimensions$.next(arg);
-  }
+  private _areas: Array<IArea>;
+  private _updateAreasSub: Subscription;
 
   constructor(private _imageMetadataService: ImageMetadataService)
   { }
 
   ngOnInit() {
-    this._updateAreasSub = this._dimensions$.mergeMap(dimensions => {
-      return this._imageMetadataService.regions$.map(r => {
-        return { 'regions': r, 'dimensions': dimensions };
-      })
-    }).subscribe(rd => {
-      const naturalWidth = rd.dimensions.naturalWidth;
-      const clientWidth = rd.dimensions.clientWidth;
-      this._areas$.next(r2a(rd.regions, clientWidth / naturalWidth));
+    this._updateAreasSub = this._imageMetadataService.regions$.subscribe(regions => {
+      const naturalWidth = this.dimensions.naturalWidth;
+      const clientWidth = this.dimensions.clientWidth;
+      this._areas = r2a(regions, clientWidth / naturalWidth);
     });
   }
 
   ngOnDestroy() {
     this._updateAreasSub.unsubscribe();
-  }
-
-  private _areasChanged(arg: Array<IArea>) {
-    this._areas$.next(arg);
   }
 
   private _rotateCW(event: any): void {
@@ -71,20 +59,22 @@ export class ImgRegionEditorComponent
   }
 
   private get _imageInfo$(): Observable<any> {
-    return this._imageMetadataService.imageHref$
-      .distinctUntilChanged()
-      .mergeMap(href => this._dimensions$.map(dim => {
-        return { href: href, width: dim.clientWidth, height: dim.clientHeight };
-      }));
+    return this._imageMetadataService.imageHref$.distinctUntilChanged()
+      .map(href => {
+        return { href: href, width: this.dimensions.clientWidth,
+          height: this.dimensions.clientHeight };
+        });
+  }
+
+  private _areasChanged(areas: Array<IArea>): void {
+    this._areas = areas;
   }
 
   private _saveRegions(event: any): void {
-    this._dimensions$.first().mergeMap(dimensions =>
-      this._areas$.first().map(areas => {
-        const naturalWidth = dimensions.naturalWidth;
-        const clientWidth = dimensions.clientWidth;
-        this._imageMetadataService.updateRegionsShallow(a2r(areas, naturalWidth / clientWidth));
-      }));
+    const naturalWidth = this.dimensions.naturalWidth;
+    const clientWidth = this.dimensions.clientWidth;
+    const regions = a2r(this._areas, naturalWidth / clientWidth);
+    this._imageMetadataService.updateRegionsShallow(regions);
   }
 }
 
