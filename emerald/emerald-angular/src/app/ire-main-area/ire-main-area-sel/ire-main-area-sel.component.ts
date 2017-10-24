@@ -23,23 +23,10 @@ import { DomSanitizer, SafeUrl, SafeStyle } from '@angular/platform-browser';
   template: `
 <div class="select-areas-outline" [ngStyle]="outlineStyles"></div>
 <div *ngIf="showPopup; else nopopup">
-  <div #popper class="select-areas-background-area"
+  <div class="select-areas-background-area"
        [style.background]="sanitizedAreaBackgroundStyles"
-       [ngStyle]="areaBackgroundOtherStyles"
-       [popper]="popperContent"
-       [popperShowOnStart]="false"
-       [popperDisableStyle]="true"
-       [popperDisableAnimation]="true"
-       [popperTrigger]="'hover'"
-       [popperPlacement]="'right'">
+       [ngStyle]="areaBackgroundOtherStyles">
   </div>
-  <popper-content #popperContent>
-    <div class="popup-padding">
-      <div class="alert alert-success" role="alert">
-        {{area.text}}
-      </div>
-    </div>
-  </popper-content>
 </div>
 <ng-template #nopopup>
   <div class="select-areas-background-area"

@@ -34,8 +34,8 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this._regionSub = this._imageMetadataService.regions$.subscribe(regions => {
+      this._numItems = regions.length;
       this._browserPages.pageRange$.first().subscribe(pageRange => {
-        this._numItems = regions.length;
         this._browserPages.setPageRange(numPages(pageRange, this._numItems));
       });
     });

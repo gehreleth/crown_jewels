@@ -74,7 +74,7 @@ export class ImageMetadataService implements IBusyIndicatorHolder {
   rotateCW(onCompleteHook?: () => void) {
     let obs = this._state$.first().concatMap(s =>
       rotateCW(this._http, this._httpSettings.DefReqOpts, s.imageMeta).map(im => {
-        return {...s, imageMeta: im }
+        return {...s, imageMeta: im };
       }));
 
     setBusyIndicator(this, obs, onCompleteHook).subscribe(s => this.next(s));
@@ -83,7 +83,7 @@ export class ImageMetadataService implements IBusyIndicatorHolder {
   rotateCCW(onCompleteHook?: () => void) {
     let obs = this._state$.first().concatMap(s =>
       rotateCCW(this._http, this._httpSettings.DefReqOpts, s.imageMeta).map(im => {
-        return {...s, imageMeta: im }
+        return {...s, imageMeta: im };
       }));
 
     setBusyIndicator(this, obs, onCompleteHook).subscribe(s => this.next(s));
@@ -137,7 +137,6 @@ export class ImageMetadataService implements IBusyIndicatorHolder {
           let arr = [ ...s.regions ];
           if (lookup.has(r.href)) {
             const ix = lookup.get(r.href);
-
             arr[ix] = { ...r, num: ix };
           }
           return { ...s, regions: arr };
