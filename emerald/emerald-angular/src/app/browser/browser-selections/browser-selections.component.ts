@@ -4,7 +4,6 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { BrowserView } from '../browser-view'
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
-import { BrowserService } from '../../services/browser.service';
 import { BrowserPagesService } from '../../services/browser-pages.service';
 import { ImageMetadataService, IEnumeratedTaggedRegion } from '../../services/image-metadata.service';
 import { IImageRegion } from '../../backend/entities/image-region';
@@ -22,59 +21,63 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
 
   constructor(private _router: Router,
               private _activatedRoute: ActivatedRoute,
-              private _browserService: BrowserService,
               private _browserPages: BrowserPagesService,
               private _imageMetadataService: ImageMetadataService)
   { }
 
   ngOnInit() {
-    this._routeSub = this._imageMetadataService.regions$.mergeMap(regions =>
-       this._activatedRoute.params.map(params => {
-         return { 'params': params, 'regions': regions };
-       })).subscribe(state => {
-         let params: Params = state.params;
-         let regions: Array<IEnumeratedTaggedRegion> = state.regions;
+    this._routeSub = this._activatedRoute.params.concatMap(params =>
+      this._imageMetadataService.regions$.first().map(regions => {
+        return { params: params, regions: regions };
+      })).subscribe(state => {
+        let params: Params = state.params;
+        let regions: Array<IEnumeratedTaggedRegion> = state.regions;
 
-         let pageRange: IPageRange = this._browserPages.DefPageRange;
-         let pageRangeDefined = true;
+        let pageRange: IPageRange = this._browserPages.DefPageRange;
+        let pageRangeDefined = true;
 
-         let countStr: string = params['count'];
-         if (this._isNumberRe.test(countStr)) {
-           pageRange.count = parseInt(countStr);
-         } else {
-           pageRangeDefined = false;
-         }
+        let countStr: string = params['count'];
+        if (this._isNumberRe.test(countStr)) {
+          pageRange.count = parseInt(countStr);
+        } else {
+          pageRangeDefined = false;
+        }
 
-         const rkey = params['r'];
-         if (rkey) {
-           for (let i = 0; i < regions.length; i++) {
-             if (regions[i].href === rkey) {
-               pageRange.page = Math.floor(i / pageRange.count);
-               break;
-             }
-           }
-           let ctx = new Map<string, string>();
-           ctx.set('r', rkey);
-           pageRange.context = ctx;
-         }
+        let otherRouteParams = new Map<string, string>();
+        const rkey = params['r'];
+        if (rkey) {
+          for (let i = 0; i < regions.length; i++) {
+            if (regions[i].href === rkey) {
+              pageRange.page = Math.floor(i / pageRange.count);
+              break;
+            }
+          }
+          otherRouteParams.set('r', rkey);
+        }
+        pageRange.otherRouteParams = otherRouteParams;
 
-         let pageStr: string = params['page'];
-         if (this._isNumberRe.test(pageStr)) {
-           pageRange.page = parseInt(pageStr);
-         } else {
-           pageRangeDefined = false;
-         }
+        let pageStr: string = params['page'];
+        if (this._isNumberRe.test(pageStr)) {
+          pageRange.page = parseInt(pageStr);
+        } else {
+          pageRangeDefined = false;
+        }
 
-         if (pageRangeDefined) {
-           this._browserPages.setPageRange(pageRange);
-         } else {
-           let p0 = { page: pageRange.page, count: pageRange.count }
-           if (rkey) {
-             p0 = { ...p0, r: rkey};
-           }
-           this._router.navigate(['./', p0], { relativeTo: this._activatedRoute });
-         }
-       });
+        if (pageRangeDefined) {
+          const start = pageRange.page * pageRange.count;
+          let end = start + pageRange.count;
+          end = Math.min(end, regions.length);
+          pageRange.itemsOnPage = regions.slice(start, end);
+          pageRange.numPages = Math.ceil(regions.length / pageRange.count);
+          this._browserPages.setPageRange(pageRange);
+        } else {
+          let p0 = { page: pageRange.page, count: pageRange.count }
+          if (rkey) {
+            p0 = { ...p0, r: rkey};
+          }
+          this._router.navigate(['./', p0], { relativeTo: this._activatedRoute });
+        }
+      });
   }
 
   private _pageOfRegion(region: IImageRegion, regions: Array<IImageRegion>, count: number) {

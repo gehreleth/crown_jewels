@@ -2,5 +2,6 @@ export interface IPageRange {
   page: number;
   count: number;
   numPages?: number;
-  context?: Map<string, string>;
+  otherRouteParams?: Map<string, string>;
+  itemsOnPage?: Array<any>;
 }

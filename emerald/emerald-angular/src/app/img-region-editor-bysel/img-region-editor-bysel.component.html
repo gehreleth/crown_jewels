@@ -1,39 +1,52 @@
-<div *ngIf="_editorPageState$ | async; let eps">
-  <div id="mysel-main-area">
-    <div *ngFor="let region of eps.regionsOnPage">
-      <div class="container-fluid">
-        <div class="media">
-          <app-ire-bs-image class="d-flex mr-3"
-            [imageMeta]="eps.imageMeta" [region]="region"
-            [dimensions]="eps.dimensions" [width]="300" [height]="300">
-          </app-ire-bs-image>
-          <div class="media-body" id="body">
-            <div *ngIf="region.href !== eps.rkey" class="pull-right">
-              <a class="btn btn-primary btn-sm"
-                 [routerLink]="_editLink(region)"
-                 role="button">Edit...</a>
-            </div>
-            <h5>Region {{region.num + 1}}.</h5>
-            <small class="text-muted">
-              x:{{_x(region)}}, y:{{_y(region)}}, width:{{_width(region)}}, height:{{_height(region)}}
-            </small>
-            <hr>
-            <app-img-region-editor-bysel-alter *ngIf="region.href === eps.rkey; else preview"
-              [region]="region"
-              (regionChanged)="_regionChanged($event)">
-            </app-img-region-editor-bysel-alter>
-            <ng-template #preview>
-              <app-img-region-editor-bysel-preview [region]="region">
-              </app-img-region-editor-bysel-preview>
-            </ng-template>
+<div *ngIf="_showMainArea" id="mysel-main-area">
+  <div *ngFor="let region of _regionsOnPage">
+    <div class="container-fluid">
+      <div class="media">
+        <app-ire-bs-image class="d-flex mr-3"
+          [imageMeta]="_imageMeta" [region]="region"
+          [dimensions]="_dimensions" [width]="300" [height]="300">
+        </app-ire-bs-image>
+        <div class="media-body" id="body">
+          <div *ngIf="region.href !== _rkey" class="pull-right">
+            <a class="btn btn-primary btn-sm"
+               [routerLink]="_editLink(region)"
+               role="button">Edit...</a>
           </div>
+          <h5>Region {{region.num + 1}}.</h5>
+          <small class="text-muted">
+            x:{{_x(region)}}, y:{{_y(region)}}, width:{{_width(region)}}, height:{{_height(region)}}
+          </small>
+          <hr>
+          <app-img-region-editor-bysel-alter *ngIf="region.href === _rkey; else preview"
+            [region]="region"
+            (regionChanged)="_regionChanged($event)">
+          </app-img-region-editor-bysel-alter>
+          <ng-template #preview>
+            <app-img-region-editor-bysel-preview [region]="region">
+            </app-img-region-editor-bysel-preview>
+          </ng-template>
         </div>
       </div>
-      <hr>
     </div>
+    <hr>
   </div>
-  <app-paginator *ngIf="eps.pageRange.numPages > 1"
-    [pageRange]="eps.pageRange"
-    [linkGenerator]="_linkGenerator">
-  </app-paginator>
 </div>
+<div *ngIf="_showPaginator" id="pages-outer">
+  <nav id="pages-inner" aria-label="Region editor by selection pages">
+    <ul class="pagination">
+      <li [ngClass]="_prevPageLink.class">
+        <a class="page-link"
+           [routerLink]="_prevPageLink.link"
+           tabindex="{{_prevPageLink.tabindex}}">{{_prevPageLink.caption}}</a>
+      </li>
+      <li *ngFor="let pl of _pageLinks" [ngClass]="pl.class">
+        <a class="page-link" [routerLink]="pl.link">{{pl.caption}}</a>
+      </li>
+      <li [ngClass]="_nextPageLink.class">
+        <a class="page-link"
+           [routerLink]="_nextPageLink.link"
+           tabindex="{{_nextPageLink.tabindex}}">{{_nextPageLink.caption}}</a>
+      </li>
+    </ul>
+  </nav>
+<div>

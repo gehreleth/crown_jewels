@@ -9,7 +9,7 @@ import { ReplaySubject } from 'rxjs/ReplaySubject';
 
 @Injectable()
 export class BrowserPagesService {
-  private readonly pageRange$ = new ReplaySubject<IPageRange>(1);
+  private readonly _pageRange$ = new ReplaySubject<IPageRange>(1);
 
   constructor() { }
 
@@ -21,10 +21,10 @@ export class BrowserPagesService {
   }
 
   setPageRange(pageRange: IPageRange) {
-    this.pageRange$.next(pageRange);
+    this._pageRange$.next(pageRange);
   }
 
-  get pageRange(): Observable<IPageRange> {
-    return this.pageRange$;
+  get pageRange$(): Observable<IPageRange> {
+    return this._pageRange$;
   }
 }

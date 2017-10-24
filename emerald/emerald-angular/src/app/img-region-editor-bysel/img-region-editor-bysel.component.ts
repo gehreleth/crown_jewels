@@ -3,13 +3,10 @@ import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subscription } from 'rxjs/Subscription';
-import 'rxjs/add/observable/interval';
 
 import { ImageMetadataService, IEnumeratedTaggedRegion } from '../services/image-metadata.service';
-import { RegionEditorService, IEditorRegion } from '../services/region-editor.service';
 import { BrowserPagesService } from '../services/browser-pages.service';
 import { RegionTagsService } from '../services/region-tags.service';
-import { Router, ActivatedRoute, Params } from '@angular/router';
 
 import { IImageMeta } from '../backend/entities/image-meta';
 import { IImageRegion } from '../backend/entities/image-region';
@@ -17,7 +14,6 @@ import { ITaggedImageRegion } from '../backend/entities/tagged-image-region';
 
 import { IPageRange } from '../util/page-range';
 import { IDimensions } from '../util/dimensions';
-import { IEnumerated } from '../util/enumerated';
 
 import { IBusyIndicatorHolder } from '../util/busy-indicator-holder';
 import setBusyIndicator from '../util/setBusyIndicator';
@@ -29,49 +25,63 @@ import setBusyIndicator from '../util/setBusyIndicator';
   providers: [ RegionTagsService ]
 })
 export class ImgRegionEditorByselComponent implements OnInit, OnDestroy {
-  private _dimensions$ = new ReplaySubject<IDimensions>(1);
-  private readonly _editorPageState$ = new ReplaySubject<IEditorPageState>(1);
   private _sub: Subscription;
 
-  @Input()
-  set dimensions(arg: IDimensions) {
-    this._dimensions$.next(arg);
+  @Input() set dimensions(arg: IDimensions) {
+    this._dimensions = arg;
   }
 
-  private readonly _linkGenerator = (page: number, count: number) =>
-    ['../selections', { page: page, count: count }];
+  private _rkey: string;
 
-  constructor(private _router: Router,
-              private _activatedRoute: ActivatedRoute,
-              private _imageMetadataService: ImageMetadataService,
+  private _imageMeta: IImageMeta;
+
+  private _pageRange: IPageRange;
+
+  private _dimensions: IDimensions;
+
+  private _regionsOnPage: Array<IEnumeratedTaggedRegion>;
+
+  private _prevPageLink: any;
+
+  private _nextPageLink: any;
+
+  private _pageLinks: any;
+
+  constructor(private _imageMetadataService: ImageMetadataService,
               private _browserPages: BrowserPagesService,
               private _regionTagsService: RegionTagsService)
   { }
 
   ngOnInit() {
-    this._sub = this._dimensions$.mergeMap(dimensions =>
-      this._browserPages.pageRange.mergeMap(pageRange =>
-        this._imageMetadataService.imageMeta$.mergeMap(imageMeta =>
-          this._imageMetadataService.regions$.map(regions => {
-            const start = pageRange.page * pageRange.count;
-            let end = start + pageRange.count;
-            end = Math.min(end, regions.length);
-            let rkey: string;
-            if (pageRange.context && pageRange.context.has('r')) {
-              rkey = pageRange.context.get('r');
-            }
-            const numPages = Math.ceil(regions.length / pageRange.count);
-            return { rkey: rkey,
-              imageMeta: imageMeta,
-              pageRange: { ...pageRange, numPages: numPages },
-              dimensions: dimensions,
-              regionsOnPage: regions.slice(start, end)
-            };
-          })))).subscribe(s => this._editorPageState$.next(s));
+    this._sub = this._browserPages.pageRange$.mergeMap(pageRange =>
+      this._imageMetadataService.imageMeta$.map(imageMeta => {
+        const regions = pageRange.itemsOnPage as Array<IEnumeratedTaggedRegion>;
+        return { rkey: pageRange.otherRouteParams.get('r'),
+          imageMeta: imageMeta, pageRange: pageRange,
+          regionsOnPage: regions };
+      })).subscribe(s => {
+        setTimeout(() => {
+          this._rkey = s.rkey;
+          this._imageMeta = s.imageMeta;
+          this._pageRange = s.pageRange;
+          this._prevPageLink = makePrevPageLink(this._pageRange);
+          this._nextPageLink = makeNextPageLink(this._pageRange);
+          this._pageLinks = makePageLinks(this._pageRange);
+          this._regionsOnPage = s.regionsOnPage;
+        }, 0);
+      });
   }
 
   ngOnDestroy() {
     this._sub.unsubscribe();
+  }
+
+  private get _showMainArea(): boolean {
+    return (!!this._dimensions) && (!!this._imageMeta) && (!!this._pageRange);
+  }
+
+  private get _showPaginator(): boolean {
+    return this._pageRange && this._pageRange.numPages > 1;
   }
 
   private _regionChanged(region: ITaggedImageRegion) {
@@ -99,10 +109,59 @@ export class ImgRegionEditorByselComponent implements OnInit, OnDestroy {
   }
 }
 
-interface IEditorPageState {
-  rkey: string,
-  imageMeta: IImageMeta;
-  pageRange: IPageRange,
-  dimensions: IDimensions,
-  regionsOnPage: Array<IEnumeratedTaggedRegion>
+function lg(page: number, count: number): any {
+  return ['../selections', { page: page, count: count }];
+}
+
+function cg(page: number) {
+  return '' + page;
+}
+
+function makePrevPageLink(pageRange: IPageRange, prevPageCaption = 'Prev'): any {
+  if (pageRange.page > 0) {
+    return { 'class': 'page-item',
+             'link': lg(pageRange.page - 1, pageRange.count),
+             'tabindex': 0,
+             'caption': prevPageCaption
+           };
+  } else {
+    return { 'class': 'page-item disabled',
+             'link': ['./'],
+             'tabindex': -1,
+             'caption': prevPageCaption
+           };
+  }
+}
+
+function makeNextPageLink(pageRange: IPageRange, nextPageCaption = 'Next'): any {
+  if (pageRange.page < (pageRange.numPages - 1)) {
+    return { 'class': 'page-item',
+             'link': lg(pageRange.page + 1, pageRange.count),
+             'tabindex': 0,
+             'caption': nextPageCaption
+           };
+  } else {
+    return { 'class': 'page-item disabled',
+             'link': ['./'],
+             'tabindex': -1,
+             'caption': nextPageCaption
+           };
+  }
+}
+
+function makePageLinks(pageRange: IPageRange): any[] {
+  let retVal: Array<any> = [];
+  for (let i = 0; i < pageRange.numPages; ++i) {
+    if (i !== pageRange.page) {
+      retVal.push({ 'class': 'page-item',
+                    'caption': cg(i + 1),
+                    'link': lg(i, pageRange.count)
+                  });
+    } else {
+      retVal.push({ 'class': 'page-item active',
+                    'caption': cg(i + 1),
+                    'link': ['./']});
+    }
+  }
+  return retVal;
 }
