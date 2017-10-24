@@ -4,6 +4,7 @@ import { DomSanitizer, SafeUrl, SafeStyle} from '@angular/platform-browser';
 import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subscription } from 'rxjs/Subscription';
+import { IPageRange } from '../../util/page-range';
 
 import { BrowserView } from '../browser-view';
 import { IImageMeta } from '../../backend/entities/image-meta';
@@ -25,6 +26,7 @@ export class BrowserCommonImageComponent {
   public readonly browserView = BrowserView;
 
   @Input() view: BrowserView;
+  @Input() pageRange: IPageRange;
 
   private readonly _dimensions$ = new ReplaySubject<IDimensions>(1);
 

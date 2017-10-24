@@ -3,7 +3,7 @@ import { IBusyIndicatorHolder } from './busy-indicator-holder';
 import 'rxjs/add/observable/fromPromise';
 
 export default function setBusyIndicator<Q>(host: IBusyIndicatorHolder,
-  arg: Observable<Q>, logObj?: any): Observable<Q>
+  arg: Observable<Q>, onCompleteHook?: () => void, logObj?: any): Observable<Q>
 {
   let pr = new Promise<Q>((resolve, reject) => {
     let subscription = arg.subscribe(
@@ -16,6 +16,9 @@ export default function setBusyIndicator<Q>(host: IBusyIndicatorHolder,
         reject(err);
       },
       () => {
+        if (onCompleteHook) {
+          onCompleteHook();
+        }
         subscription.unsubscribe();
       }
     );

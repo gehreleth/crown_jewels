@@ -46,7 +46,7 @@ export class ImageMetadataService implements IBusyIndicatorHolder {
   constructor(private _http: Http, private _httpSettings: HttpSettingsService)
   { }
 
-  reset(node: ITreeNode) {
+  reset(node: ITreeNode, onCompleteHook?: () => void) {
     let obs = ((node && node.type === NodeType.Image)
         ? metaFromNode(this._http, this._httpSettings.DefReqOpts, node)
         : Observable.of(null))
@@ -68,25 +68,25 @@ export class ImageMetadataService implements IBusyIndicatorHolder {
           return Observable.of({});
         }
       })
-    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
+    setBusyIndicator(this, obs, onCompleteHook).subscribe(s => this.next(s));
   }
 
-  rotateCW() {
+  rotateCW(onCompleteHook?: () => void) {
     let obs = this._state$.first().concatMap(s =>
       rotateCW(this._http, this._httpSettings.DefReqOpts, s.imageMeta).map(im => {
         return {...s, imageMeta: im }
       }));
 
-    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
+    setBusyIndicator(this, obs, onCompleteHook).subscribe(s => this.next(s));
   }
 
-  rotateCCW() {
+  rotateCCW(onCompleteHook?: () => void) {
     let obs = this._state$.first().concatMap(s =>
       rotateCCW(this._http, this._httpSettings.DefReqOpts, s.imageMeta).map(im => {
         return {...s, imageMeta: im }
       }));
 
-    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
+    setBusyIndicator(this, obs, onCompleteHook).subscribe(s => this.next(s));
   }
 
   get imageHref$(): Observable<string> {
@@ -107,7 +107,7 @@ export class ImageMetadataService implements IBusyIndicatorHolder {
     return () => allRegions(this._http, imageMeta);
   }
 
-  updateRegionsShallow(regions: Array<IImageRegion>) {
+  updateRegionsShallow(regions: Array<IImageRegion>, onCompleteHook?: () => void) {
     let obs = this._state$.first().concatMap(s =>
       updateRegions(this._http, this._httpSettings.DefReqOpts,
         s.imageMeta, s.scope, regions).map(regions => {
@@ -126,10 +126,10 @@ export class ImageMetadataService implements IBusyIndicatorHolder {
           return { ...s, regions: arr, href2num: lookup };
         }));
 
-    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
+    setBusyIndicator(this, obs, onCompleteHook).subscribe(s => this.next(s));
   }
 
-  updateRegionDeep(region: ITaggedImageRegion) {
+  updateRegionDeep(region: ITaggedImageRegion, onCompleteHook?: () => void) {
     let obs = this._state$.first().concatMap(s =>
       updateSingleRegion(this._http, this._httpSettings.DefReqOpts, region)
         .map(r => {
@@ -143,7 +143,11 @@ export class ImageMetadataService implements IBusyIndicatorHolder {
           return { ...s, regions: arr };
         }));
 
-    setBusyIndicator(this, obs).subscribe(s => this._state$.next(s));
+    setBusyIndicator(this, obs, onCompleteHook).subscribe(s => this.next(s));
+  }
+
+  private next(arg: IImageMetadataServiceState) {
+    this._state$.next(arg);
   }
 }
 

@@ -20,6 +20,7 @@ import { ITag } from '../../backend/entities/tag';
 export class ImgRegionEditorByselAlterComponent  {
   public readonly regionStatus = RegionStatus;
   private _model: any;
+  private _submitHook: (arg: ITaggedImageRegion) => ITaggedImageRegion;
 
   constructor(private _regionTagsService: RegionTagsService)
   { }
@@ -32,7 +33,8 @@ export class ImgRegionEditorByselAlterComponent  {
   @Output() regionChanged = new EventEmitter<ITaggedImageRegion>();
 
   private _submit(event: any) {
-    this.regionChanged.emit(model2region(this._model));
+    let r = model2region(this._model);
+    this.regionChanged.emit(r);
   }
 
   private _onAdding = (tag: any) => this._onAdding0(tag);

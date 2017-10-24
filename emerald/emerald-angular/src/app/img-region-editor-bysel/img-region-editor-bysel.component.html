@@ -7,17 +7,17 @@
           [dimensions]="_dimensions" [width]="300" [height]="300">
         </app-ire-bs-image>
         <div class="media-body" id="body">
-          <div *ngIf="region.href !== _rkey" class="pull-right">
-            <a class="btn btn-primary btn-sm"
-               [routerLink]="_editLink(region)"
-               role="button">Edit...</a>
+          <div *ngIf="region.href !== _activeRegionHref" class="pull-right">
+            <button type="button"
+                    class="btn btn-primary btn-sm"
+                    (click)="_editRegion($event, region.href)">Edit...</button>
           </div>
           <h5>Region {{region.num + 1}}.</h5>
           <small class="text-muted">
             x:{{_x(region)}}, y:{{_y(region)}}, width:{{_width(region)}}, height:{{_height(region)}}
           </small>
           <hr>
-          <app-img-region-editor-bysel-alter *ngIf="region.href === _rkey; else preview"
+          <app-img-region-editor-bysel-alter *ngIf="region.href === _activeRegionHref; else preview"
             [region]="region"
             (regionChanged)="_regionChanged($event)">
           </app-img-region-editor-bysel-alter>

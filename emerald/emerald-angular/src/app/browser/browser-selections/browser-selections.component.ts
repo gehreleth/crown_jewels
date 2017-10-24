@@ -10,7 +10,12 @@ import { IImageRegion } from '../../backend/entities/image-region';
 import { IPageRange } from '../../util/page-range';
 
 @Component({
-  template: `<app-browser-common [view]="_SELECTIONS"></app-browser-common>`,
+  template: `
+  <div *ngIf="_browserPages.pageRange$ | async; let pageRange">
+    <app-browser-common [view]="_SELECTIONS" [pageRange]="pageRange">
+    </app-browser-common>
+  </div>
+  `,
   providers: [ BrowserPagesService ]
 })
 export class BrowserSelectionsComponent implements OnInit, OnDestroy {
@@ -26,8 +31,8 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
   { }
 
   ngOnInit() {
-    this._routeSub = this._activatedRoute.params.concatMap(params =>
-      this._imageMetadataService.regions$.first().map(regions => {
+    this._routeSub = this._activatedRoute.params.mergeMap(params =>
+      this._imageMetadataService.regions$.map(regions => {
         return { params: params, regions: regions };
       })).subscribe(state => {
         let params: Params = state.params;
@@ -43,19 +48,6 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
           pageRangeDefined = false;
         }
 
-        let otherRouteParams = new Map<string, string>();
-        const rkey = params['r'];
-        if (rkey) {
-          for (let i = 0; i < regions.length; i++) {
-            if (regions[i].href === rkey) {
-              pageRange.page = Math.floor(i / pageRange.count);
-              break;
-            }
-          }
-          otherRouteParams.set('r', rkey);
-        }
-        pageRange.otherRouteParams = otherRouteParams;
-
         let pageStr: string = params['page'];
         if (this._isNumberRe.test(pageStr)) {
           pageRange.page = parseInt(pageStr);
@@ -67,14 +59,11 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
           const start = pageRange.page * pageRange.count;
           let end = start + pageRange.count;
           end = Math.min(end, regions.length);
-          pageRange.itemsOnPage = regions.slice(start, end);
           pageRange.numPages = Math.ceil(regions.length / pageRange.count);
           this._browserPages.setPageRange(pageRange);
         } else {
-          let p0 = { page: pageRange.page, count: pageRange.count }
-          if (rkey) {
-            p0 = { ...p0, r: rkey};
-          }
+          let p0 = { page: pageRange.page,
+            count: pageRange.count }
           this._router.navigate(['./', p0], { relativeTo: this._activatedRoute });
         }
       });

@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { BrowserService } from '../../services/browser.service';
 import { ImageMetadataService } from '../../services/image-metadata.service';
 import { BrowserView } from '../browser-view';
-
+import { IPageRange } from '../../util/page-range';
 import { NodeType } from '../../backend/entities/tree-node';
 
 @Component({
@@ -18,7 +18,7 @@ import { NodeType } from '../../backend/entities/tree-node';
     </div>
     <div *ngSwitchCase="nodeType.Image">
       <div *ngIf="_imageMetadataService.imageMeta$ | async; else nometa">
-        <app-browser-common-image [view]="view">
+        <app-browser-common-image [view]="view" [pageRange]=pageRange>
         </app-browser-common-image>
       </div>
       <ng-template #nometa>
@@ -35,6 +35,8 @@ export class BrowserCommonComponent {
   public nodeType = NodeType;
 
   @Input() view: BrowserView;
+
+  @Input() pageRange: IPageRange;
 
   constructor(private _browserService: BrowserService,
               private _imageMetadataService: ImageMetadataService)

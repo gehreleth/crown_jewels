@@ -1,8 +1,11 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Router, ActivatedRoute, Params } from '@angular/router';
 
 import { Observable } from 'rxjs/Observable';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { Subscription } from 'rxjs/Subscription';
+
+import 'rxjs/add/operator/switchMap';
 
 import { ImageMetadataService, IEnumeratedTaggedRegion } from '../services/image-metadata.service';
 import { BrowserPagesService } from '../services/browser-pages.service';
@@ -31,11 +34,19 @@ export class ImgRegionEditorByselComponent implements OnInit, OnDestroy {
     this._dimensions = arg;
   }
 
-  private _rkey: string;
-
   private _imageMeta: IImageMeta;
 
   private _pageRange: IPageRange;
+
+  @Input() set pageRange(arg: IPageRange) {
+    this._pageRange = arg;
+    this._prevPageLink = makePrevPageLink(this._pageRange);
+    this._nextPageLink = makeNextPageLink(this._pageRange);
+    this._pageLinks = makePageLinks(this._pageRange);
+    this._imageMetadataService.regions$.first().subscribe(regions => {
+      this._updateRegions(regions, arg);
+    });
+  }
 
   private _dimensions: IDimensions;
 
@@ -47,33 +58,34 @@ export class ImgRegionEditorByselComponent implements OnInit, OnDestroy {
 
   private _pageLinks: any;
 
-  constructor(private _imageMetadataService: ImageMetadataService,
+  private _activeRegionHref: string;
+
+  constructor(private _router: Router,
+              private _activatedRoute: ActivatedRoute,
+              private _imageMetadataService: ImageMetadataService,
               private _browserPages: BrowserPagesService,
               private _regionTagsService: RegionTagsService)
   { }
 
   ngOnInit() {
-    this._sub = this._browserPages.pageRange$.mergeMap(pageRange =>
-      this._imageMetadataService.imageMeta$.map(imageMeta => {
-        const regions = pageRange.itemsOnPage as Array<IEnumeratedTaggedRegion>;
-        return { rkey: pageRange.otherRouteParams.get('r'),
-          imageMeta: imageMeta, pageRange: pageRange,
-          regionsOnPage: regions };
+    this._sub = this._imageMetadataService.imageMeta$.switchMap(imageMeta =>
+      this._imageMetadataService.regions$.map(regions => {
+        return { imageMeta: imageMeta, regions: regions };
       })).subscribe(s => {
-        setTimeout(() => {
-          this._rkey = s.rkey;
-          this._imageMeta = s.imageMeta;
-          this._pageRange = s.pageRange;
-          this._prevPageLink = makePrevPageLink(this._pageRange);
-          this._nextPageLink = makeNextPageLink(this._pageRange);
-          this._pageLinks = makePageLinks(this._pageRange);
-          this._regionsOnPage = s.regionsOnPage;
-        }, 0);
+        this._imageMeta = s.imageMeta;
+        this._updateRegions(s.regions, this._pageRange);
       });
   }
 
   ngOnDestroy() {
     this._sub.unsubscribe();
+  }
+
+  private _updateRegions(regions: Array<IEnumeratedTaggedRegion>, pageRange: IPageRange) {
+    const start = this._pageRange.page * this._pageRange.count;
+    let end = start + this._pageRange.count;
+    end = Math.min(end, regions.length);
+    this._regionsOnPage = regions.slice(start, end);
   }
 
   private get _showMainArea(): boolean {
@@ -84,8 +96,14 @@ export class ImgRegionEditorByselComponent implements OnInit, OnDestroy {
     return this._pageRange && this._pageRange.numPages > 1;
   }
 
+  private _editRegion(event: any, href: string) {
+    this._activeRegionHref = href;
+  }
+
   private _regionChanged(region: ITaggedImageRegion) {
-    this._imageMetadataService.updateRegionDeep(region);
+    this._imageMetadataService.updateRegionDeep(region, () => {
+      this._activeRegionHref = null;
+    });
   }
 
   private _editLink(region: IImageRegion) {
