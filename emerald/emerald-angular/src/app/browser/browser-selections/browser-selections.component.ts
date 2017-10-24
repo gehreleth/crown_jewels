@@ -41,31 +41,30 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
     });
 
     this._routeSub = this._activatedRoute.params.subscribe(params => {
-        let pageRange: IPageRange = this._browserPages.DefPageRange;
-        let pageRangeDefined = true;
+      let pageRange: IPageRange = this._browserPages.DefPageRange;
+      let pageRangeDefined = true;
 
-        let countStr: string = params['count'];
-        if (this._isNumberRe.test(countStr)) {
-          pageRange.count = parseInt(countStr);
-        } else {
-          pageRangeDefined = false;
-        }
+      let countStr: string = params['count'];
+      if (this._isNumberRe.test(countStr)) {
+        pageRange.count = parseInt(countStr);
+      } else {
+        pageRangeDefined = false;
+      }
 
-        let pageStr: string = params['page'];
-        if (this._isNumberRe.test(pageStr)) {
-          pageRange.page = parseInt(pageStr);
-        } else {
-          pageRangeDefined = false;
-        }
+      let pageStr: string = params['page'];
+      if (this._isNumberRe.test(pageStr)) {
+        pageRange.page = parseInt(pageStr);
+      } else {
+        pageRangeDefined = false;
+      }
 
-        if (pageRangeDefined) {
-          this._browserPages.setPageRange(numPages(pageRange, this._numItems));
-        } else {
-          let p0 = { page: pageRange.page,
-            count: pageRange.count }
-          this._router.navigate(['./', p0], { relativeTo: this._activatedRoute });
-        }
-      });
+      if (pageRangeDefined) {
+        this._browserPages.setPageRange(numPages(pageRange, this._numItems));
+      } else {
+        let p0 = { page: pageRange.page, count: pageRange.count };
+        this._router.navigate(['./', p0], { relativeTo: this._activatedRoute });
+      }
+    });
   }
 
   private _pageOfRegion(region: IImageRegion, regions: Array<IImageRegion>, count: number) {
