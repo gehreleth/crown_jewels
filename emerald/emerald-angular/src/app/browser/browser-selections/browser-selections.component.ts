@@ -22,7 +22,9 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
   private readonly _SELECTIONS = BrowserView.Selections;
   private readonly _isNumberRe: RegExp = new RegExp("^\\d+$");
 
+  private _numItems: number = 0;
   private _routeSub: Subscription;
+  private _regionSub: Subscription;
 
   constructor(private _router: Router,
               private _activatedRoute: ActivatedRoute,
@@ -31,13 +33,14 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
   { }
 
   ngOnInit() {
-    this._routeSub = this._activatedRoute.params.mergeMap(params =>
-      this._imageMetadataService.regions$.map(regions => {
-        return { params: params, regions: regions };
-      })).subscribe(state => {
-        let params: Params = state.params;
-        let regions: Array<IEnumeratedTaggedRegion> = state.regions;
+    this._regionSub = this._imageMetadataService.regions$.subscribe(regions => {
+      this._browserPages.pageRange$.first().subscribe(pageRange => {
+        this._numItems = regions.length;
+        this._browserPages.setPageRange(numPages(pageRange, this._numItems));
+      });
+    });
 
+    this._routeSub = this._activatedRoute.params.subscribe(params => {
         let pageRange: IPageRange = this._browserPages.DefPageRange;
         let pageRangeDefined = true;
 
@@ -56,11 +59,7 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
         }
 
         if (pageRangeDefined) {
-          const start = pageRange.page * pageRange.count;
-          let end = start + pageRange.count;
-          end = Math.min(end, regions.length);
-          pageRange.numPages = Math.ceil(regions.length / pageRange.count);
-          this._browserPages.setPageRange(pageRange);
+          this._browserPages.setPageRange(numPages(pageRange, this._numItems));
         } else {
           let p0 = { page: pageRange.page,
             count: pageRange.count }
@@ -79,5 +78,10 @@ export class BrowserSelectionsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this._routeSub.unsubscribe();
+    this._regionSub.unsubscribe();
   }
+}
+
+function numPages(pageRange: IPageRange, numItems: number): IPageRange {
+  return { ...pageRange, numPages: Math.ceil(numItems / pageRange.count) };
 }
